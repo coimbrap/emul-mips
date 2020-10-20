@@ -1,4 +1,4 @@
-## Git
+## Git
 
 ### Gestion par branche
 
