@@ -11,7 +11,7 @@ tabkeau de 32
 
 - On défini le type d'instruction en fonction de l'opcode
 
-En fonction du type d'instruction
+En fonction du type d'instruction :
 
 ### Cas R
 
@@ -22,6 +22,8 @@ Remplissage :
 - 31 -> 26 : 000000
 
 Différents cas en fonction du type de type R
+
+- 
 
 #### Cas 1
 ##### (rs/rt/rd/0/func)
@@ -35,6 +37,9 @@ Différents cas en fonction du type de type R
 - NOP : 000000 (25/21 20/16 15/11 10/6 5/0)
 ##### (0/rt/rd/sa/func)
 - SLL : 000000 (25/21 20/16 15/11 10/6 5/0)
+
+-
+
 
 #### Cas 2
 ##### (0/R1/rt/rd/sa/func)
@@ -59,3 +64,37 @@ Différents cas en fonction du type de type R
 #### Cas 6
 ##### (code/func)
 - SYSCALL : 001100 (25/6 5/0)
+
+
+
+
+### Cas I
+- ADDI : 001000 (25/21 20/16 15/0)
+- BEQ : 000100 (25/21 20/16 15/0)
+- BGTZ : 000111 (25/21 20/16 15/0)
+- BLEZ : 000110 (25/21 20/16 15/0)
+- BNE : 000101 (25/21 20/16 15/0)
+- LUI : 001111 (25/21 20/16 15/0)
+- LW : 100011 (25/21 20/16 15/0)
+
+### Cas J
+- J : 000010 (25/0)
+- JAL : 000011 (25/0)
+
+Fonctions à faire :
+
+
+Cas général :
+- Tableau de 32 bits binaire à convertir en hexadécimal
+- Mettre l'hexa dans un fichier
+
+
+Fonction annexe :
+Un tableau 26 qui contient les opérations :
+- Une case = Une structure contenant :
+  - L'opcode
+  - Le type d'instruction
+  - Le sous cas dans le cas des R
+
+
+- Prend en entrée le nom de l'instruction et qui retourne un pointeur vers la case du tableau correspondant à cet opérateur
