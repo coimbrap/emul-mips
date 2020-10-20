@@ -1,3 +1,23 @@
+## Git
+
+### Gestion par branche
+
+- On ne touche pas à la branche main
+- On crée une branche une fois que c'est fini ET stable on merge main et la branche
+
+#### Gestion des conflits
+- On pull le main sur notre branche
+- On gère les conflits (merge) à la main via atom
+```
+<<<<<<<
+
+=======
+
+>>>>>>>
+```
+- On fusionne notre branche et le main une fois le conflit résolu
+
+
 ### Mode interactif
 
 Utilisateur rentre une instruction
