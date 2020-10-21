@@ -8,6 +8,7 @@
 #define TAILLE_MAX_REGISTE 2
 #define TAILLE_BIT_OPERATION 32
 #define TAILLE_OPCODE 6
+#define NB_OPERATIONS 1
 
 
 typedef struct instruction instruction;
@@ -15,12 +16,14 @@ typedef struct instruction instruction;
 struct instruction {
   /* Nécessaicité de suivantColonne et suivantLigne ? Un pourrait suffire */
   char nom[TAILLE_MAX_OPERATEUR]; /* En ascii */
-  int opcode[TAILLE_OPCODE]; /* En binaire */
-  char typeInstruction; /* 'L' || 'I' || 'J' */
+  int opcode; /* ecrit sous forme binaire */
+  char typeInstruction; /* 'R' || 'I' || 'J' */
   int ordreBits; /* Cas en fonction du type */
   int styleRemplissage; /* SG en fonction du type */
 };
 
+void remplissageStructInstruction();
+void afficheStructInstruction(instruction *instructions);
 
 
 void afficheBin(int* bin);

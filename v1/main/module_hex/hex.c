@@ -1,4 +1,39 @@
 #include "hex.h"
+#include <string.h>
+
+void remplissageStructInstruction() {
+  instruction *instructions[NB_OPERATIONS];
+  instruction *tmp=NULL;
+  int i=0;
+  for(i=0;i<NB_OPERATIONS;i++) {
+    instructions[i]=malloc(sizeof(instruction));
+    tmp=instructions[i];
+    strcpy(tmp->nom,"ADD");
+    tmp->opcode=100100;
+    tmp->typeInstruction='R';
+    tmp->ordreBits=1;
+    tmp->styleRemplissage=1;
+  }
+  afficheStructInstruction(*instructions);
+}
+
+void afficheStructInstruction(instruction *instructions) {
+  int i=0;
+  instruction tmp;
+  for(i=0;i<NB_OPERATIONS;i++) {
+    tmp=instructions[i];
+    printf("Case %i\n", i);
+    printf("Nom : %s\n", tmp.nom);
+    printf("opcode : %d\n", tmp.opcode);
+    printf("Type d'instruction : %c\n", tmp.typeInstruction);
+    printf("Ordre bits : %d\n", tmp.ordreBits);
+    printf("Style de remplissage : %d\n", tmp.styleRemplissage);
+    printf("\n");
+  }
+}
+
+
+
 
 void afficheBin(int* bin) {
   int i=0;
