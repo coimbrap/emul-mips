@@ -100,7 +100,7 @@ void parseR(char *ope, int offset) {
 }
 
 void parseOperation(char *ope) {
-  int i=0,j=0,nbOperande;
+  int i=0,j=0;
   /* Taille max 5 */
   char operation[TAILLE_MAX_OPERATEUR];
   while(ope[i]!='$' && ope[i]!='\0') {
@@ -119,7 +119,6 @@ void parseFichier(char *nomFichier) {
   char *line=NULL;
   if (fp==NULL) {
     perror("Erreur lors de l'ouverture du fichier");
-    return -1;
   }
   while(getline(&line,&len,fp)!=-1) {
     line=enleveEspaces(line);
