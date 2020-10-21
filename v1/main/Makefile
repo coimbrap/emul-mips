@@ -11,10 +11,10 @@ $(EXEC): $(EXEC).o hex.o
 debug: $(EXEC)Debug.o hexDebug.o
 	$(CC) -o $(EXEC) $^ $(LDFLAGS)
 
-$(EXEC).o: $(EXEC).c $(EXEC).h
+$(EXEC).o: $(EXEC).c
 	$(CC) -c $< $(CFLAGS) -o $@
 
-$(EXEC)Debug.o: $(EXEC).c $(EXEC).h
+$(EXEC)Debug.o: $(EXEC).c
 	$(CC) -c -D DEBUG $< $(CFLAGS) -o $@
 
 hex.o: module_hex/hex.c module_hex/hex.h
