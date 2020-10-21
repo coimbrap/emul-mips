@@ -255,5 +255,7 @@ Permet de lire ligne à ligne le fichier le parse et exécute la fonction suivan
 
 - void parseOperation(char *ope)
 Transforme une expression en plusieurs blocs et rempli le tableau binaire.
-
 Le séparateur est dans un premier temps le dollars la virgule
+
+- void decVersBinOffset(int *bin, int x, int offset);
+Offset est la case du tableau à laquelle on commence à écrire la valeur binaire de x
