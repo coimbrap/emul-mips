@@ -1,27 +1,29 @@
 #include "hex.h"
 #include <string.h>
 
-void remplissageStructInstruction() {
-  instruction *instructions[NB_OPERATIONS];
+void remplissageStructInstruction(instruction *instructions[], const char* fichier) {
+  FILE *fs=fopen(fichier,"r");
   instruction *tmp=NULL;
   int i=0;
+  if(fs==NULL) {
+    perror("Erreur d'ouverture");
+  }
+  fseek(fs,0,SEEK_SET);
+
   for(i=0;i<NB_OPERATIONS;i++) {
     instructions[i]=malloc(sizeof(instruction));
     tmp=instructions[i];
-    strcpy(tmp->nom,"ADD");
-    tmp->opcode=100100;
-    tmp->typeInstruction='R';
-    tmp->ordreBits=1;
-    tmp->styleRemplissage=1;
+    fscanf(fs,"%[^,],%d,%c,%d,%d*",(char *) &tmp->nom,&tmp->opcode,&tmp->typeInstruction,&tmp->ordreBits,&tmp->styleRemplissage);
+    fgetc(fs); /* Enlève \n */
   }
-  afficheStructInstruction(*instructions);
+  fclose(fs);
 }
 
-void afficheStructInstruction(instruction *instructions) {
+void afficheStructInstruction(instruction *instructions[]) {
   int i=0;
   instruction tmp;
   for(i=0;i<NB_OPERATIONS;i++) {
-    tmp=instructions[i];
+    tmp=*instructions[i];
     printf("Case %i\n", i);
     printf("Nom : %s\n", tmp.nom);
     printf("opcode : %d\n", tmp.opcode);
@@ -31,9 +33,6 @@ void afficheStructInstruction(instruction *instructions) {
     printf("\n");
   }
 }
-
-
-
 
 void afficheBin(int* bin) {
   int i=0;

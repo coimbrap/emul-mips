@@ -8,7 +8,7 @@
 #define TAILLE_MAX_REGISTE 2
 #define TAILLE_BIT_OPERATION 32
 #define TAILLE_OPCODE 6
-#define NB_OPERATIONS 1
+#define NB_OPERATIONS 2
 
 
 typedef struct instruction instruction;
@@ -22,10 +22,8 @@ struct instruction {
   int styleRemplissage; /* SG en fonction du type */
 };
 
-void remplissageStructInstruction();
-void afficheStructInstruction(instruction *instructions);
-
-
+void remplissageStructInstruction(instruction *instructions[], const char* fichier);
+void afficheStructInstruction(instruction *instructions[]);
 void afficheBin(int* bin);
 char* enleveEspaces(char *s);
 char* enleveCommentaires(char *s);

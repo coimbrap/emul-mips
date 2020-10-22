@@ -1,5 +1,5 @@
 #include "hex.h"
 
 int main() {
-  remplissageStructInstruction();
+  return 0;
 }
