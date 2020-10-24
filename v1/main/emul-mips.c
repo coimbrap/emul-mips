@@ -62,7 +62,7 @@ int main() {
   }
 
   printf("\n----------------------------------\nTest parseur ligne\n----------------------------------\n");
-  char *ligne="SLL $10,$23,24";/*"ADD $6,$31,$1";*/
+  char *ligne="SLL $5,$4,2";/*"ADD $6,$31,$1";*/
   printf("%s\n", ligne);
   parseLigne(ligne);
   return 0;
