@@ -102,7 +102,7 @@ char* enleveCommentaires(char *s) {
 int nombreOperande(char *s) {
   int ret=0,i=0;
   while(s[i]!='\0') {
-    if (s[i]==',') {
+    if (s[i]==',' || s[i]=='(') {
       ret++;
     }
     i++;
@@ -163,7 +163,7 @@ char** parseRegistres(char *ligne, char* registres[], int* offset) {
   }
   for(j=0;j<nbOperande;j++) {
     k=0;
-    while(ligne[i]!=',' && ligne[i]!='\0') {
+    while(ligne[i]!='(' && ligne[i]!=',' && ligne[i]!='\0') {
       if (ligne[i]>='0' && ligne[i]<='9') {
           registres[numOpe][k]=ligne[i];
         k++;
@@ -354,18 +354,6 @@ void parseLigne(char *ligne) {
       }
     }
   }
-  else if (found->typeInstruction=='J') {
-    if (found->ordreBits==1) {
-      if (found->styleRemplissage==1) {
-        rempliBinTabBin(found->opcode, &offsetBin, &bin);
-        for(i=0;i<nombreOperande(ligne);i++) {
-          registreDec=valeurDecimale(registres[i]);
-          decToBinary(registreDec,&offsetBin, &bin);
-        }
-      }  
-    }
-  }
-
   afficheBin(&bin);
   inverseTab(&bin,TAILLE_BIT_OPERATION);
   afficheBin(&bin);
