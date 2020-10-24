@@ -13,7 +13,7 @@ void remplissageStructInstruction(instruction *instructions[], const char* fichi
   for(i=0;i<NB_OPERATIONS;i++) {
     instructions[i]=malloc(sizeof(instruction));
     tmp=instructions[i];
-    fscanf(fs,"%[^,],%d,%c,%d,%d*",(char *) &tmp->nom,&tmp->opcode,&tmp->typeInstruction,&tmp->ordreBits,&tmp->styleRemplissage);
+    fscanf(fs,"%[^,],%[^,],%c,%d,%d*",(char *) &tmp->nom,(char *) &tmp->opcode,&tmp->typeInstruction,&tmp->ordreBits,&tmp->styleRemplissage);
     fgetc(fs); /* Enlève \n */
   }
   fclose(fs);
@@ -26,7 +26,7 @@ void afficheStructInstruction(instruction *instructions[]) {
     tmp=*instructions[i];
     printf("Case %i\n", i);
     printf("Nom : %s\n", tmp.nom);
-    printf("opcode : %d\n", tmp.opcode);
+    printf("opcode : %s\n", tmp.opcode);
     printf("Type d'instruction : %c\n", tmp.typeInstruction);
     printf("Ordre bits : %d\n", tmp.ordreBits);
     printf("Style de remplissage : %d\n", tmp.styleRemplissage);

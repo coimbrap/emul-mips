@@ -16,7 +16,7 @@ typedef struct instruction instruction;
 struct instruction {
   /* Nécessaicité de suivantColonne et suivantLigne ? Un pourrait suffire */
   char nom[TAILLE_MAX_OPERATEUR]; /* En ascii */
-  int opcode; /* ecrit sous forme binaire */
+  char opcode[TAILLE_OPCODE+1]; /* ecrit sous forme binaire */
   char typeInstruction; /* 'R' || 'I' || 'J' */
   int ordreBits; /* Cas en fonction du type */
   int styleRemplissage; /* SG en fonction du type */
