@@ -17,7 +17,7 @@ int main() {
   parseFichier(nomFichier);
   printf("\n----------------------------------\nTest Remplissage Structure\n----------------------------------\n");
   char* listeope="module_hex/listeOpe.txt";
-  instruction *instructions[NB_OPERATIONS];
+  instruction *instructions[NB_OPERATIONS+1];
   remplissageStructInstruction(instructions,listeope);
   afficheStructInstruction(instructions);
   return 0;

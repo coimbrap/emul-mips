@@ -4,11 +4,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#define TAILLE_MAX_OPERATEUR 5
+#define TAILLE_MAX_OPERATEUR 6
 #define TAILLE_MAX_REGISTE 2
 #define TAILLE_BIT_OPERATION 32
 #define TAILLE_OPCODE 6
-#define NB_OPERATIONS 2
+#define NB_OPERATIONS 24
 
 
 typedef struct instruction instruction;
