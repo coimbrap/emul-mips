@@ -9,6 +9,7 @@
 #define TAILLE_BIT_OPERATION 32
 #define TAILLE_OPCODE 7
 #define NB_OPERATIONS 24
+#define TAILLE_REG 5
 
 
 typedef struct instruction instruction;
@@ -33,8 +34,8 @@ char* enleveEspaces(char *s);
 char* enleveCommentaires(char *s);
 int nombreOperande(char *s);
 int valeurDecimale(char *s);
-void decToBinary(int n, int offset, int* bin);
-void rempliBinTabBin(char* cBin, int offset, int* bin);
+void decToBinary(int n, int* offset, int* bin);
+void rempliBinTabBin(char* cBin, int* offset, int* bin);
 void parseR(char *ope, int offset);
 void parseOperation(char *ligne, char* operation, int* offset); /* Retourne un string de l'opération (ADD...) */
 void parseFichier(const char *nomFichier);
