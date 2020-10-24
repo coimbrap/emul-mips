@@ -19,18 +19,33 @@ void remplissageStructInstruction(instruction *instructions[], const char* fichi
   fclose(fs);
 }
 
+instruction* trouveOperation(instruction* instructions[], char* nom) {
+  int i=0, nonTrouvee=1;
+  instruction *ret=NULL;
+  while (nonTrouvee && i<NB_OPERATIONS) {
+    if (strcmp(instructions[i]->nom,nom)==0) {
+      ret=instructions[i];
+      nonTrouvee=0;
+    }
+    i++;
+  }
+  return ret;
+}
+
+void afficheInstruction(instruction *instruction) {
+  printf("Nom : %s\n", instruction->nom);
+  printf("opcode : %s\n", instruction->opcode);
+  printf("Type d'instruction : %c\n", instruction->typeInstruction);
+  printf("Ordre bits : %d\n", instruction->ordreBits);
+  printf("Style de remplissage : %d\n", instruction->styleRemplissage);
+  printf("\n");
+}
+
 void afficheStructInstruction(instruction *instructions[]) {
   int i=0;
-  instruction tmp;
   for(i=0;i<NB_OPERATIONS;i++) {
-    tmp=*instructions[i];
-    printf("Case %i\n", i);
-    printf("Nom : %s\n", tmp.nom);
-    printf("opcode : %s\n", tmp.opcode);
-    printf("Type d'instruction : %c\n", tmp.typeInstruction);
-    printf("Ordre bits : %d\n", tmp.ordreBits);
-    printf("Style de remplissage : %d\n", tmp.styleRemplissage);
-    printf("\n");
+    printf("--%d--\n", i);
+    afficheInstruction(instructions[i]);
   }
 }
 
