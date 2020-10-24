@@ -22,10 +22,12 @@ struct instruction {
   int styleRemplissage; /* SG en fonction du type */
 };
 
+
 void remplissageStructInstruction(instruction *instructions[], const char* fichier);
 instruction* trouveOperation(instruction* instructions[], char* nom);
 void afficheStructInstruction(instruction *instructions[]);
 void afficheInstruction(instruction *instruction);
+char** parseRegistres(char *ligne, char* registres[], int* offset);
 void afficheBin(int* bin);
 char* enleveEspaces(char *s);
 char* enleveCommentaires(char *s);
@@ -34,6 +36,6 @@ int valeurDecimale(char *s);
 void decToBinary(int n, int offset, int* bin);
 void rempliBinTabBin(char* cBin, int offset, int* bin);
 void parseR(char *ope, int offset);
-void parseOperation(char *ope);
-void parseFichier(char *nomFichier);
+void parseOperation(char *ligne, char* operation, int* offset); /* Retourne un string de l'opération (ADD...) */
+void parseFichier(const char *nomFichier);
 #endif

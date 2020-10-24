@@ -1,12 +1,15 @@
 #include "hex.h"
 #include <string.h>
 
+
+/* Remplit la structure de stockage à l'aide du fichier contenant les opérations */
 void remplissageStructInstruction(instruction *instructions[], const char* fichier) {
   FILE *fs=fopen(fichier,"r");
   instruction *tmp=NULL;
   int i=0;
   if(fs==NULL) {
     perror("Erreur d'ouverture");
+    exit(1);
   }
   fseek(fs,0,SEEK_SET);
 
@@ -19,6 +22,7 @@ void remplissageStructInstruction(instruction *instructions[], const char* fichi
   fclose(fs);
 }
 
+/* Retourne un pointeur vers la structure contenant toutes les informations d'une opération */
 instruction* trouveOperation(instruction* instructions[], char* nom) {
   int i=0, nonTrouvee=1;
   instruction *ret=NULL;
@@ -32,6 +36,7 @@ instruction* trouveOperation(instruction* instructions[], char* nom) {
   return ret;
 }
 
+/* Affiche les informations contenu dans une structure de stockage */
 void afficheInstruction(instruction *instruction) {
   printf("Nom : %s\n", instruction->nom);
   printf("opcode : %s\n", instruction->opcode);
@@ -41,6 +46,7 @@ void afficheInstruction(instruction *instruction) {
   printf("\n");
 }
 
+/* Affiche toutes les structures du tableau de stockage */
 void afficheStructInstruction(instruction *instructions[]) {
   int i=0;
   for(i=0;i<NB_OPERATIONS;i++) {
@@ -49,6 +55,7 @@ void afficheStructInstruction(instruction *instructions[]) {
   }
 }
 
+/* Affiche le tableau binaire de l'opération */
 void afficheBin(int* bin) {
   int i=0;
   for (i=0;i<TAILLE_BIT_OPERATION;i++) {
@@ -57,6 +64,7 @@ void afficheBin(int* bin) {
   printf("\n");
 }
 
+/* Retourne la chaine d'entrée sans espaces */
 char* enleveEspaces(char *s) {
   char *ret=(char *) malloc(strlen(s)+1);
   int i,j=0;
@@ -72,6 +80,7 @@ char* enleveEspaces(char *s) {
   return ret;
 }
 
+/* Retourne la chaine d'entrée sans commentaires */
 char* enleveCommentaires(char *s) {
   char *ret=(char *) malloc(strlen(s)+1);
   int i=0;
@@ -84,6 +93,7 @@ char* enleveCommentaires(char *s) {
   return ret;
 }
 
+/* Retourne le nombre d'opérande dans un opération passé en entrée */
 int nombreOperande(char *s) {
   int ret=0,i=0;
   while(s[i]!='\0') {
@@ -95,15 +105,7 @@ int nombreOperande(char *s) {
   return ret+1;
 }
 
-int valeurDecimale(char *s) {
-  int num=0,i=0;
-  while (s[i]>='0' && s[i]<='9'){
-    num=num*10+(s[i]-'0');
-    i++;
-  }
-  return num;
-}
-
+/* Ecrit à partir de l'offset (inclu) du tableau bin passé par adresse la représentation binaire de n (decimal) */
 void decToBinary(int n, int offset, int* bin) {
   /* Tableau temporaire */
   int binTmp[TAILLE_BIT_OPERATION];
@@ -121,6 +123,7 @@ void decToBinary(int n, int offset, int* bin) {
   }
 }
 
+/* Ecrit à partir d'un nombre binaire en string dans le tableau bin à partir de l'offset inclu */
 void rempliBinTabBin(char* cBin, int offset, int* bin) {
   int i=0,j=offset;
   while (cBin[i]!='\0') {
@@ -130,57 +133,76 @@ void rempliBinTabBin(char* cBin, int offset, int* bin) {
   }
 }
 
-void parseR(char *ope, int offset) {
-  int binIncrement=0;
-  char bufferRegiste[TAILLE_MAX_REGISTE+1];
+char** parseRegistres(char *ligne, char* registres[], int* offset) {
+  int binIncrement=6; /* Taille de l'opcode */
+  char *bufferRegiste=malloc((TAILLE_MAX_REGISTE+1)*sizeof(char*));
   int nbOperande=0;
-  int i=offset,j=0,k=0;
-  nbOperande=nombreOperande(ope);
-  binIncrement+=6; /* Champ opcode */
-  printf("On doit trouver %d opérandes\n", nbOperande);
+  int i=*offset,j=0,k=0,numOpe=0;
+  nbOperande=nombreOperande(ligne);
+  if((registres=malloc(sizeof(char*)*nbOperande))==NULL){exit(1);};
+  for(j=0;j<nbOperande;j++) {
+    if((registres[j]=malloc(sizeof(char*)))==NULL){exit(1);};
+  }
   for(j=0;j<nbOperande;j++) {
     k=0;
-    while(ope[i]!=',' && ope[i]!='\0') {
-      if (ope[i]>='0' && ope[i]<='9') {
-        bufferRegiste[k]=ope[i];
+    while(ligne[i]!=',' && ligne[i]!='\0') {
+      if (ligne[i]>='0' && ligne[i]<='9') {
+          registres[numOpe][k]=ligne[i];
         k++;
       }
       i++;
     }
     i++;
-    bufferRegiste[k]='\0';
-    printf("%s\n", bufferRegiste);
+    printf("%s|%d\n", registres[numOpe],numOpe);
+    numOpe++;
+    *offset=i;
   }
+  printf("\n");
+  for(i=0;i<nombreOperande(ligne);i++) {
+    printf("B : %s\n", registres[i]);
+  }
+  return registres;
 }
 
-void parseOperation(char *ope) {
-  int i=0,j=0;
-  /* Taille max 5 */
-  char operation[TAILLE_MAX_OPERATEUR];
-  while(ope[i]!='$' && ope[i]!='\0') {
-    operation[j]=ope[i];
+
+void parseOperation(char *ligne, char* operation, int* offset) {
+  int i=*offset,j=0;
+  while(ligne[i]!='$' && ligne[i]!='\0') {
+    operation[j]=ligne[i];
     j++;
     i++;
   }
   operation[j]='\0';
   printf("%s\n", operation);
-  parseR(ope,i);
+  *offset=i;
+  return (char *) operation;
 }
 
-void parseFichier(char *nomFichier) {
+void parseLigne(char *ligne) {
+  int offset=0;
+  char operation[TAILLE_MAX_OPERATEUR];
+  /*ligne=enleveEspaces(ligne);
+  ligne=enleveCommentaires(ligne);*/
+  parseOperation(ligne,(char *) &operation,&offset);
+  printf("Opération : %s|%d\n", operation,offset);
+
+}
+
+/* Lit le fichier d'instruction assembleur ligne par ligne */
+/* Parse l'expression puis lance le remplissage du tableau binaire */
+void parseFichier(const char *nomFichier) {
   FILE *fp = fopen(nomFichier, "r");
   size_t len=0;
-  char *line=NULL;
+  char *ligne=NULL;
   if (fp==NULL) {
     perror("Erreur lors de l'ouverture du fichier");
+    exit(1);
   }
-  while(getline(&line,&len,fp)!=-1) {
-    line=enleveEspaces(line);
-    line=enleveCommentaires(line);
-    if(line[0]!='\n' && line[0]!='\0') {
+  while(getline(&ligne,&len,fp)!=-1) {
+    if(ligne[0]!='\n' && ligne[0]!='\0') {
       /* On a quelque chose */
-      printf("Final : %s\n",line);
-      parseOperation(line);
+      printf("Brut :  %s\n",ligne);
+      parseLigne(ligne);
     }
   }
   fclose(fp);

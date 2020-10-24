@@ -21,9 +21,15 @@ int main() {
   printf("\n----------------------------------\nTest Dec2Bin\n----------------------------------\n");
   decToBinary(26,3,(int*) &bin);
   afficheBin((int *) &bin);
-  printf("\n----------------------------------\nTest du Parseur\n----------------------------------\n");
+  /*printf("\n----------------------------------\nTest du Parseur\n----------------------------------\n");
+  parseFichier(nomFichier);*/
 
-  parseFichier(nomFichier);
+  printf("\n----------------------------------\nTest parseur ligne\n----------------------------------\n");
+  char *ligne="ADD $6,$31,$1";
+  printf("%s\n", ligne);
+  parseLigne(ligne);
+
+
   printf("\n----------------------------------\nTest Remplissage Structure\n----------------------------------\n");
   remplissageStructInstruction(instructions,listeope);
   afficheStructInstruction(instructions);
