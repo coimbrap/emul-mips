@@ -22,6 +22,7 @@ struct instruction {
   int styleRemplissage; /* SG en fonction du type */
 };
 
+
 void remplissageStructInstruction(instruction *instructions[], const char* fichier);
 void afficheStructInstruction(instruction *instructions[]);
 void afficheBin(int* bin);
@@ -30,6 +31,7 @@ char* enleveCommentaires(char *s);
 int nombreOperande(char *s);
 int valeurDecimale(char *s);
 void decToBinary(int n, int offset, int* bin);
+void rempliBinTabBin(char* cBin, int offset, int* bin);
 void parseR(char *ope, int offset);
 void parseOperation(char *ope);
 void parseFichier(char *nomFichier);

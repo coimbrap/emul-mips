@@ -106,16 +106,21 @@ void decToBinary(int n, int offset, int* bin) {
   }
 }
 
+void rempliBinTabBin(char* cBin, int offset, int* bin) {
+  int i=0,j=offset;
+  while (cBin[i]!='\0') {
+    bin[j]=cBin[i]-'0';
+    i++;
+    j++;
+  }
+}
+
 void parseR(char *ope, int offset) {
-  int bin[TAILLE_BIT_OPERATION];
   int binIncrement=0;
   char bufferRegiste[TAILLE_MAX_REGISTE+1];
   int nbOperande=0;
-  int i=offset,j=0,k=0,l=0;
+  int i=offset,j=0,k=0;
   nbOperande=nombreOperande(ope);
-  for (l=0;l<TAILLE_BIT_OPERATION;l++) {
-    bin[l]=0;
-  }
   binIncrement+=6; /* Champ opcode */
   printf("On doit trouver %d opérandes\n", nbOperande);
   for(j=0;j<nbOperande;j++) {
