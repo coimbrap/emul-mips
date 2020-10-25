@@ -216,7 +216,37 @@ Différents cas en fonction du type de type R
 
 Il y a donc 16 possibilités en tout.
 
-### Les fonctions
+### Spécifications
+
+Tout d'abord pour la v1 notre code ne supportera pas les étiquettes et les directives, nous ne prendrons donc pas en compte les instructions de type J.
+
+#### Les étapes pour obtenir la valeur hexadécimale d'une instruction
+
+Nous n'allons pas parler de la manière de récupérer une instruction dans cette partie.
+
+Une instruction désigne : "ADD $20,$20,$3"
+
+##### I/ Appel à la parseLigne(char *ligne)
+
+Cette fonction prend en entrée un tableau de char contenant l'instruction et s'occupe de :
+- Remplir un tableau de 32 cases représentant la valeur binaire de l'instruction
+- Remplir un tableau de 8 cases représentant le valeur hexadécimale de l'instruction
+- Afficher le résultat
+- Écrire la valeur hexadécimale de l'instruction dans un fichier
+
+Pour reconnaître 
+
+
+Pour cela on fait appel à une dizaine de fonction spécifié ci-dessous :
+-
+
+- Uniformiser l'instruction (enlever les espaces en trop et les commentaires)
+- Récupérer l'opération (ADD/NOP/SLL...) et l'
+-
+
+
+
+
 
 Fonctions :
 

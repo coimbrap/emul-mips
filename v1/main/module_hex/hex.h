@@ -23,7 +23,7 @@ struct instruction {
   int styleRemplissage; /* SG en fonction du type */
 };
 
-
+void parseLigne(char *ligne);
 void remplissageStructInstruction(instruction *instructions[], const char* fichier);
 instruction* trouveOperation(instruction* instructions[], char* nom);
 void afficheStructInstruction(instruction *instructions[]);

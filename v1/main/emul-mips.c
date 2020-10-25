@@ -9,7 +9,7 @@ int main() {
   instruction *instructions[NB_OPERATIONS+1];
   instruction *found=NULL;
   int offsetBin=0;
-
+  char *ligne="SLL $10,$23,24";
   int bin[TAILLE_BIT_OPERATION];
   for (l=0;l<TAILLE_BIT_OPERATION;l++) {
     bin[l]=0;
@@ -23,9 +23,9 @@ int main() {
   offsetBin=3; /*Offset de 3*/
   decToBinary(6,&offsetBin,(int*) &bin);
   afficheBin((int *) &bin);
-  /*printf("\n----------------------------------\nTest du Parseur\n----------------------------------\n");
-  parseFichier(nomFichier);*/
-
+  printf("\n----------------------------------\nTest du Parseur\n----------------------------------\n");
+  parseFichier(nomFichier);
+/*
   printf("\n----------------------------------\nTest Remplissage Structure\n----------------------------------\n");
   remplissageStructInstruction(instructions,listeope);
   afficheStructInstruction(instructions);
@@ -62,8 +62,8 @@ int main() {
   }
 
   printf("\n----------------------------------\nTest parseur ligne\n----------------------------------\n");
-  char *ligne="SLL $10,$23,24";/*"ADD $6,$31,$1";*/
+  ligne="SLL $10,$23,24";
   printf("%s\n", ligne);
-  parseLigne(ligne);
+  parseLigne(ligne); */
   return 0;
 }
