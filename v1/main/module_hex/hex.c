@@ -215,7 +215,7 @@ void parseLigne(char *ligne) {
   for (l=0;l<TAILLE_BIT_OPERATION;l++) {
     bin[l]=0;
   }
-  afficheBin(&bin);
+  afficheBin(bin);
   /*ligne=enleveEspaces(ligne);
   ligne=enleveCommentaires(ligne);*/
   /* Pour éviter des offset complexe on retournera le tableau à la fin */
@@ -232,14 +232,14 @@ void parseLigne(char *ligne) {
         registres=parseRegistres(ligne, registres, &offset);
         /* rs/rt/rd */
         registreDec=valeurDecimale(registres[0]);
-        decToBinary(registreDec,&offsetBin, &bin);
+        decToBinary(registreDec,&offsetBin, bin);
         registreDec=valeurDecimale(registres[2]);
-        decToBinary(registreDec,&offsetBin, &bin);
+        decToBinary(registreDec,&offsetBin, bin);
         registreDec=valeurDecimale(registres[1]);
-        decToBinary(registreDec,&offsetBin, &bin);
+        decToBinary(registreDec,&offsetBin, bin);
         /* 5 zéro */
         offsetBin+=5;
-        rempliBinTabBin(found->opcode, &offsetBin, &bin);
+        rempliBinTabBin(found->opcode, &offsetBin, bin);
       }
       else if (found->styleRemplissage==2) {
         ;
@@ -249,11 +249,11 @@ void parseLigne(char *ligne) {
         registres=parseRegistres(ligne, registres, &offset);
         /* rt/rd/sa */
         registreDec=valeurDecimale(registres[1]);
-        decToBinary(registreDec,&offsetBin, &bin);
+        decToBinary(registreDec,&offsetBin, bin);
         registreDec=valeurDecimale(registres[0]);
-        decToBinary(registreDec,&offsetBin, &bin);
+        decToBinary(registreDec,&offsetBin, bin);
         registreDec=valeurDecimale(registres[2]);
-        decToBinary(registreDec,&offsetBin, &bin);
+        decToBinary(registreDec,&offsetBin, bin);
         /* opcode 00000 */
       }
     }
@@ -264,12 +264,12 @@ void parseLigne(char *ligne) {
         registres=parseRegistres(ligne, registres, &offset);
         /* rt/rd/sa */
         registreDec=valeurDecimale(registres[1]);
-        decToBinary(registreDec,&offsetBin, &bin);
+        decToBinary(registreDec,&offsetBin, bin);
         registreDec=valeurDecimale(registres[0]);
-        decToBinary(registreDec,&offsetBin, &bin);
+        decToBinary(registreDec,&offsetBin, bin);
         registreDec=valeurDecimale(registres[2]);
-        decToBinary(registreDec,&offsetBin, &bin);
-        rempliBinTabBin(found->opcode, &offsetBin, &bin);
+        decToBinary(registreDec,&offsetBin, bin);
+        rempliBinTabBin(found->opcode, &offsetBin, bin);
       }
       else if (found->styleRemplissage==2) {
         offsetBin=10; /* Les 10 premiers zéro */
@@ -277,12 +277,12 @@ void parseLigne(char *ligne) {
         registres=parseRegistres(ligne, registres, &offset);
         /* rt/rd/sa */
         registreDec=valeurDecimale(registres[1]);
-        decToBinary(registreDec,&offsetBin, &bin);
+        decToBinary(registreDec,&offsetBin, bin);
         registreDec=valeurDecimale(registres[0]);
-        decToBinary(registreDec,&offsetBin, &bin);
+        decToBinary(registreDec,&offsetBin, bin);
         registreDec=valeurDecimale(registres[2]);
-        decToBinary(registreDec,&offsetBin, &bin);
-        rempliBinTabBin(found->opcode, &offsetBin, &bin);
+        decToBinary(registreDec,&offsetBin, bin);
+        rempliBinTabBin(found->opcode, &offsetBin, bin);
       }
     }
     else if (found->ordreBits==3) {
@@ -292,9 +292,9 @@ void parseLigne(char *ligne) {
         /* rt/rd/sa */
         for(i=0;i<nombreOperande(ligne);i++) {
           registreDec=valeurDecimale(registres[i]);
-          decToBinary(registreDec,&offsetBin, &bin);
+          decToBinary(registreDec,&offsetBin, bin);
         }
-        rempliBinTabBin(found->opcode, &offsetBin, &bin);
+        rempliBinTabBin(found->opcode, &offsetBin, bin);
       }
     }
     /* Non fonctionnel */
@@ -305,11 +305,11 @@ void parseLigne(char *ligne) {
         /* rt/rd/sa */
         for(i=0;i<nombreOperande(ligne);i++) {
           registreDec=valeurDecimale(registres[i]);
-          decToBinary(registreDec,&offsetBin, &bin);
+          decToBinary(registreDec,&offsetBin, bin);
           offsetBin+=5;
         }
         offsetBin-=5; /* La boucle for avance de 5 de trop */
-        rempliBinTabBin(found->opcode, &offsetBin, &bin);
+        rempliBinTabBin(found->opcode, &offsetBin, bin);
       }
     }
     else if (found->ordreBits==5) {
@@ -319,10 +319,10 @@ void parseLigne(char *ligne) {
         /* 0/rd/0 */
         for(i=0;i<nombreOperande(ligne);i++) {
           registreDec=valeurDecimale(registres[i]);
-          decToBinary(registreDec,&offsetBin, &bin);
+          decToBinary(registreDec,&offsetBin, bin);
         }
         offsetBin+=5; /* 5 zéro */
-        rempliBinTabBin(found->opcode, &offsetBin, &bin);
+        rempliBinTabBin(found->opcode, &offsetBin, bin);
       }
     }
     else if (found->ordreBits==6) {
@@ -332,9 +332,9 @@ void parseLigne(char *ligne) {
         /* code */
         for(i=0;i<nombreOperande(ligne);i++) {
           registreDec=valeurDecimale(registres[i]);
-          decToBinary(registreDec,&offsetBin, &bin);
+          decToBinary(registreDec,&offsetBin, bin);
         }
-        rempliBinTabBin(found->opcode, &offsetBin, &bin);
+        rempliBinTabBin(found->opcode, &offsetBin, bin);
       }
     }
   }
@@ -342,52 +342,52 @@ void parseLigne(char *ligne) {
     printf("On est I\n");
     if (found->ordreBits==1) {
       if (found->styleRemplissage==1) {
-        rempliBinTabBin(found->opcode, &offsetBin, &bin);
+        rempliBinTabBin(found->opcode, &offsetBin, bin);
         registres=parseRegistres(ligne, registres, &offset);
         /* rs rt imm */
         registreDec=valeurDecimale(registres[1]);
-        decToBinary(registreDec,&offsetBin, &bin);
+        decToBinary(registreDec,&offsetBin, bin);
         registreDec=valeurDecimale(registres[0]);
-        decToBinary(registreDec,&offsetBin, &bin);
+        decToBinary(registreDec,&offsetBin, bin);
         registreDec=valeurDecimale(registres[2]);
-        decToBinary(registreDec,&offsetBin, &bin);
+        decToBinary(registreDec,&offsetBin, bin);
       }
       else if (found->styleRemplissage==2) {
-        rempliBinTabBin(found->opcode, &offsetBin, &bin);
+        rempliBinTabBin(found->opcode, &offsetBin, bin);
         registres=parseRegistres(ligne, registres, &offset);
         /* rs 0 offset */
         for(i=0;i<nombreOperande(ligne);i++) {
           registreDec=valeurDecimale(registres[i]);
-          decToBinary(registreDec,&offsetBin, &bin);
+          decToBinary(registreDec,&offsetBin, bin);
           offsetBin+=5; /* Laisse 5 bits à zéro */
         }
       }
       else if (found->styleRemplissage==3) {
-        rempliBinTabBin(found->opcode, &offsetBin, &bin);
+        rempliBinTabBin(found->opcode, &offsetBin, bin);
         registres=parseRegistres(ligne, registres, &offset);
         /* 0 rt offset */
         offsetBin+=5; /* Laisse 5 bits à zéro */
         for(i=0;i<nombreOperande(ligne);i++) {
           registreDec=valeurDecimale(registres[i]);
-          decToBinary(registreDec,&offsetBin, &bin);
+          decToBinary(registreDec,&offsetBin, bin);
         }
       }
       else if (found->styleRemplissage==4) {
-        rempliBinTabBin(found->opcode, &offsetBin, &bin);
+        rempliBinTabBin(found->opcode, &offsetBin, bin);
         registres=parseRegistres(ligne, registres, &offset);
         /* base rt offset */
         registreDec=valeurDecimale(registres[2]);
-        decToBinary(registreDec,&offsetBin, &bin);
+        decToBinary(registreDec,&offsetBin, bin);
         registreDec=valeurDecimale(registres[0]);
-        decToBinary(registreDec,&offsetBin, &bin);
+        decToBinary(registreDec,&offsetBin, bin);
         registreDec=valeurDecimale(registres[1]);
-        decToBinary(registreDec,&offsetBin, &bin);
+        decToBinary(registreDec,&offsetBin, bin);
       }
     }
   }
-  afficheBin(&bin);
-  inverseTab(&bin,TAILLE_BIT_OPERATION);
-  afficheBin(&bin);
+  afficheBin(bin);
+  inverseTab(bin,TAILLE_BIT_OPERATION);
+  afficheBin(bin);
 }
 
 /* Lit le fichier d'instruction assembleur ligne par ligne */
