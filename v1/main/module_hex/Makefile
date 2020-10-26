@@ -3,7 +3,7 @@ CFLAGS = -Wall -ansi -pedantic -g
 EXEC = hex
 LDFLAGS = -g
 
-all: $(EXEC)
+all: test
 
 test: $(EXEC).o test.o
 	$(CC) -o $@ $^ $(LDFLAGS)

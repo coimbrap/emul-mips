@@ -216,7 +216,43 @@ Différents cas en fonction du type de type R
 
 Il y a donc 16 possibilités en tout.
 
-### Les fonctions
+# Spécifications
+
+Tout d'abord pour la v1 notre code ne supportera pas les étiquettes et les directives, nous ne prendrons donc pas en compte les instructions de type J.
+
+## Les étapes pour obtenir la valeur hexadécimale d'une instruction
+
+Nous n'allons pas parler de la manière de récupérer une instruction dans cette partie.
+
+Une instruction désigne : "ADD $20,$20,$3"
+
+### I/ Appel à la parseLigne(char *ligne)
+
+Cette fonction prend en entrée un tableau de char contenant l'instruction et s'occupe de :
+- Remplir un tableau de 32 cases représentant la valeur binaire de l'instruction
+- Remplir un tableau de 8 cases représentant le valeur hexadécimale de l'instruction
+- Afficher le résultat
+- Écrire la valeur hexadécimale de l'instruction dans un fichier
+
+Pour reconnaître
+
+
+**Pour cela on décompose l'opération comme ci-dessous :**
+
+- Remplissage de la mémoire des instructions (structure décrite plus haut) à l'aide d'un fichier
+- Uniformisation de l'instruction (enlève les espaces en trop et les commentaires)
+- Récupération de l'opération (ADD/NOP/SLL...)
+- Recherche dans la mémoire de la structure mémoire correspondant à l'opération
+- Écriture de l'opcode dans le tableau de la représentation binaire de l'opération
+- Recherche de toutes les opérandes et écriture dans le tableau de la représentation binaire en fonction du sous-type d'instruction
+- Inversion du tableau binaire pour être en big endian (bit de point fort à  l'adresse la plus basse)
+- Transformation du tableau binaire en un tableau hexadécimal
+- Écriture de la valeur hexadécimale de l'opération dans un fichier
+
+
+
+
+
 
 Fonctions :
 
