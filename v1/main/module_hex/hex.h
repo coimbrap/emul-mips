@@ -7,6 +7,7 @@
 #define TAILLE_MAX_OPERATEUR 9 /* SYSCALL est le plus long */
 #define TAILLE_MAX_REGISTE 2
 #define TAILLE_BIT_OPERATION 32
+#define TAILLE_HEX_OPERATION 8
 #define TAILLE_OPCODE 7
 #define NB_OPERATIONS 24
 #define TAILLE_REG 5
@@ -23,7 +24,12 @@ struct instruction {
   int styleRemplissage; /* SG en fonction du type */
 };
 
-void parseLigne(char *ligne);
+int puissance(int d, int n);
+void binaryToHex(int* bin, char* hex);
+void afficheBin(int* bin);
+void afficheHex(char* hex);
+void ecrireHex(char* hex, char *fichier);
+void parseLigne(char *ligne, int* bin);
 void remplissageStructInstruction(instruction *instructions[], const char* fichier);
 instruction* trouveOperation(instruction* instructions[], char* nom);
 void afficheStructInstruction(instruction *instructions[]);

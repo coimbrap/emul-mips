@@ -13,7 +13,6 @@ void remplissageStructInstruction(instruction *instructions[], const char* fichi
     exit(1);
   }
   fseek(fs,0,SEEK_SET);
-
   for(i=0;i<NB_OPERATIONS;i++) {
     instructions[i]=malloc(sizeof(instruction));
     tmp=instructions[i];
@@ -22,6 +21,25 @@ void remplissageStructInstruction(instruction *instructions[], const char* fichi
   }
   fclose(fs);
 }
+
+/* Ecrit la valeur hexadécimale dans un fichier */
+void ecrireHex(char* hex, char *fichier){
+  int i=0;
+  FILE *fout=NULL;
+  fout=fopen(fichier,"r+");
+
+  if(NULL==fout){
+  printf("Erreur d'ouverture du fichier\n");
+  exit(1);
+  }
+  fseek(fout, 0, SEEK_END);
+  for(i=0;i<TAILLE_HEX_OPERATION-1;i++){
+    fprintf(fout,"%c", hex[i]);
+  }
+  fprintf(fout,"%c\n", hex[TAILLE_HEX_OPERATION-1]);
+  fclose(fout);
+}
+
 
 /* Retourne un pointeur vers la structure contenant toutes les informations d'une opération */
 instruction* trouveOperation(instruction* instructions[], char* nom) {
@@ -56,13 +74,32 @@ void afficheStructInstruction(instruction *instructions[]) {
   }
 }
 
-/* Affiche le tableau binaire de l'opération */
+/* Affiche le tableau binaire de l'instruction */
 void afficheBin(int* bin) {
   int i=0;
   for (i=0;i<TAILLE_BIT_OPERATION;i++) {
     printf("%d",bin[i]);
   }
   printf("\n");
+}
+
+/* Affiche le tableau hexadécimal de l'instruction */
+void afficheHex(char* hex) {
+  int i=0;
+  for (i=0;i<TAILLE_HEX_OPERATION;i++) {
+    printf("%c",hex[i]);
+  }
+  printf("\n");
+}
+
+/* Calcul de la puissance */
+int puissance(int d, int n){
+  int i=0;
+  int mul=1;
+  for(i=0;i<n;i++){
+    mul*=d;
+  }
+  return mul;
 }
 
 /* Retourne la chaine d'entrée sans espaces */
@@ -124,6 +161,49 @@ void decToBinary(int n, int* offset, int* bin) {
     i--;
   }
   *offset=j;
+}
+
+/* Transforme un tableau représentant une valeur binaire sur 32 bits en un tableau hexadécimal sur 8bits */
+void binaryToHex(int* bin, char* hex){
+  int i=0, j=0, k=0, l=0;
+  int temp1=0;
+  char temp2=0;
+  int pui=3;
+  for(i=0;i<TAILLE_BIT_OPERATION;i+=8){
+    for(j=i;j<(i+8);j+=4){
+      k=j;
+      pui=3;
+      while(k<(j+4)){
+        temp1=temp1+bin[k]*puissance(2,pui);
+        pui--;
+        k++;
+      }
+      if(temp1==10){
+        temp2='A';
+      }
+      else if(temp1==11){
+        temp2='B';
+      }
+      else if(temp1==12){
+        temp2='C';
+      }
+      else if(temp1==13){
+        temp2='D';
+      }
+      else if(temp1==14){
+        temp2='E';
+      }
+      else if(temp1==15){
+        temp2='F';
+      }
+      else{
+        temp2=temp1+'0';
+      }
+      temp1=0;
+      hex[l]=temp2;
+      l++;
+    }
+  }
 }
 
 /* Ecrit à partir d'un nombre binaire en string dans le tableau bin à partir de l'offset inclu */
@@ -199,7 +279,7 @@ int valeurDecimale(char* m) {
   return num;
 }
 
-void parseLigne(char *ligne) {
+void parseLigne(char *ligne, int* bin) {
   int offset=0,offsetBin=0;
   int registreDec=0;
   instruction *found=NULL;
@@ -208,7 +288,7 @@ void parseLigne(char *ligne) {
   instruction *instructions[NB_OPERATIONS+1];
   char operation[TAILLE_MAX_OPERATEUR];
   char **operandes=NULL;
-  int bin[TAILLE_BIT_OPERATION];
+/*  int bin[TAILLE_BIT_OPERATION];*/
   for (l=0;l<TAILLE_BIT_OPERATION;l++) {
     bin[l]=0;
   }
@@ -342,7 +422,6 @@ void parseLigne(char *ligne) {
       }
     }
     else if (found->typeInstruction=='I') {
-      printf("On est I\n");
       if (found->ordreBits==1) {
         if (found->styleRemplissage==1) {
           rempliBinTabBin(found->opcode, &offsetBin, bin);
@@ -388,11 +467,13 @@ void parseLigne(char *ligne) {
         }
       }
     }
-    printf("----Mauvais Sens----\n");
+    #ifdef DEBUG
+    printf("----Little Endian----\n");
     afficheBin(bin);
     inverseTab(bin,TAILLE_BIT_OPERATION);
-    printf("----Bon Sens----\n");
+    printf("----Big Endian----\n");
     afficheBin(bin);
+    #endif
   }
 }
 
@@ -402,6 +483,9 @@ void parseFichier(const char *nomFichier) {
   FILE *fp = fopen(nomFichier, "r");
   size_t len=0;
   char *ligne=NULL;
+  char *fichierHex="output/hex.txt";
+  int bin[TAILLE_BIT_OPERATION];
+  char hex[TAILLE_HEX_OPERATION];
   if (fp==NULL) {
     perror("Erreur lors de l'ouverture du fichier");
     exit(1);
@@ -410,7 +494,13 @@ void parseFichier(const char *nomFichier) {
     if(ligne[0]!='\n' && ligne[0]!='\0') {
       /* On a quelque chose */
       printf("\n----Instruction----\n%s",ligne);
-      parseLigne(ligne);
+      parseLigne(ligne,bin);
+      printf("------Binaire------\n");
+      afficheBin(bin);
+      printf("----Hexadécimal----\n");
+      binaryToHex(bin,hex);
+      afficheHex(hex);
+      ecrireHex(hex,fichierHex);
     }
   }
   fclose(fp);
