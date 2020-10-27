@@ -1,7 +1,12 @@
 #include "hex.h"
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
+/* Module tools */
+#include "../module_tools/tools.h"
+
+/* MEMOIRE INSTRUCTIONS */
 
 /* Remplit la structure de stockage à l'aide du fichier contenant les opérations */
 void remplissageStructInstruction(instruction *instructions[], const char* fichier) {
@@ -22,25 +27,6 @@ void remplissageStructInstruction(instruction *instructions[], const char* fichi
   fclose(fs);
 }
 
-/* Ecrit la valeur hexadécimale dans un fichier */
-void ecrireHex(char* hex, char *fichier){
-  int i=0;
-  FILE *fout=NULL;
-  fout=fopen(fichier,"r+");
-
-  if(NULL==fout){
-  printf("Erreur d'ouverture du fichier\n");
-  exit(1);
-  }
-  fseek(fout, 0, SEEK_END);
-  for(i=0;i<TAILLE_HEX_OPERATION-1;i++){
-    fprintf(fout,"%c", hex[i]);
-  }
-  fprintf(fout,"%c\n", hex[TAILLE_HEX_OPERATION-1]);
-  fclose(fout);
-}
-
-
 /* Retourne un pointeur vers la structure contenant toutes les informations d'une opération */
 instruction* trouveOperation(instruction* instructions[], char* nom) {
   int i=0, nonTrouvee=1;
@@ -55,52 +41,7 @@ instruction* trouveOperation(instruction* instructions[], char* nom) {
   return ret;
 }
 
-/* Affiche les informations contenu dans une structure de stockage */
-void afficheInstruction(instruction *instruction) {
-  printf("Nom : %s\n", instruction->nom);
-  printf("opcode : %s\n", instruction->opcode);
-  printf("Type d'instruction : %c\n", instruction->typeInstruction);
-  printf("Ordre bits : %d\n", instruction->ordreBits);
-  printf("Style de remplissage : %d\n", instruction->styleRemplissage);
-  printf("\n");
-}
-
-/* Affiche toutes les structures du tableau de stockage */
-void afficheStructInstruction(instruction *instructions[]) {
-  int i=0;
-  for(i=0;i<NB_OPERATIONS;i++) {
-    printf("--%d--\n", i);
-    afficheInstruction(instructions[i]);
-  }
-}
-
-/* Affiche le tableau binaire de l'instruction */
-void afficheBin(int* bin) {
-  int i=0;
-  for (i=0;i<TAILLE_BIT_OPERATION;i++) {
-    printf("%d",bin[i]);
-  }
-  printf("\n");
-}
-
-/* Affiche le tableau hexadécimal de l'instruction */
-void afficheHex(char* hex) {
-  int i=0;
-  for (i=0;i<TAILLE_HEX_OPERATION;i++) {
-    printf("%c",hex[i]);
-  }
-  printf("\n");
-}
-
-/* Calcul de la puissance */
-int puissance(int d, int n){
-  int i=0;
-  int mul=1;
-  for(i=0;i<n;i++){
-    mul*=d;
-  }
-  return mul;
-}
+/* UNIFORMISATION DE L'INSTRUCTION */
 
 /* Retourne la chaine d'entrée sans espaces */
 char* enleveEspaces(char *s) {
@@ -131,17 +72,7 @@ char* enleveCommentaires(char *s) {
   return ret;
 }
 
-/* Retourne le nombre d'opérande dans un opération passé en entrée */
-int nombreOperande(char *s) {
-  int ret=0,i=0;
-  while(s[i]!='\0') {
-    if (s[i]==',' || s[i]=='(') {
-      ret++;
-    }
-    i++;
-  }
-  return ret+1;
-}
+/* PARTIE BINAIRE */
 
 /* Ecrit à partir de l'offset (inclu) du tableau bin passé par adresse la représentation binaire de n (decimal) */
 void decToBinary(int n, int* offset, int* bin) {
@@ -162,6 +93,19 @@ void decToBinary(int n, int* offset, int* bin) {
   }
   *offset=j;
 }
+
+/* Ecrit à partir d'un nombre binaire en string dans le tableau bin à partir de l'offset inclu */
+void rempliBinTabBin(char* cBin, int* offset, int* bin) {
+  int i=0,j=*offset;
+  while (cBin[i]!='\0') {
+    bin[j]=cBin[i]-'0';
+    i++;
+    j++;
+  }
+  *offset=j;
+}
+
+/* PARTIE HEXADECIMAL */
 
 /* Transforme un tableau représentant une valeur binaire sur 32 bits en un tableau hexadécimal sur 8bits */
 void binaryToHex(int* bin, char* hex){
@@ -197,7 +141,7 @@ void binaryToHex(int* bin, char* hex){
         temp2='F';
       }
       else{
-        temp2=temp1+'0';
+        temp2=temp1+'0';  /* ASCII : Int -> Char */
       }
       temp1=0;
       hex[l]=temp2;
@@ -206,25 +150,36 @@ void binaryToHex(int* bin, char* hex){
   }
 }
 
-/* Ecrit à partir d'un nombre binaire en string dans le tableau bin à partir de l'offset inclu */
-void rempliBinTabBin(char* cBin, int* offset, int* bin) {
-  int i=0,j=*offset;
-  while (cBin[i]!='\0') {
-    bin[j]=cBin[i]-'0';
-    i++;
-    j++;
+/* Ecrit la valeur hexadécimale dans un fichier */
+void ecrireHex(char* hex, char *fichier){
+  int i=0;
+  FILE *fout=NULL;
+  fout=fopen(fichier,"r+");
+
+  if(NULL==fout){
+  printf("Erreur d'ouverture du fichier\n");
+  exit(1);
   }
-  *offset=j;
+  fseek(fout, 0, SEEK_END);
+  for(i=0;i<TAILLE_HEX_OPERATION-1;i++){
+    fprintf(fout,"%c", hex[i]);
+  }
+  fprintf(fout,"%c\n", hex[TAILLE_HEX_OPERATION-1]);
+  fclose(fout);
 }
 
-/* Inverse tout les éléments d'un tableau */
-void inverseTab(int *tab, int n) {
-  int i=0,j=TAILLE_BIT_OPERATION-1,tmp=0;
-  while(i<j) {
-    tmp=tab[i];
-    tab[i++]=tab[j];
-    tab[j--]=tmp;
+/* PARSSAGE DE L'INSTRUCTION */
+
+/* Retourne le nombre d'opérande dans un opération passé en entrée */
+int nombreOperande(char *s) {
+  int ret=0,i=0;
+  while(s[i]!='\0') {
+    if (s[i]==',' || s[i]=='(') {
+      ret++;
+    }
+    i++;
   }
+  return ret+1;
 }
 
 /* Retourne un tableau de string contenant la valeur de tout les operandes */
@@ -269,16 +224,6 @@ void parseOperation(char *ligne, char* operation, int* offset) {
   *offset=i;
 }
 
-/* Retourne un entier correspondant à un entier stocké dans un string */
-int valeurDecimale(char* m) {
-  int num=0,i=0;
-  while(m[i]>='0' && m[i] <='9') {
-    num=num*10+(m[i]-'0');
-    i++;
-  }
-  return num;
-}
-
 void parseLigne(char *ligne, int* bin) {
   int offset=0,offsetBin=0;
   int registreDec=0;
@@ -298,9 +243,6 @@ void parseLigne(char *ligne, int* bin) {
   #endif
   /* On remplit la structure de stockage à partir du fichier */
   remplissageStructInstruction(instructions,listeope);
-  /*ligne=enleveEspaces(ligne);
-  ligne=enleveCommentaires(ligne);*/
-
   /* Pour éviter des offset complexe on renversera le tableau à la fin */
   parseOperation(ligne,operation,&offset);
   found=trouveOperation(instructions,operation);

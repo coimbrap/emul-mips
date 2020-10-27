@@ -1,20 +1,14 @@
 CC = gcc
 CFLAGS = -Wall -ansi -pedantic -g
-EXEC = hex
+EXEC = tools
 LDFLAGS = -g
 
-all: test
+all: $(EXEC)
 
-test: $(EXEC).o test.o tools.o
+$(EXEC): $(EXEC).o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 $(EXEC).o: $(EXEC).c $(EXEC).h
-	$(CC) -c $< $(CFLAGS) -o $@
-
-test.o: test.c
-	$(CC) -c $< $(CFLAGS) -o $@
-
-tools.o: ../module_tools/tools.c
 	$(CC) -c $< $(CFLAGS) -o $@
 
 clean:

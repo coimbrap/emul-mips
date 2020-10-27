@@ -1,17 +1,17 @@
 CC = gcc
-CFLAGS = -Wall -ansi -pedantic -g
+CFLAGS = -Wall -ansi -pedantic
 EXEC = emul-mips
-LDFLAGS = -g
+LDFLAGS =
 
 all: $(EXEC)
 
-$(EXEC): $(EXEC).o hex.o
+$(EXEC): $(EXEC).o hex.o tools.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
-debug: $(EXEC)Debug.o hexDebug.o
+debug: $(EXEC)Debug.o hexDebug.o tools.o
 	$(CC) -o $(EXEC) $^ $(LDFLAGS)
 
-test: $(EXEC)Test.o hexVerbeux.o
+test: $(EXEC)Test.o hexVerbeux.o tools.o
 	$(CC) -o $(EXEC) $^ $(LDFLAGS)
 
 $(EXEC).o: $(EXEC).c
@@ -31,6 +31,9 @@ hexDebug.o: module_hex/hex.c module_hex/hex.h
 
 hexVerbeux.o: module_hex/hex.c module_hex/hex.h
 	$(CC) -c -D VERBEUX $< $(CFLAGS) -o $@
+
+tools.o: module_tools/tools.c
+	$(CC) -c $< $(CFLAGS) -o $@
 
 clean:
 	rm -rf *.o

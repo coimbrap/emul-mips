@@ -1,4 +1,5 @@
 #include "module_hex/hex.h"
+#include <stdio.h>
 
 int main() {
   #ifdef TEST
