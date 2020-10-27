@@ -87,6 +87,26 @@ void decToBinary(int n, int* offset, int* bin) {
   *offset=j;
 }
 
+/* Ecrit à partir de l'offset (inclu) du tableau bin passé par adresse la représentation binaire de n (decimal) */
+void decToBinaryImm(int n, int* offset, int* bin) {
+  /* Tableau temporaire */
+  int binTmp[TAILLE_BIT_OPERATION];
+  int i=0,j=0;
+  while (n>0) {
+    binTmp[i]=n%2;
+    n=n/2;
+    i++;
+  }
+  i--;
+  /* Renverse le tableau binTmp dans bin */
+  /*+(TAILLE_REG-(i+1)) permet de rajouter des zéros pour atteindre 5 bits */
+  for (j=*offset+(TAILLE_IMM-(i+1));i>=0;j++) {
+    bin[j]=binTmp[i];
+    i--;
+  }
+  *offset=j;
+}
+
 /* Ecrit à partir d'un nombre binaire en string dans le tableau bin à partir de l'offset inclu */
 void rempliBinTabBin(char* cBin, int* offset, int* bin) {
   int i=0,j=*offset;
@@ -249,11 +269,11 @@ void parseLigne(char *ligne, int* bin) {
           offsetBin=6; /* Les 6 premiers zéro */
           operandes=parseOperandes(ligne,operandes,&offset);
           /* rs/rt/rd */
-          registreDec=valeurDecimale(operandes[0]);
+          registreDec=valeurDecimale(operandes[1]);
           decToBinary(registreDec,&offsetBin, bin);
           registreDec=valeurDecimale(operandes[2]);
           decToBinary(registreDec,&offsetBin, bin);
-          registreDec=valeurDecimale(operandes[1]);
+          registreDec=valeurDecimale(operandes[0]);
           decToBinary(registreDec,&offsetBin, bin);
           /* 5 zéro */
           offsetBin+=5;
@@ -278,6 +298,7 @@ void parseLigne(char *ligne, int* bin) {
       else if (found->ordreBits==2) {
         if (found->styleRemplissage==1) {
           offsetBin=10; /* Les 10 premiers zéro */
+          bin[offsetBin]=1;
           offsetBin++;/* R1 ?? */
           operandes=parseOperandes(ligne,operandes,&offset);
           /* rt/rd/sa */
@@ -361,13 +382,23 @@ void parseLigne(char *ligne, int* bin) {
         if (found->styleRemplissage==1) {
           rempliBinTabBin(found->opcode, &offsetBin, bin);
           operandes=parseOperandes(ligne,operandes,&offset);
+          /* ADDI change au niveau de l'instruction présente rt rs imm */
+          if (found->opcode==001000) {
+            registreDec=valeurDecimale(operandes[1]);
+            decToBinary(registreDec,&offsetBin, bin);
+            registreDec=valeurDecimale(operandes[0]);
+            decToBinary(registreDec,&offsetBin, bin);
+          }
           /* rs rt imm */
-          registreDec=valeurDecimale(operandes[1]);
-          decToBinary(registreDec,&offsetBin, bin);
-          registreDec=valeurDecimale(operandes[0]);
-          decToBinary(registreDec,&offsetBin, bin);
+          else {
+            registreDec=valeurDecimale(operandes[0]);
+            decToBinary(registreDec,&offsetBin, bin);
+            registreDec=valeurDecimale(operandes[1]);
+            decToBinary(registreDec,&offsetBin, bin);
+          }
           registreDec=valeurDecimale(operandes[2]);
-          decToBinary(registreDec,&offsetBin, bin);
+          printf("%s|%d|%d\n", operandes[2],registreDec,offsetBin);
+          decToBinaryImm(registreDec,&offsetBin, bin);
         }
         else if (found->styleRemplissage==2) {
           rempliBinTabBin(found->opcode, &offsetBin, bin);
@@ -405,7 +436,7 @@ void parseLigne(char *ligne, int* bin) {
     #ifdef DEBUG
     printf("----Little Endian----\n");
     afficheBin(bin);
-    inverseTab(bin,TAILLE_BIT_OPERATION);
+  /*  inverseTab(bin,TAILLE_BIT_OPERATION); */
     printf("----Big Endian----\n");
     afficheBin(bin);
     #endif
@@ -422,6 +453,7 @@ void parseFichier(const char *nomFichier) {
   int bin[TAILLE_BIT_OPERATION];
   char hex[TAILLE_HEX_OPERATION];
   char *ligneOut=NULL;
+  int programCounter=0;
   if (fp==NULL) {
     printf("Erreur lors de l'ouverture du fichier");
     exit(-1);
@@ -446,6 +478,8 @@ void parseFichier(const char *nomFichier) {
       afficheHex(hex);
       #endif
       ecrireHex(hex,fichierHex);
+      /*printf("%08d \n", programCounter);*/
+      programCounter+=4;
       free(ligneOut);
     }
   }

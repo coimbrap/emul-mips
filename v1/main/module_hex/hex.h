@@ -8,6 +8,7 @@
 #define TAILLE_OPCODE 7
 #define NB_OPERATIONS 24
 #define TAILLE_REG 5
+#define TAILLE_IMM 16
 
 
 typedef struct instruction instruction;
@@ -30,6 +31,7 @@ void uniformisationInstruction(char *s, char *out);
 
 /* PARTIE BINAIRE */
 void decToBinary(int n, int* offset, int* bin);
+void decToBinaryImm(int n, int* offset, int* bin);
 void rempliBinTabBin(char* cBin, int* offset, int* bin);
 void binaryToHex(int* bin, char* hex);
 void ecrireHex(char* hex, char *fichier);
