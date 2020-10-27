@@ -14,8 +14,8 @@ void remplissageStructInstruction(instruction *instructions[], const char* fichi
   instruction *tmp=NULL;
   int i=0;
   if(fs==NULL) {
-    perror("Erreur d'ouverture");
-    exit(1);
+    printf("Erreur lors de l'ouverture du fichier");
+    exit(-1);
   }
   fseek(fs,0,SEEK_SET);
   for(i=0;i<NB_OPERATIONS;i++) {
@@ -43,33 +43,26 @@ instruction* trouveOperation(instruction* instructions[], char* nom) {
 
 /* UNIFORMISATION DE L'INSTRUCTION */
 
-/* Retourne la chaine d'entrée sans espaces */
-char* enleveEspaces(char *s) {
-  char *ret=(char *) malloc(strlen(s)+1);
-  int i,j=0;
-  while(s[i]!='\n' && s[i]!='\0') {
-    if(s[i]!=' ' && s[i]!='\t') {
-      ret[j]=s[i];
-      j++;
+/* Retourne la chaine d'entrée uniformisé */
+void uniformisationInstruction(char *s, char *out) {
+  int i=0,incremOut=0,writeSpace=-1,commence=0;
+  while(s[i]!='\0' && s[i]!='\n' && s[i]!='#') {
+    if(isalpha(s[i]) && !commence) {
+      commence=1;
+    }
+    if(isspace(s[i]) && writeSpace==-1 && commence) {
+      writeSpace=1;
+    }
+    if(s[i]==' ' && writeSpace==1) {
+      out[incremOut++]=s[i];
+      writeSpace=0;
+    }
+    else if (s[i]!=' ') {
+      out[incremOut++]=s[i];
     }
     i++;
   }
-  ret[j]='\0';
-  free(s);
-  return ret;
-}
-
-/* Retourne la chaine d'entrée sans commentaires */
-char* enleveCommentaires(char *s) {
-  char *ret=(char *) malloc(strlen(s)+1);
-  int i=0;
-  while(s[i]!='\n' && s[i]!='#' && s[i]!='\0') {
-    ret[i]=s[i];
-    i++;
-  }
-  ret[i]='\0';
-  free(s);
-  return ret;
+  out[incremOut]='\0'; /*On marque la fin de la chaîne */
 }
 
 /* PARTIE BINAIRE */
@@ -157,8 +150,8 @@ void ecrireHex(char* hex, char *fichier){
   fout=fopen(fichier,"r+");
 
   if(NULL==fout){
-  printf("Erreur d'ouverture du fichier\n");
-  exit(1);
+    printf("Erreur d'ouverture du fichier\n");
+    exit(1);
   }
   fseek(fout, 0, SEEK_END);
   for(i=0;i<TAILLE_HEX_OPERATION-1;i++){
@@ -225,15 +218,15 @@ void parseOperation(char *ligne, char* operation, int* offset) {
 }
 
 void parseLigne(char *ligne, int* bin) {
+  char *listeope="module_hex/listeOpe.txt";
   int offset=0,offsetBin=0;
   int registreDec=0;
   instruction *found=NULL;
   int i=0,l=0;
-  char *listeope="module_hex/listeOpe.txt";
   instruction *instructions[NB_OPERATIONS+1];
   char operation[TAILLE_MAX_OPERATEUR];
   char **operandes=NULL;
-/*  int bin[TAILLE_BIT_OPERATION];*/
+  /* On écrit des zéros dans le tableau de la représentation binaire */
   for (l=0;l<TAILLE_BIT_OPERATION;l++) {
     bin[l]=0;
   }
@@ -428,17 +421,21 @@ void parseFichier(const char *nomFichier) {
   char *fichierHex="output/hex.txt";
   int bin[TAILLE_BIT_OPERATION];
   char hex[TAILLE_HEX_OPERATION];
+  char *ligneOut=NULL;
   if (fp==NULL) {
-    perror("Erreur lors de l'ouverture du fichier");
-    exit(1);
+    printf("Erreur lors de l'ouverture du fichier");
+    exit(-1);
   }
   while(getline(&ligne,&len,fp)!=-1) {
     if(ligne[0]!='\n' && ligne[0]!='\0') {
+      /* On uniforise la ligne */
+      ligneOut=(char *)malloc(strlen(ligne)*sizeof(char));
+      uniformisationInstruction(ligne,ligneOut);
       /* On a quelque chose */
       #ifdef VERBEUX
-      printf("\n----Instruction----\n%s",ligne);
+      printf("\n----Instruction----\n%s\n",ligneOut);
       #endif
-      parseLigne(ligne,bin);
+      parseLigne(ligneOut,bin);
       #ifdef VERBEUX
       printf("------Binaire------\n");
       afficheBin(bin);
@@ -449,6 +446,7 @@ void parseFichier(const char *nomFichier) {
       afficheHex(hex);
       #endif
       ecrireHex(hex,fichierHex);
+      free(ligneOut);
     }
   }
   fclose(fp);

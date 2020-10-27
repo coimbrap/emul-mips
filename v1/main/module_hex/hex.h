@@ -26,8 +26,7 @@ void remplissageStructInstruction(instruction *instructions[], const char* fichi
 instruction* trouveOperation(instruction* instructions[], char* nom);
 
 /* UNIFORMISATION DE L'INSTRUCTION */
-char* enleveEspaces(char *s);
-char* enleveCommentaires(char *s);
+void uniformisationInstruction(char *s, char *out);
 
 /* PARTIE BINAIRE */
 void decToBinary(int n, int* offset, int* bin);
@@ -40,6 +39,6 @@ int nombreOperande(char *s);
 char** parseOperandes(char *ligne, char* operandes[], int* offset);
 void parseOperation(char *ligne, char* operation, int* offset);
 void parseLigne(char *ligne, int* bin);
-  void parseFichier(const char *nomFichier);
+void parseFichier(const char *nomFichier);
 
 #endif
