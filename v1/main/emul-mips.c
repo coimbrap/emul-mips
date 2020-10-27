@@ -1,8 +1,12 @@
 #include "module_hex/hex.h"
 
 int main() {
-  int l=0,offsetBin=0;
+  #ifdef TEST
   char *nomFichier="tests_emul/test.txt";
+  printf("\n----------------------------------\nTest du Parseur\n----------------------------------\n");
+  parseFichier(nomFichier);
+  #elif DEBUG
+  int l=0,offsetBin=0;
   char *binNum="11101001";
   char *listeope="module_hex/listeOpe.txt";
   char *nom="ADD";
@@ -17,11 +21,9 @@ int main() {
   int binHex[TAILLE_BIT_OPERATION]={0,0,0,0,0,1,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0};
   int binHex2[TAILLE_BIT_OPERATION]={0,0,0,0,0,0,0,0,0,1,1,0,1,0,1,0,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0};
   char hex[TAILLE_HEX_OPERATION]={0,0,0,0,0,0,0};
-
   for (l=0;l<TAILLE_BIT_OPERATION;l++) {
     bin[l]=0;
   }
-
   printf("\n----------------------------------\nTest Remplissage Structure\n----------------------------------\n");
   remplissageStructInstruction(instructions,listeope);
   afficheStructInstruction(instructions);
@@ -77,7 +79,8 @@ int main() {
   afficheBin(binHex2);
   afficheHex(hex);
   ecrireHex(hex,fichierHex);
-  printf("\n----------------------------------\nTest du Parseur\n----------------------------------\n");
-  parseFichier(nomFichier);
+  #else
+  printf("Pas encore implémenté...\nTest parseur : make test\nTests des fonctions : make debug\n");
+  #endif
   return 0;
 }

@@ -493,13 +493,19 @@ void parseFichier(const char *nomFichier) {
   while(getline(&ligne,&len,fp)!=-1) {
     if(ligne[0]!='\n' && ligne[0]!='\0') {
       /* On a quelque chose */
+      #ifdef VERBEUX
       printf("\n----Instruction----\n%s",ligne);
+      #endif
       parseLigne(ligne,bin);
+      #ifdef VERBEUX
       printf("------Binaire------\n");
       afficheBin(bin);
-      printf("----Hexadécimal----\n");
+      #endif
       binaryToHex(bin,hex);
+      #ifdef VERBEUX
+      printf("----Hexadécimal----\n");
       afficheHex(hex);
+      #endif
       ecrireHex(hex,fichierHex);
     }
   }
