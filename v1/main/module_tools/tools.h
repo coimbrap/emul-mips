@@ -9,6 +9,12 @@ int puissance(int d, int n);
 void inverseTab(int *tab, int n);
 int valeurDecimale(char* m);
 
+/* MANIPILATION BINAIRE */
+void inverseBin(int* binS, int* binO, int size);
+void addBin(int* binA, int* binB, int* binR, int size);
+void complementADeux(int* binI, int* binO, int size);
+
+
 /* AFFICHAGE */
 void afficheInstruction(instruction *instruction);
 void afficheStructInstruction(instruction *instructions[]);

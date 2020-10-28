@@ -87,22 +87,43 @@ void decToBinary(int n, int* offset, int* bin) {
   *offset=j;
 }
 
-/* Ecrit à partir de l'offset (inclu) du tableau bin passé par adresse la représentation binaire de n (decimal) */
+/* Ecrit à partir de l'offset (inclu) du tableau bin la valeur binaire d'une valeur immédiate ou d'un offset (sur 16 bits) */
+/* Supporte les nombres négatif */
 void decToBinaryImm(int n, int* offset, int* bin) {
   /* Tableau temporaire */
-  int binTmp[TAILLE_BIT_OPERATION];
-  int i=0,j=0;
+  int binTmp[TAILLE_IMM];
+  int binTmp2[TAILLE_IMM];
+  int i=0,j=0,neg=0,k=0;
+  for(k=0;k<TAILLE_IMM;k++) {
+    binTmp[k]=0;
+    binTmp2[k]=0;
+  }
+  if (n<0) {
+    n=-n;
+    neg=1;
+  }
   while (n>0) {
     binTmp[i]=n%2;
     n=n/2;
     i++;
   }
   i--;
-  /* Renverse le tableau binTmp dans bin */
-  /*+(TAILLE_REG-(i+1)) permet de rajouter des zéros pour atteindre 5 bits */
-  for (j=*offset+(TAILLE_IMM-(i+1));i>=0;j++) {
-    bin[j]=binTmp[i];
-    i--;
+  if (neg) {
+    complementADeux(binTmp,binTmp2,TAILLE_IMM);
+    i=TAILLE_IMM-1; /* Dernière cas du tableau binTmp2 */
+    /* On renverse binTmp2 dans bin */
+    for (j=*offset;i>=0;j++) {
+      bin[j]=binTmp2[i];
+      i--;
+    }
+  }
+  else {
+    i=TAILLE_IMM-1; /* Dernière cas du tableau binTmp */
+    /* On renverse binTmp dans bin */
+    for (j=*offset;i>=0;j++) {
+      bin[j]=binTmp[i];
+      i--;
+    }
   }
   *offset=j;
 }
@@ -207,7 +228,7 @@ char** parseOperandes(char *ligne, char* operandes[], int* offset) {
   for(j=0;j<nbOperande;j++) {
     k=0;
     while(ligne[i]!='(' && ligne[i]!=',' && ligne[i]!='\0') {
-      if (ligne[i]>='0' && ligne[i]<='9') {
+      if (ligne[i]>='0' && ligne[i]<='9' || ligne[i]=='-') {
           operandes[numOpe][k]=ligne[i];
         k++;
       }
