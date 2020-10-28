@@ -404,7 +404,7 @@ void parseLigne(char *ligne, int* bin) {
           rempliBinTabBin(found->opcode, &offsetBin, bin);
           operandes=parseOperandes(ligne,operandes,&offset);
           /* ADDI change au niveau de l'instruction présente rt rs imm */
-          if (found->opcode==001000) {
+          if (valeurDecimale(found->opcode)==1000) {
             registreDec=valeurDecimale(operandes[1]);
             decToBinary(registreDec,&offsetBin, bin);
             registreDec=valeurDecimale(operandes[0]);
