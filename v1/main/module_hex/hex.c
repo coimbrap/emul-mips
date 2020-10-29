@@ -1,7 +1,13 @@
 #include "hex.h"
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
+/* Module tools */
+#include "../module_tools/tools.h"
+
+/* MEMOIRE INSTRUCTIONS */
 
 /* Remplit la structure de stockage à l'aide du fichier contenant les opérations */
 void remplissageStructInstruction(instruction *instructions[], const char* fichier) {
@@ -9,8 +15,8 @@ void remplissageStructInstruction(instruction *instructions[], const char* fichi
   instruction *tmp=NULL;
   int i=0;
   if(fs==NULL) {
-    perror("Erreur d'ouverture");
-    exit(1);
+    printf("Erreur lors de l'ouverture du fichier");
+    exit(-1);
   }
   fseek(fs,0,SEEK_SET);
   for(i=0;i<NB_OPERATIONS;i++) {
@@ -21,25 +27,6 @@ void remplissageStructInstruction(instruction *instructions[], const char* fichi
   }
   fclose(fs);
 }
-
-/* Ecrit la valeur hexadécimale dans un fichier */
-void ecrireHex(char* hex, char *fichier){
-  int i=0;
-  FILE *fout=NULL;
-  fout=fopen(fichier,"r+");
-
-  if(NULL==fout){
-  printf("Erreur d'ouverture du fichier\n");
-  exit(1);
-  }
-  fseek(fout, 0, SEEK_END);
-  for(i=0;i<TAILLE_HEX_OPERATION-1;i++){
-    fprintf(fout,"%c", hex[i]);
-  }
-  fprintf(fout,"%c\n", hex[TAILLE_HEX_OPERATION-1]);
-  fclose(fout);
-}
-
 
 /* Retourne un pointeur vers la structure contenant toutes les informations d'une opération */
 instruction* trouveOperation(instruction* instructions[], char* nom) {
@@ -55,93 +42,31 @@ instruction* trouveOperation(instruction* instructions[], char* nom) {
   return ret;
 }
 
-/* Affiche les informations contenu dans une structure de stockage */
-void afficheInstruction(instruction *instruction) {
-  printf("Nom : %s\n", instruction->nom);
-  printf("opcode : %s\n", instruction->opcode);
-  printf("Type d'instruction : %c\n", instruction->typeInstruction);
-  printf("Ordre bits : %d\n", instruction->ordreBits);
-  printf("Style de remplissage : %d\n", instruction->styleRemplissage);
-  printf("\n");
-}
+/* UNIFORMISATION DE L'INSTRUCTION */
 
-/* Affiche toutes les structures du tableau de stockage */
-void afficheStructInstruction(instruction *instructions[]) {
-  int i=0;
-  for(i=0;i<NB_OPERATIONS;i++) {
-    printf("--%d--\n", i);
-    afficheInstruction(instructions[i]);
-  }
-}
-
-/* Affiche le tableau binaire de l'instruction */
-void afficheBin(int* bin) {
-  int i=0;
-  for (i=0;i<TAILLE_BIT_OPERATION;i++) {
-    printf("%d",bin[i]);
-  }
-  printf("\n");
-}
-
-/* Affiche le tableau hexadécimal de l'instruction */
-void afficheHex(char* hex) {
-  int i=0;
-  for (i=0;i<TAILLE_HEX_OPERATION;i++) {
-    printf("%c",hex[i]);
-  }
-  printf("\n");
-}
-
-/* Calcul de la puissance */
-int puissance(int d, int n){
-  int i=0;
-  int mul=1;
-  for(i=0;i<n;i++){
-    mul*=d;
-  }
-  return mul;
-}
-
-/* Retourne la chaine d'entrée sans espaces */
-char* enleveEspaces(char *s) {
-  char *ret=(char *) malloc(strlen(s)+1);
-  int i,j=0;
-  while(s[i]!='\n' && s[i]!='\0') {
-    if(s[i]!=' ' && s[i]!='\t') {
-      ret[j]=s[i];
-      j++;
+/* Retourne la chaine d'entrée uniformisé */
+void uniformisationInstruction(char *s, char *out) {
+  int i=0,incremOut=0,writeSpace=-1,commence=0;
+  while(s[i]!='\0' && s[i]!='\n' && s[i]!='#') {
+    if(isalpha(s[i]) && !commence) {
+      commence=1;
+    }
+    if(isspace(s[i]) && writeSpace==-1 && commence) {
+      writeSpace=1;
+    }
+    if(s[i]==' ' && writeSpace==1) {
+      out[incremOut++]=s[i];
+      writeSpace=0;
+    }
+    else if (s[i]!=' ') {
+      out[incremOut++]=s[i];
     }
     i++;
   }
-  ret[j]='\0';
-  free(s);
-  return ret;
+  out[incremOut]='\0'; /*On marque la fin de la chaîne */
 }
 
-/* Retourne la chaine d'entrée sans commentaires */
-char* enleveCommentaires(char *s) {
-  char *ret=(char *) malloc(strlen(s)+1);
-  int i=0;
-  while(s[i]!='\n' && s[i]!='#' && s[i]!='\0') {
-    ret[i]=s[i];
-    i++;
-  }
-  ret[i]='\0';
-  free(s);
-  return ret;
-}
-
-/* Retourne le nombre d'opérande dans un opération passé en entrée */
-int nombreOperande(char *s) {
-  int ret=0,i=0;
-  while(s[i]!='\0') {
-    if (s[i]==',' || s[i]=='(') {
-      ret++;
-    }
-    i++;
-  }
-  return ret+1;
-}
+/* PARTIE BINAIRE */
 
 /* Ecrit à partir de l'offset (inclu) du tableau bin passé par adresse la représentation binaire de n (decimal) */
 void decToBinary(int n, int* offset, int* bin) {
@@ -162,6 +87,60 @@ void decToBinary(int n, int* offset, int* bin) {
   }
   *offset=j;
 }
+
+/* Ecrit à partir de l'offset (inclu) du tableau bin la valeur binaire d'une valeur immédiate ou d'un offset (sur 16 bits) */
+/* Supporte les nombres négatif */
+void decToBinaryImm(int n, int* offset, int* bin) {
+  /* Tableau temporaire */
+  int binTmp[TAILLE_IMM];
+  int binTmp2[TAILLE_IMM];
+  int i=0,j=0,neg=0,k=0;
+  for(k=0;k<TAILLE_IMM;k++) {
+    binTmp[k]=0;
+    binTmp2[k]=0;
+  }
+  if (n<0) {
+    n=-n;
+    neg=1;
+  }
+  while (n>0) {
+    binTmp[i]=n%2;
+    n=n/2;
+    i++;
+  }
+  i--;
+  if (neg) {
+    complementADeux(binTmp,binTmp2,TAILLE_IMM);
+    i=TAILLE_IMM-1; /* Dernière cas du tableau binTmp2 */
+    /* On renverse binTmp2 dans bin */
+    for (j=*offset;i>=0;j++) {
+      bin[j]=binTmp2[i];
+      i--;
+    }
+  }
+  else {
+    i=TAILLE_IMM-1; /* Dernière cas du tableau binTmp */
+    /* On renverse binTmp dans bin */
+    for (j=*offset;i>=0;j++) {
+      bin[j]=binTmp[i];
+      i--;
+    }
+  }
+  *offset=j;
+}
+
+/* Ecrit à partir d'un nombre binaire en string dans le tableau bin à partir de l'offset inclu */
+void rempliBinTabBin(char* cBin, int* offset, int* bin) {
+  int i=0,j=*offset;
+  while (cBin[i]!='\0') {
+    bin[j]=cBin[i]-'0';
+    i++;
+    j++;
+  }
+  *offset=j;
+}
+
+/* PARTIE HEXADECIMAL */
 
 /* Transforme un tableau représentant une valeur binaire sur 32 bits en un tableau hexadécimal sur 8bits */
 void binaryToHex(int* bin, char* hex){
@@ -197,7 +176,7 @@ void binaryToHex(int* bin, char* hex){
         temp2='F';
       }
       else{
-        temp2=temp1+'0';
+        temp2=temp1+'0';  /* ASCII : Int -> Char */
       }
       temp1=0;
       hex[l]=temp2;
@@ -206,25 +185,36 @@ void binaryToHex(int* bin, char* hex){
   }
 }
 
-/* Ecrit à partir d'un nombre binaire en string dans le tableau bin à partir de l'offset inclu */
-void rempliBinTabBin(char* cBin, int* offset, int* bin) {
-  int i=0,j=*offset;
-  while (cBin[i]!='\0') {
-    bin[j]=cBin[i]-'0';
-    i++;
-    j++;
+/* Ecrit la valeur hexadécimale dans un fichier */
+void ecrireHex(char* hex, char *fichier){
+  int i=0;
+  FILE *fout=NULL;
+  fout=fopen(fichier,"r+");
+
+  if(NULL==fout){
+    printf("Erreur d'ouverture du fichier\n");
+    exit(1);
   }
-  *offset=j;
+  fseek(fout, 0, SEEK_END);
+  for(i=0;i<TAILLE_HEX_OPERATION-1;i++){
+    fprintf(fout,"%c", hex[i]);
+  }
+  fprintf(fout,"%c\n", hex[TAILLE_HEX_OPERATION-1]);
+  fclose(fout);
 }
 
-/* Inverse tout les éléments d'un tableau */
-void inverseTab(int *tab, int n) {
-  int i=0,j=TAILLE_BIT_OPERATION-1,tmp=0;
-  while(i<j) {
-    tmp=tab[i];
-    tab[i++]=tab[j];
-    tab[j--]=tmp;
+/* PARSSAGE DE L'INSTRUCTION */
+
+/* Retourne le nombre d'opérande dans un opération passé en entrée */
+int nombreOperande(char *s) {
+  int ret=0,i=0;
+  while(s[i]!='\0') {
+    if (s[i]==',' || s[i]=='(') {
+      ret++;
+    }
+    i++;
   }
+  return ret+1;
 }
 
 /* Retourne un tableau de string contenant la valeur de tout les operandes */
@@ -239,7 +229,7 @@ char** parseOperandes(char *ligne, char* operandes[], int* offset) {
   for(j=0;j<nbOperande;j++) {
     k=0;
     while(ligne[i]!='(' && ligne[i]!=',' && ligne[i]!='\0') {
-      if (ligne[i]>='0' && ligne[i]<='9') {
+      if ((ligne[i]>='0' && ligne[i]<='9') || ligne[i]=='-') {
           operandes[numOpe][k]=ligne[i];
         k++;
       }
@@ -269,38 +259,25 @@ void parseOperation(char *ligne, char* operation, int* offset) {
   *offset=i;
 }
 
-/* Retourne un entier correspondant à un entier stocké dans un string */
-int valeurDecimale(char* m) {
-  int num=0,i=0;
-  while(m[i]>='0' && m[i] <='9') {
-    num=num*10+(m[i]-'0');
-    i++;
-  }
-  return num;
-}
-
 void parseLigne(char *ligne, int* bin) {
+  char *listeope="module_hex/listeOpe.txt";
   int offset=0,offsetBin=0;
   int registreDec=0;
   instruction *found=NULL;
   int i=0,l=0;
-  char *listeope="module_hex/listeOpe.txt";
   instruction *instructions[NB_OPERATIONS+1];
   char operation[TAILLE_MAX_OPERATEUR];
   char **operandes=NULL;
-/*  int bin[TAILLE_BIT_OPERATION];*/
+  /* On écrit des zéros dans le tableau de la représentation binaire */
   for (l=0;l<TAILLE_BIT_OPERATION;l++) {
     bin[l]=0;
   }
   #ifdef DEBUG
   printf("\n");
-  afficheBin(bin);
+  afficheBin(bin,TAILLE_BIT_OPERATION);
   #endif
   /* On remplit la structure de stockage à partir du fichier */
   remplissageStructInstruction(instructions,listeope);
-  /*ligne=enleveEspaces(ligne);
-  ligne=enleveCommentaires(ligne);*/
-
   /* Pour éviter des offset complexe on renversera le tableau à la fin */
   parseOperation(ligne,operation,&offset);
   found=trouveOperation(instructions,operation);
@@ -310,27 +287,27 @@ void parseLigne(char *ligne, int* bin) {
     #endif
     if (found->typeInstruction=='R') {
       if (found->ordreBits==1) {
+        /* ADD/AND/XOR/OR/SLT/SUB */
         if (found->styleRemplissage==1) {
           offsetBin=6; /* Les 6 premiers zéro */
           operandes=parseOperandes(ligne,operandes,&offset);
-          /* rs/rt/rd */
-          registreDec=valeurDecimale(operandes[0]);
+          registreDec=valeurDecimale(operandes[1]);
           decToBinary(registreDec,&offsetBin, bin);
           registreDec=valeurDecimale(operandes[2]);
           decToBinary(registreDec,&offsetBin, bin);
-          registreDec=valeurDecimale(operandes[1]);
+          registreDec=valeurDecimale(operandes[0]);
           decToBinary(registreDec,&offsetBin, bin);
-          /* 5 zéro */
           offsetBin+=5;
           rempliBinTabBin(found->opcode, &offsetBin, bin);
         }
+        /* NOP */
         else if (found->styleRemplissage==2) {
           ;
         }
+        /* SLL */
         else if (found->styleRemplissage==3) {
           offsetBin=11; /* Les 11 premiers zéro */
           operandes=parseOperandes(ligne,operandes,&offset);
-          /* rt/rd/sa */
           registreDec=valeurDecimale(operandes[1]);
           decToBinary(registreDec,&offsetBin, bin);
           registreDec=valeurDecimale(operandes[0]);
@@ -341,11 +318,12 @@ void parseLigne(char *ligne, int* bin) {
         }
       }
       else if (found->ordreBits==2) {
+        /* ROTR */
         if (found->styleRemplissage==1) {
           offsetBin=10; /* Les 10 premiers zéro */
-          offsetBin++;/* R1 ?? */
+          bin[offsetBin]=1;
+          offsetBin++;
           operandes=parseOperandes(ligne,operandes,&offset);
-          /* rt/rd/sa */
           registreDec=valeurDecimale(operandes[1]);
           decToBinary(registreDec,&offsetBin, bin);
           registreDec=valeurDecimale(operandes[0]);
@@ -354,11 +332,11 @@ void parseLigne(char *ligne, int* bin) {
           decToBinary(registreDec,&offsetBin, bin);
           rempliBinTabBin(found->opcode, &offsetBin, bin);
         }
+        /* SRL */
         else if (found->styleRemplissage==2) {
           offsetBin=10; /* Les 10 premiers zéro */
-          offsetBin++;/* R0 ?? */
+          offsetBin++;
           operandes=parseOperandes(ligne,operandes,&offset);
-          /* rt/rd/sa */
           registreDec=valeurDecimale(operandes[1]);
           decToBinary(registreDec,&offsetBin, bin);
           registreDec=valeurDecimale(operandes[0]);
@@ -369,46 +347,43 @@ void parseLigne(char *ligne, int* bin) {
         }
       }
       else if (found->ordreBits==3) {
+        /* MULT */
         if (found->styleRemplissage==1) {
           offsetBin=6; /* Les 6 premiers zéro */
           operandes=parseOperandes(ligne,operandes,&offset);
-          /* rt/rd/sa */
+          /* rt/rd/0 */
           for(i=0;i<nombreOperande(ligne);i++) {
             registreDec=valeurDecimale(operandes[i]);
             decToBinary(registreDec,&offsetBin, bin);
           }
+          offsetBin+=10;
           rempliBinTabBin(found->opcode, &offsetBin, bin);
         }
       }
-      /* Non fonctionnel */
       else if (found->ordreBits==4) {
+        /* JR -> Implémentation de la release 1 de l'architecture */
         if (found->styleRemplissage==1) {
           offsetBin=6; /* Les 6 premiers zéro */
           operandes=parseOperandes(ligne,operandes,&offset);
-          /* rt/rd/sa */
-          for(i=0;i<nombreOperande(ligne);i++) {
-            registreDec=valeurDecimale(operandes[i]);
-            decToBinary(registreDec,&offsetBin, bin);
-            offsetBin+=5;
-          }
-          offsetBin-=5; /* La boucle for avance de 5 de trop */
+          registreDec=valeurDecimale(operandes[i]);
+          decToBinary(registreDec,&offsetBin, bin);
+          offsetBin+=15; /* La boucle for avance de 5 de trop */
           rempliBinTabBin(found->opcode, &offsetBin, bin);
         }
       }
       else if (found->ordreBits==5) {
+        /* MFHI/MFLO */
         if (found->styleRemplissage==1) {
-          offsetBin=11; /* Les 11 premiers zéro */
+          offsetBin=16; /* Les 16 premiers zéro */
           operandes=parseOperandes(ligne,operandes,&offset);
-          /* 0/rd/0 */
-          for(i=0;i<nombreOperande(ligne);i++) {
-            registreDec=valeurDecimale(operandes[i]);
-            decToBinary(registreDec,&offsetBin, bin);
-          }
+          registreDec=valeurDecimale(operandes[0]);
+          decToBinary(registreDec,&offsetBin, bin);
           offsetBin+=5; /* 5 zéro */
           rempliBinTabBin(found->opcode, &offsetBin, bin);
         }
       }
       else if (found->ordreBits==6) {
+        /* SYSCALL */
         if (found->styleRemplissage==1) {
           offsetBin=6; /* Les 6 premiers zéro */
           operandes=parseOperandes(ligne,operandes,&offset);
@@ -423,85 +398,116 @@ void parseLigne(char *ligne, int* bin) {
     }
     else if (found->typeInstruction=='I') {
       if (found->ordreBits==1) {
+        /* ADDI/BEQ/BNE */
         if (found->styleRemplissage==1) {
           rempliBinTabBin(found->opcode, &offsetBin, bin);
           operandes=parseOperandes(ligne,operandes,&offset);
+          /* ADDI change au niveau de l'instruction présente rt rs imm */
+          if (valeurDecimale(found->opcode)==1000) {
+            registreDec=valeurDecimale(operandes[1]);
+            decToBinary(registreDec,&offsetBin, bin);
+            registreDec=valeurDecimale(operandes[0]);
+            decToBinary(registreDec,&offsetBin, bin);
+          }
           /* rs rt imm */
-          registreDec=valeurDecimale(operandes[1]);
-          decToBinary(registreDec,&offsetBin, bin);
-          registreDec=valeurDecimale(operandes[0]);
-          decToBinary(registreDec,&offsetBin, bin);
+          else {
+            registreDec=valeurDecimale(operandes[0]);
+            decToBinary(registreDec,&offsetBin, bin);
+            registreDec=valeurDecimale(operandes[1]);
+            decToBinary(registreDec,&offsetBin, bin);
+          }
           registreDec=valeurDecimale(operandes[2]);
-          decToBinary(registreDec,&offsetBin, bin);
+          decToBinaryImm(registreDec,&offsetBin, bin);
         }
+        /* BGTZ/BLEZ */
         else if (found->styleRemplissage==2) {
           rempliBinTabBin(found->opcode, &offsetBin, bin);
           operandes=parseOperandes(ligne,operandes,&offset);
-          /* rs 0 offset */
-          for(i=0;i<nombreOperande(ligne);i++) {
-            registreDec=valeurDecimale(operandes[i]);
-            decToBinary(registreDec,&offsetBin, bin);
-            offsetBin+=5; /* Laisse 5 bits à zéro */
-          }
+          registreDec=valeurDecimale(operandes[0]);
+          decToBinary(registreDec,&offsetBin, bin);
+          offsetBin+=5; /* Laisse 5 bits à zéro */
+          registreDec=valeurDecimale(operandes[1]);
+          decToBinaryImm(registreDec,&offsetBin, bin);
         }
+        /* LUI */
         else if (found->styleRemplissage==3) {
           rempliBinTabBin(found->opcode, &offsetBin, bin);
           operandes=parseOperandes(ligne,operandes,&offset);
-          /* 0 rt offset */
           offsetBin+=5; /* Laisse 5 bits à zéro */
-          for(i=0;i<nombreOperande(ligne);i++) {
-            registreDec=valeurDecimale(operandes[i]);
-            decToBinary(registreDec,&offsetBin, bin);
-          }
+          registreDec=valeurDecimale(operandes[0]);
+          decToBinary(registreDec,&offsetBin, bin);
+          registreDec=valeurDecimale(operandes[1]);
+          decToBinaryImm(registreDec,&offsetBin, bin);
         }
+        /* LW/SW */
         else if (found->styleRemplissage==4) {
           rempliBinTabBin(found->opcode, &offsetBin, bin);
           operandes=parseOperandes(ligne,operandes,&offset);
-          /* base rt offset */
           registreDec=valeurDecimale(operandes[2]);
           decToBinary(registreDec,&offsetBin, bin);
           registreDec=valeurDecimale(operandes[0]);
           decToBinary(registreDec,&offsetBin, bin);
           registreDec=valeurDecimale(operandes[1]);
-          decToBinary(registreDec,&offsetBin, bin);
+          decToBinaryImm(registreDec,&offsetBin, bin);
         }
       }
     }
     #ifdef DEBUG
-    printf("----Little Endian----\n");
-    afficheBin(bin);
-    inverseTab(bin,TAILLE_BIT_OPERATION);
-    printf("----Big Endian----\n");
-    afficheBin(bin);
+    printf("----Tableau Binaire----\n");
+    afficheBin(bin,TAILLE_BIT_OPERATION);
     #endif
   }
 }
 
 /* Lit le fichier d'instruction assembleur ligne par ligne */
 /* Parse l'expression puis lance le remplissage du tableau binaire */
-void parseFichier(const char *nomFichier) {
-  FILE *fp = fopen(nomFichier, "r");
+void parseFichier(char *input, char* output) {
+  FILE *fin=fopen(input, "r");
+  FILE *fout=fopen(output, "w");
   size_t len=0;
   char *ligne=NULL;
-  char *fichierHex="output/hex.txt";
   int bin[TAILLE_BIT_OPERATION];
   char hex[TAILLE_HEX_OPERATION];
-  if (fp==NULL) {
-    perror("Erreur lors de l'ouverture du fichier");
-    exit(1);
+  char *ligneOut=NULL;
+  int programCounter=0;
+  if (fin==NULL) {
+    printf("Erreur lors de l'ouverture du fichier '%s'\n",input);
+    exit(-1);
   }
-  while(getline(&ligne,&len,fp)!=-1) {
+  if (fout==NULL) {
+    printf("Erreur lors de l'ouverture du fichier '%s'\n",output);
+    exit(-1);
+  }
+  /* On referme le fichier */
+  fclose(fout);
+  while(getline(&ligne,&len,fin)!=-1) {
     if(ligne[0]!='\n' && ligne[0]!='\0') {
-      /* On a quelque chose */
-      printf("\n----Instruction----\n%s",ligne);
-      parseLigne(ligne,bin);
-      printf("------Binaire------\n");
-      afficheBin(bin);
-      printf("----Hexadécimal----\n");
-      binaryToHex(bin,hex);
-      afficheHex(hex);
-      ecrireHex(hex,fichierHex);
+      /* On uniforise la ligne */
+      ligneOut=(char *)malloc(strlen(ligne)*sizeof(char));
+      uniformisationInstruction(ligne,ligneOut);
+      if(ligneOut[0]!='\0') {
+        /* On a quelque chose */
+        #ifdef VERBEUX
+        printf("\n----Instruction----\n%s\n",ligneOut);
+        #endif
+        parseLigne(ligneOut,bin);
+        #ifdef VERBEUX
+        printf("------Binaire------\n");
+        afficheBin(bin,TAILLE_BIT_OPERATION);
+        #endif
+        binaryToHex(bin,hex);
+        #ifdef VERBEUX
+        printf("----Hexadécimal----\n");
+        afficheHex(hex);
+        #endif
+        ecrireHex(hex,output);
+        printf("%08d ", programCounter);
+        afficheHexNoEnter(hex);
+        printf("    %s\n", ligneOut);
+        programCounter+=4;
+      }
+      free(ligneOut);
     }
   }
-  fclose(fp);
+  fclose(fin);
 }

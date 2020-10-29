@@ -3,7 +3,7 @@
 !*.*
 !*/
 *.o
-*/hex.txt
+hex.txt
 *.tar.xz
 *.tar
 *.~[0-9]~
