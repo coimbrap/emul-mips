@@ -8,7 +8,7 @@ all: $(EXEC)
 $(EXEC): $(EXEC).o hex.o tools.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
-test: $(EXEC).o test.o tools.o hexDebug.o
+test: test.o tools.o hexDebug.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 $(EXEC).o: $(EXEC).c

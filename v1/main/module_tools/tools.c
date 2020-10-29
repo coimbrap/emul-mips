@@ -1,5 +1,6 @@
 #include "tools.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 /* OUTILS GENERAUX */
 
@@ -85,15 +86,20 @@ void addBin(int* binA, int* binB, int* binR, int size) {
 }
 
 void complementADeux(int* binI, int* binO, int size) {
-  int binTmp[size];
-  int binOne[size];
+  int *binTmp=NULL;
+  int *binOne=NULL;
   int i=0;
+  /* Allocation dynamique des tableaux temporaire */
+  if((binTmp=malloc(sizeof(int)*size))==NULL){exit(1);};
+  if((binOne=malloc(sizeof(int)*size))==NULL){exit(1);};
   binOne[0]=1;
   for (i=1;i<size;i++) {
     binOne[i]=0;
   }
   inverseBin(binI,binTmp,size);
   addBin(binTmp,binOne,binO,size);
+  free(binTmp);
+  free(binOne);
 }
 
 /* AFFICHAGE */

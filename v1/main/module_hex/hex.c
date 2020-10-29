@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 /* Module tools */
 #include "../module_tools/tools.h"
@@ -228,7 +229,7 @@ char** parseOperandes(char *ligne, char* operandes[], int* offset) {
   for(j=0;j<nbOperande;j++) {
     k=0;
     while(ligne[i]!='(' && ligne[i]!=',' && ligne[i]!='\0') {
-      if (ligne[i]>='0' && ligne[i]<='9' || ligne[i]=='-') {
+      if ((ligne[i]>='0' && ligne[i]<='9') || ligne[i]=='-') {
           operandes[numOpe][k]=ligne[i];
         k++;
       }
@@ -469,7 +470,6 @@ void parseFichier(char *input, char* output) {
   char hex[TAILLE_HEX_OPERATION];
   char *ligneOut=NULL;
   int programCounter=0;
-  int i=0;
   if (fin==NULL) {
     printf("Erreur lors de l'ouverture du fichier '%s'\n",input);
     exit(-1);
