@@ -41,6 +41,6 @@ int nombreOperande(char *s);
 char** parseOperandes(char *ligne, char* operandes[], int* offset);
 void parseOperation(char *ligne, char* operation, int* offset);
 void parseLigne(char *ligne, int* bin);
-void parseFichier(const char *nomFichier);
+void parseFichier(char *input, char* output);
 
 #endif

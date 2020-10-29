@@ -86,19 +86,19 @@ int main(int argc, char *argv[]) {
   #else
   FILE *file;
   printf("---------- MIPS Emulator ----------\n  Pierre Coimbra & Thibaut Barnel\n\n");
-  if(argc!=2) {
-    printf("Mauvaise utilisation : ./emul-mips asm.txt\n\n");
+  if(argc!=3) {
+    printf("Mauvaise utilisation : ./emul-mips asm.txt hex.txt\n\n");
     printf("Autres options possible : \nTest parseur : make test\nTests des fonctions : make debug\n");
   }
   else if (file=fopen(argv[1], "r")) {
     fclose(file);
     printf("Lecture du ficher : %s\n\n", argv[1]);
-    parseFichier(argv[1]);
+    parseFichier(argv[1],argv[2]);
+    printf("\nFormes hexadécimale écrites dans '%s'\n", argv[2]);
   }
   else {
-    printf("Le fichier '%s' est introuvable\n",argv[1]);
+    printf("Le fichier d'entrée '%s' est introuvable\n\n",argv[1]);
   }
-  printf("\n");
   #endif
   return 0;
 }
