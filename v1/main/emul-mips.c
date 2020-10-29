@@ -61,25 +61,28 @@ int main() {
   printf("\n----------------------------------\nTest binTabBin\n----------------------------------\n");
   offsetBin=8;
   rempliBinTabBin(binNum,&offsetBin,bin);
-  afficheBin(bin);
+  afficheBin(bin,TAILLE_BIT_OPERATION);
   printf("\n----------------------------------\nTest Dec2Bin\n----------------------------------\n");
   offsetBin=3; /*Offset de 3*/
   decToBinary(6,&offsetBin,bin);
-  afficheBin(bin);
+  afficheBin(bin,TAILLE_BIT_OPERATION);
   printf("\n----------------------------------\nTest parseur ligne\n----------------------------------\n");
   ligne="SLL $10,$23,24";
   printf("%s\n", ligne);
   parseLigne(ligne,binParse);
-  afficheBin(binParse);
+  afficheBin(binParse,TAILLE_BIT_OPERATION);
   printf("\n------------------------------\nTest binToHex + Fichier\n------------------------------\n");
   binaryToHex(binHex,hex);
-  afficheBin(binHex);
+  afficheBin(binHex,TAILLE_BIT_OPERATION);
   afficheHex(hex);
   ecrireHex(hex,fichierHex);
   binaryToHex(binHex2,hex);
-  afficheBin(binHex2);
+  afficheBin(binHex2,TAILLE_BIT_OPERATION);
   afficheHex(hex);
   ecrireHex(hex,fichierHex);
+  char *nomFichier="tests_emul/test.txt";
+  printf("\n----------------------------------\nTest du Parseur\n----------------------------------\n");
+  parseFichier(nomFichier);
   #else
   printf("Pas encore implémenté...\nTest parseur : make test\nTests des fonctions : make debug\n");
   #endif

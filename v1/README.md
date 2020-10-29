@@ -195,6 +195,7 @@ Différents cas en fonction du type de type R
 
 ##### SG 4 : (opcode/base/rt/offset)
 - LW : 100011 (25/21 20/16 15/0)
+- SW : 101011 (25/21 20/16 15/0)
 
 
 ### Instruction de type J

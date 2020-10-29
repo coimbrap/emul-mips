@@ -413,7 +413,6 @@ void parseLigne(char *ligne, int* bin) {
             decToBinary(registreDec,&offsetBin, bin);
           }
           registreDec=valeurDecimale(operandes[2]);
-          printf("%s|%d|%d\n", operandes[2],registreDec,offsetBin);
           decToBinaryImm(registreDec,&offsetBin, bin);
         }
         else if (found->styleRemplissage==2) {
@@ -424,7 +423,6 @@ void parseLigne(char *ligne, int* bin) {
           decToBinary(registreDec,&offsetBin, bin);
           offsetBin+=5; /* Laisse 5 bits à zéro */
           registreDec=valeurDecimale(operandes[1]);
-          printf("%d\n", registreDec);
           decToBinaryImm(registreDec,&offsetBin, bin);
         }
         else if (found->styleRemplissage==3) {
@@ -446,7 +444,7 @@ void parseLigne(char *ligne, int* bin) {
           registreDec=valeurDecimale(operandes[0]);
           decToBinary(registreDec,&offsetBin, bin);
           registreDec=valeurDecimale(operandes[1]);
-          decToBinary(registreDec,&offsetBin, bin);
+          decToBinaryImm(registreDec,&offsetBin, bin);
         }
       }
     }
@@ -480,23 +478,25 @@ void parseFichier(const char *nomFichier) {
       /* On uniforise la ligne */
       ligneOut=(char *)malloc(strlen(ligne)*sizeof(char));
       uniformisationInstruction(ligne,ligneOut);
-      /* On a quelque chose */
-      #ifdef VERBEUX
-      printf("\n----Instruction----\n%s\n",ligneOut);
-      #endif
-      parseLigne(ligneOut,bin);
-      #ifdef VERBEUX
-      printf("------Binaire------\n");
-      afficheBin(bin,TAILLE_BIT_OPERATION);
-      #endif
-      binaryToHex(bin,hex);
-      #ifdef VERBEUX
-      printf("----Hexadécimal----\n");
-      afficheHex(hex);
-      #endif
-      ecrireHex(hex,fichierHex);
-      /*printf("%08d \n", programCounter);*/
-      programCounter+=4;
+      if(ligneOut[0]!='\0') {
+        /* On a quelque chose */
+        #ifdef VERBEUX
+        printf("\n----Instruction----\n%s\n",ligneOut);
+        #endif
+        parseLigne(ligneOut,bin);
+        #ifdef VERBEUX
+        printf("------Binaire------\n");
+        afficheBin(bin,TAILLE_BIT_OPERATION);
+        #endif
+        binaryToHex(bin,hex);
+        #ifdef VERBEUX
+        printf("----Hexadécimal----\n");
+        afficheHex(hex);
+        #endif
+        ecrireHex(hex,fichierHex);
+        /*printf("%08d \n", programCounter);*/
+        programCounter+=4;
+      }
       free(ligneOut);
     }
   }
