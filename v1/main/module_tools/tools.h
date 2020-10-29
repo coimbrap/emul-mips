@@ -17,7 +17,7 @@ void complementADeux(int* binI, int* binO, int size);
 /* AFFICHAGE */
 void afficheInstruction(instruction *instruction);
 void afficheStructInstruction(instruction *instructions[]);
-void afficheBin(int* bin);
+void afficheBin(int* bin, int size);
 void afficheHex(char* hex);
 
 #endif

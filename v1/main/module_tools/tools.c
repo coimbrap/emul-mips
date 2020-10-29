@@ -15,7 +15,7 @@ int puissance(int d, int n){
 
 /* Inverse tout les éléments d'un tableau */
 void inverseTab(int *tab, int n) {
-  int i=0,j=TAILLE_BIT_OPERATION-1,tmp=0;
+  int i=0,j=n-1,tmp=0;
   while(i<j) {
     tmp=tab[i];
     tab[i++]=tab[j];
@@ -56,6 +56,8 @@ void inverseBin(int* binS, int* binO, int size) {
 
 void addBin(int* binA, int* binB, int* binR, int size) {
   int i=0,ret=0;
+  inverseTab(binA,size);
+  inverseTab(binB,size);
   for (i=size-1;i>=0;i--) {
     if (binA[i] && binB[i]) {
       binR[i]=ret;
@@ -66,8 +68,8 @@ void addBin(int* binA, int* binB, int* binR, int size) {
       ret=0;
     }
     else {
-      if(ret) {
-        binR[i]=1;
+      if(ret==1) {
+        binR[i]=0;
         ret=1;
       }
       else {
@@ -76,19 +78,19 @@ void addBin(int* binA, int* binB, int* binR, int size) {
       }
     }
   }
+  inverseTab(binR,size);
+  /* On remet dans le bon sens */
+  inverseTab(binA,size);
+  inverseTab(binB,size);
 }
 
 void complementADeux(int* binI, int* binO, int size) {
   int binTmp[size];
   int binOne[size];
   int i=0;
-  for (i=0;i<size;i++) {
-    if (i==0) {
-      binOne[i]=1;
-    }
-    else {
-      binOne[i]=0;
-    }
+  binOne[0]=1;
+  for (i=1;i<size;i++) {
+    binOne[i]=0;
   }
   inverseBin(binI,binTmp,size);
   addBin(binTmp,binOne,binO,size);
@@ -116,9 +118,9 @@ void afficheStructInstruction(instruction *instructions[]) {
 }
 
 /* Affiche le tableau binaire de l'instruction */
-void afficheBin(int* bin) {
+void afficheBin(int* bin, int size) {
   int i=0;
-  for (i=0;i<TAILLE_BIT_OPERATION;i++) {
+  for (i=0;i<size;i++) {
     printf("%d",bin[i]);
   }
   printf("\n");
