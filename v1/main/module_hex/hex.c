@@ -469,6 +469,7 @@ void parseFichier(const char *nomFichier) {
   char hex[TAILLE_HEX_OPERATION];
   char *ligneOut=NULL;
   int programCounter=0;
+  int i=0;
   if (fp==NULL) {
     printf("Erreur lors de l'ouverture du fichier");
     exit(-1);
@@ -494,7 +495,9 @@ void parseFichier(const char *nomFichier) {
         afficheHex(hex);
         #endif
         ecrireHex(hex,fichierHex);
-        /*printf("%08d \n", programCounter);*/
+        printf("%08d ", programCounter);
+        afficheHexNoEnter(hex);
+        printf("    %s\n", ligneOut);
         programCounter+=4;
       }
       free(ligneOut);

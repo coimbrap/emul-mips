@@ -134,3 +134,11 @@ void afficheHex(char* hex) {
   }
   printf("\n");
 }
+
+/* Affiche le tableau hexadécimal de l'instruction sans le \n */
+void afficheHexNoEnter(char* hex) {
+  int i=0;
+  for (i=0;i<TAILLE_HEX_OPERATION;i++) {
+    printf("%c",hex[i]);
+  }
+}

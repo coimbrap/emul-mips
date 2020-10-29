@@ -19,5 +19,6 @@ void afficheInstruction(instruction *instruction);
 void afficheStructInstruction(instruction *instructions[]);
 void afficheBin(int* bin, int size);
 void afficheHex(char* hex);
+void afficheHexNoEnter(char* hex);
 
 #endif

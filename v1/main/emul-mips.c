@@ -1,7 +1,7 @@
 #include "module_hex/hex.h"
 #include <stdio.h>
 
-int main() {
+int main(int argc, char *argv[]) {
   #ifdef TEST
   char *nomFichier="tests_emul/test.txt";
   printf("\n----------------------------------\nTest du Parseur\n----------------------------------\n");
@@ -84,7 +84,21 @@ int main() {
   printf("\n----------------------------------\nTest du Parseur\n----------------------------------\n");
   parseFichier(nomFichier);
   #else
-  printf("Pas encore implémenté...\nTest parseur : make test\nTests des fonctions : make debug\n");
+  FILE *file;
+  printf("---------- MIPS Emulator ----------\n  Pierre Coimbra & Thibaut Barnel\n\n");
+  if(argc!=2) {
+    printf("Mauvaise utilisation : ./emul-mips asm.txt\n\n");
+    printf("Autres options possible : \nTest parseur : make test\nTests des fonctions : make debug\n");
+  }
+  else if (file=fopen(argv[1], "r")) {
+    fclose(file);
+    printf("Lecture du ficher : %s\n\n", argv[1]);
+    parseFichier(argv[1]);
+  }
+  else {
+    printf("Le fichier '%s' est introuvable\n",argv[1]);
+  }
+  printf("\n");
   #endif
   return 0;
 }
