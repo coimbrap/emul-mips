@@ -34,5 +34,9 @@ int main() {
   if (found!=NULL) {
     afficheRegistre(found);
   }
+  printf("\n------------------------------------\nTest traduction registre\n------------------------------------\n");
+  nom="HI";
+  nom=traduitRegiste(registres, nom);
+  printf("Traduction %s\n", nom);
   return 0;
 }

@@ -3,6 +3,24 @@
 #include <stdlib.h>
 #include <string.h>
 
+char* traduitRegiste(registre* registres[], char* nom) {
+  char *ret=NULL;
+  registre *found=NULL;
+  if (valeurDecimale(nom)!=-1) {
+    ret=nom;
+  }
+  else {
+    found=trouveRegistre(registres,nom);
+    if (found!=NULL) {
+      ret=intVersChaine(found->numero);
+    }
+  }
+  if (valeurDecimale(ret)==-1) {
+    ret=nom;
+  }
+  return ret;
+}
+
 /* Remplit la structure des registres à l'aide d'un fichier */
 void remplissageStructRegiste(registre *registres[], const char* fichier) {
   FILE *freg=fopen(fichier,"r");
@@ -99,4 +117,27 @@ void afficheRegistres(registre *registres[]) {
     printf("--%d--\n", i);
     afficheRegistre(registres[i]);
   }
+}
+
+char* intVersChaine(int num) {
+  int tmp=0,sign=0;
+  char *s=malloc(sizeof(int)*sizeof(char));
+  *s='\0';
+  --s;
+  if (num==0) {
+    *s='0';
+  }
+  if (num<0) {
+    sign=1;
+    num*=-1;
+  }
+  for (tmp=num;tmp>0;tmp/=10) {
+    --s;
+    *s=tmp%10+'0';
+  }
+  if (sign) {
+    s--;
+    *s='-';
+  }
+  return s;
 }

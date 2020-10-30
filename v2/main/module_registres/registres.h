@@ -20,5 +20,6 @@ void afficheBin(int* bin, int size);
 int valeurDecimale(char *s);
 registre* trouveRegistre(registre* registres[], char* nom);
 void changeRegistre(registre* registre, int valeur[NB_BIT_REGISTRE]);
-
+char* traduitRegiste(registre* registres[], char* registre);
+char* intVersChaine(int num);
 #endif
