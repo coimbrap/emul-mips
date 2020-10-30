@@ -39,7 +39,7 @@ void ecrireHex(char* hex, char *fichier);
 int nombreOperande(char *s);
 char** parseOperandes(char *ligne, char* operandes[], int* offset);
 void parseOperation(char *ligne, char* operation, int* offset);
-void parseLigne(char *ligne, int* bin);
+void parseLigne(char *ligne, int* bin, instruction* instructions[]);
 void parseFichier(char *input, char* output);
 
 #endif

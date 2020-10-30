@@ -65,7 +65,7 @@ int main() {
   printf("\n----------------------------------\nTest parseur ligne\n----------------------------------\n");
   ligne="SLL $10,$23,24";
   printf("%s\n", ligne);
-  parseLigne(ligne,binParse);
+  parseLigne(ligne,binParse,instructions);
   afficheBin(binParse,TAILLE_BIT_OPERATION);
   printf("\n------------------------------\nTest binToHex + Fichier\n------------------------------\n");
   binaryToHex(binHex,hex);

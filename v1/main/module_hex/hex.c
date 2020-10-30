@@ -259,13 +259,11 @@ void parseOperation(char *ligne, char* operation, int* offset) {
   *offset=i;
 }
 
-void parseLigne(char *ligne, int* bin) {
-  char *listeope="module_hex/listeOpe.txt";
+void parseLigne(char *ligne, int* bin, instruction* instructions[]) {
   int offset=0,offsetBin=0;
   int registreDec=0;
   instruction *found=NULL;
   int i=0,l=0;
-  instruction *instructions[NB_OPERATIONS+1];
   char operation[TAILLE_MAX_OPERATEUR];
   char **operandes=NULL;
   /* On écrit des zéros dans le tableau de la représentation binaire */
@@ -276,8 +274,6 @@ void parseLigne(char *ligne, int* bin) {
   printf("\n");
   afficheBin(bin,TAILLE_BIT_OPERATION);
   #endif
-  /* On remplit la structure de stockage à partir du fichier */
-  remplissageStructInstruction(instructions,listeope);
   /* Pour éviter des offset complexe on renversera le tableau à la fin */
   parseOperation(ligne,operation,&offset);
   found=trouveOperation(instructions,operation);
@@ -466,10 +462,14 @@ void parseFichier(char *input, char* output) {
   FILE *fout=fopen(output, "w");
   size_t len=0;
   char *ligne=NULL;
+  char *listeope="module_hex/listeOpe.txt";
   int bin[TAILLE_BIT_OPERATION];
   char hex[TAILLE_HEX_OPERATION];
   char *ligneOut=NULL;
   int programCounter=0;
+  instruction *instructions[NB_OPERATIONS+1];
+  /* On remplit la structure de stockage à partir du fichier */
+  remplissageStructInstruction(instructions,listeope);
   if (fin==NULL) {
     printf("Erreur lors de l'ouverture du fichier '%s'\n",input);
     exit(-1);
@@ -490,7 +490,7 @@ void parseFichier(char *input, char* output) {
         #ifdef VERBEUX
         printf("\n----Instruction----\n%s\n",ligneOut);
         #endif
-        parseLigne(ligneOut,bin);
+        parseLigne(ligneOut,bin,instructions);
         #ifdef VERBEUX
         printf("------Binaire------\n");
         afficheBin(bin,TAILLE_BIT_OPERATION);

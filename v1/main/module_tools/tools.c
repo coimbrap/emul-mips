@@ -32,6 +32,9 @@ int valeurDecimale(char *s) {
     sign=-1;
     i++;
   }
+  if (s[i]>='0' && s[i]<='9') {
+    num=0;
+  }
   /* Pas de for pour déterminer le signe et pour s'arreter dès la fin du nombre */
   while (s[i]>='0' && s[i]<='9'){
     num=num*10+(s[i]-'0'); /* Manipulation ASCII */

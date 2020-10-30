@@ -6,7 +6,7 @@ int main(int argc, char *argv[]) {
   printf("---------- MIPS Emulator ----------\n  Pierre Coimbra & Thibaut Barnel\n\n");
   if(argc!=3) {
     printf("Mauvaise utilisation : ./emul-mips asm.txt hex.txt\n\n");
-    printf("Autres options possible : \nTest parseur : make test\nTests des fonctions : make debug\n");
+    printf("Autre option possible : \nTest parseur : make test\n");
   }
   else if ((file=fopen(argv[1], "r"))) {
     fclose(file);
