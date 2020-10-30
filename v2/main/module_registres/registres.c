@@ -1,6 +1,7 @@
 #include "registres.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /* Remplit la structure des registres à l'aide d'un fichier */
 void remplissageStructRegiste(registre *registres[], const char* fichier) {
@@ -22,6 +23,55 @@ void remplissageStructRegiste(registre *registres[], const char* fichier) {
     fgetc(freg); /* Enlève \n */
   }
   fclose(freg);
+}
+
+/* Retourne un pointeur vers la structure contenant toutes les informations d'une opération */
+registre* trouveRegistre(registre* registres[], char* nom) {
+  int i=0, nonTrouvee=1, special=1,find=-2;
+  registre *ret=NULL;
+  if (valeurDecimale(nom)!=-1) {
+    special=0;
+    find=valeurDecimale(nom);
+  }
+  while (nonTrouvee && i<NB_REGISTRE) {
+    if (special && strcmp(registres[i]->nom,nom)==0) {
+      ret=registres[i];
+      nonTrouvee=0;
+    }
+    else if (!special && find==registres[i]->numero) {
+      ret=registres[i];
+      nonTrouvee=0;
+    }
+    i++;
+  }
+  return ret;
+}
+
+void changeRegistre(registre* registre, int valeur[NB_BIT_REGISTRE]) {
+  int i=0;
+  for (i=0;i<NB_BIT_REGISTRE;i++) {
+    registre->valeur[i]=valeur[i];
+  }
+}
+
+/* Retourne un entier signé correspondant à un entier stocké dans un string */
+int valeurDecimale(char *s) {
+  int num=-1,i=0,sign=1;
+  /* On détermine le signe */
+  if(s[i]=='-'){
+    sign=-1;
+    i++;
+  }
+  if (s[i]>='0' && s[i]<='9') {
+    num=0;
+  }
+  /* Pas de for pour déterminer le signe et pour s'arreter dès la fin du nombre */
+  while (s[i]>='0' && s[i]<='9'){
+    num=num*10+(s[i]-'0'); /* Manipulation ASCII */
+    i++;
+  }
+  /* On retourne l'entier avec le bon signe */
+  return sign*num;
 }
 
 /* AFFICHAGE */

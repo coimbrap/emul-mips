@@ -1,7 +1,7 @@
 CC = gcc
-CFLAGS = -Wall -ansi -pedantic
+CFLAGS = -Wall -ansi -pedantic -g
 EXEC = test
-LDFLAGS =
+LDFLAGS = -g
 
 all: $(EXEC)
 

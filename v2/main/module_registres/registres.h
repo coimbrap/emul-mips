@@ -17,5 +17,8 @@ void remplissageStructRegiste(registre *registre[], const char* fichier);
 void afficheRegistre(registre *registre);
 void afficheRegistres(registre *registres[]);
 void afficheBin(int* bin, int size);
+int valeurDecimale(char *s);
+registre* trouveRegistre(registre* registres[], char* nom);
+void changeRegistre(registre* registre, int valeur[NB_BIT_REGISTRE]);
 
 #endif
