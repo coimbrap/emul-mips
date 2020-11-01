@@ -11,6 +11,7 @@ typedef struct element{
 
 typedef element* memoire;
 
+int estDivisiblePar4(int n);
 void insertion(int adresse, int mot, memoire *m);
 void suppression(int adresse, memoire *m);
 void afficherMemoire(memoire *m);

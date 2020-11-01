@@ -44,47 +44,51 @@ int main() {
   printf("\n------------------------------------\nTest de la liste chaînée\n------------------------------------\n");
   /* Insertion en tête */
   afficherMemoire(&mem);
-  insertion(0xffee,10,&mem);
+  insertion(0x4,2,&mem);
   afficherMemoire(&mem);
-  insertion(0x3,112,&mem);
- afficherMemoire(&mem);
-  insertion(0x0,11,&mem);
+  insertion(0x0,1,&mem);
   afficherMemoire(&mem);
   /* Insertion en queue */
-  insertion(0xfffe,10,&mem);
+  insertion(0xffec,4,&mem);
   afficherMemoire(&mem);
-  insertion(0xffff,10,&mem);
+  insertion(0xfffc,7,&mem);
   afficherMemoire(&mem);
   /* Insertion au millieu */
-  insertion(0xeeee,10,&mem);
+  insertion(0xfff8,6,&mem);
+  afficherMemoire(&mem);
+  insertion(0xfff4,5,&mem);
+  afficherMemoire(&mem);
+  insertion(0x101c,3,&mem);
   afficherMemoire(&mem);
   /* Test doublons */
-  insertion(0xffff,9,&mem);
+  insertion(0xfffc,17,&mem);
   afficherMemoire(&mem);
-  insertion(0x0,1120,&mem);
+  insertion(0x0,10,&mem);
   afficherMemoire(&mem);
-  insertion(0xeeee,11320,&mem);
+  insertion(0xffec,14,&mem);
   afficherMemoire(&mem);
   /* Suppression en tête */
   suppression(0x0000,&mem);
   afficherMemoire(&mem);
   /* Suppression en queue */
-  suppression(0xffff,&mem);
+  suppression(0xfffc,&mem);
   afficherMemoire(&mem);
   /* Suppression millieu */
-  suppression(0xeeee,&mem);
+  suppression(0xffec,&mem);
   afficherMemoire(&mem);
-  /* Test inexistant */
+  /* Test millieu mot */
   suppression(0xeeee,&mem);
   afficherMemoire(&mem);
   /* Vidage de la liste */
-  suppression(0x0003,&mem);
+  suppression(0x0004,&mem);
   afficherMemoire(&mem);
-  suppression(0xfffe,&mem);
+  suppression(0xfff4,&mem);
   afficherMemoire(&mem);
-  suppression(0xffee,&mem);
+  suppression(0xfff8,&mem);
   afficherMemoire(&mem);
-  /* Un de trop */
-  suppression(0xffee,&mem);
+  suppression(0x101c,&mem);
+  afficherMemoire(&mem);
+  /* Un de trop existant */
+  suppression(0xfff8,&mem);
   return 0;
 }
