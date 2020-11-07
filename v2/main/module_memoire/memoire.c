@@ -9,7 +9,7 @@ int estDivisiblePar4(int n) {
 void afficherMemoire(memoire *m) {
 	memoire increment=*m;
   if(increment==NULL) {
-    printf("La mémoire est vide (pas normal)\n");
+    printf("Affichage : mémoire vide\n");
   }
   else {
     while(increment!=NULL) {
@@ -67,7 +67,7 @@ void suppression(int adresse, memoire *m) {
 	element *precedent=NULL;
   if (estDivisiblePar4(adresse)) {
   	if (*m==NULL) {
-  		printf("mémoire vide\n");
+  		printf("Suppression : mémoire vide\n");
   	}
   	/* Il reste un unique élément dans la mémoire est c'est celui à supprimer */
   	else if(((*m)->suivant==NULL) && ((*m)->adresse)==adresse) {
@@ -97,5 +97,22 @@ void suppression(int adresse, memoire *m) {
   }
   else {
     printf("Vous essayez de supprimer au millieu d'un mot 0x%04x\n",adresse);
+  }
+}
+
+void liberation(memoire *m) {
+  memoire increment=NULL,precedent=NULL;
+  if (*m==NULL) {
+    printf("Libération : mémoire vide\n");
+  }
+  else {
+    increment=*m;
+    while (increment->suivant!=NULL) {
+      precedent=increment;
+      increment=increment->suivant;
+      suppression(precedent->adresse,m);
+    }
+    /* On supprime le dernier */
+    suppression(increment->adresse,m);
   }
 }

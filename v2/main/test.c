@@ -90,5 +90,18 @@ int main() {
   afficherMemoire(&mem);
   /* Un de trop existant */
   suppression(0xfff8,&mem);
+  afficherMemoire(&mem);
+  /* Test libération */
+  liberation(&mem);
+  insertion(0x4,2,&mem);
+  insertion(0x0,1,&mem);
+  insertion(0xffec,4,&mem);
+  insertion(0xfffc,7,&mem);
+  insertion(0xfff8,6,&mem);
+  insertion(0xfff4,5,&mem);
+  insertion(0x101c,3,&mem);
+  afficherMemoire(&mem);
+  liberation(&mem);
+  afficherMemoire(&mem);
   return 0;
 }
