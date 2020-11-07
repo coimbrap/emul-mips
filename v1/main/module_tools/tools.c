@@ -44,6 +44,30 @@ int valeurDecimale(char *s) {
   return sign*num;
 }
 
+/* Int vers string de l'int */
+char* intVersChaine(int num) {
+  int tmp=0,sign=0;
+  char *s=malloc(sizeof(int)*sizeof(char));
+  *s='\0';
+  --s;
+  if (num==0) {
+    *s='0';
+  }
+  if (num<0) {
+    sign=1;
+    num*=-1;
+  }
+  for (tmp=num;tmp>0;tmp/=10) {
+    --s;
+    *s=tmp%10+'0';
+  }
+  if (sign) {
+    s--;
+    *s='-';
+  }
+  return s;
+}
+
 /* MANIPILATION BINAIRE */
 
 void inverseBin(int* binS, int* binO, int size) {

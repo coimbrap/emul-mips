@@ -8,6 +8,7 @@
 int puissance(int d, int n);
 void inverseTab(int *tab, int n);
 int valeurDecimale(char* m);
+char* intVersChaine(int num);
 
 /* MANIPILATION BINAIRE */
 void inverseBin(int* binS, int* binO, int size);

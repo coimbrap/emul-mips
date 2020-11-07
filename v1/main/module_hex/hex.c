@@ -7,6 +7,73 @@
 /* Module tools */
 #include "../module_tools/tools.h"
 
+/* TEMP : MNEMONIQUE REGISTRE */
+/* Ces fonctions seront déplacé vers le module registre dans l'étape suivante */
+
+/* Remplit la structure des registres à l'aide d'un fichier */
+void remplissageStructRegiste(registre *registres[], const char* fichier) {
+  FILE *freg=fopen(fichier,"r");
+  registre *tmp=NULL;
+  int i=0,j=0;
+  if(freg==NULL) {
+    printf("Erreur lors de l'ouverture du fichier");
+    exit(-1);
+  }
+  fseek(freg,0,SEEK_SET);
+  for(i=0;i<NB_REGISTRE;i++) {
+    registres[i]=malloc(sizeof(registre));
+    tmp=registres[i];
+    fscanf(freg,"%d,%[^\n]",&tmp->numero,tmp->nom);
+    fgetc(freg); /* Enlève \n */
+  }
+  fclose(freg);
+}
+
+/* Retourne un pointeur vers la structure contenant toutes les informations d'une opération */
+registre* trouveRegistre(registre* registres[], char* nom) {
+  int i=0, nonTrouvee=1, special=1,find=-2;
+  registre *ret=NULL;
+  if (valeurDecimale(nom)!=-1) {
+    special=0;
+    find=valeurDecimale(nom);
+  }
+  while (nonTrouvee && i<NB_REGISTRE) {
+    if (special && strcmp(registres[i]->nom,nom)==0) {
+      ret=registres[i];
+      nonTrouvee=0;
+    }
+    else if (!special && find==registres[i]->numero) {
+      ret=registres[i];
+      nonTrouvee=0;
+    }
+    i++;
+  }
+  return ret;
+}
+
+/* Retourne la traduction du nom mnémonique d'un registre, si pas mnémonique retourne l'entrée */
+char* traduitRegiste(registre* registres[], char* nom) {
+  char *ret=NULL;
+  registre *found=NULL;
+  if (*nom!=NULL) {
+    if (valeurDecimale(nom)!=-1) {
+      ret=nom;
+    }
+    else {
+      found=trouveRegistre(registres,nom);
+      if (found!=NULL) {
+        ret=intVersChaine(found->numero);
+      }
+    }
+    if (valeurDecimale(ret)==-1) {
+      ret=nom;
+    }
+  }
+  return ret;
+}
+
+/* FIN TEMP */
+
 /* MEMOIRE INSTRUCTIONS */
 
 /* Remplit la structure de stockage à l'aide du fichier contenant les opérations */
@@ -190,7 +257,6 @@ void ecrireHex(char* hex, char *fichier){
   int i=0;
   FILE *fout=NULL;
   fout=fopen(fichier,"r+");
-
   if(NULL==fout){
     printf("Erreur d'ouverture du fichier\n");
     exit(1);
@@ -203,7 +269,7 @@ void ecrireHex(char* hex, char *fichier){
   fclose(fout);
 }
 
-/* PARSSAGE DE L'INSTRUCTION */
+/* PARSAGE DE L'INSTRUCTION */
 
 /* Retourne le nombre d'opérande dans un opération passé en entrée */
 int nombreOperande(char *s) {
@@ -215,6 +281,16 @@ int nombreOperande(char *s) {
     i++;
   }
   return ret+1;
+}
+
+/* Permet de traduire toutes les opérandes d'un tableau de strings d'operandes */
+void traduitOperandes(registre* registres[], char* operandes[], int nbOperande) {
+  int i=0;
+  for(i=0;i<nbOperande;i++) {
+    if(operandes[i]!=NULL && isalpha(operandes[i][0])) {
+      operandes[i]=traduitRegiste(registres,operandes[i]);
+    }
+  }
 }
 
 /* Retourne un tableau de string contenant la valeur de tout les operandes */
@@ -229,7 +305,7 @@ char** parseOperandes(char *ligne, char* operandes[], int* offset) {
   for(j=0;j<nbOperande;j++) {
     k=0;
     while(ligne[i]!='(' && ligne[i]!=',' && ligne[i]!='\0') {
-      if ((ligne[i]>='0' && ligne[i]<='9') || ligne[i]=='-') {
+      if ((ligne[i]>='0' && ligne[i]<='9') || ligne[i]=='-' || isalpha(ligne[i])) {
           operandes[numOpe][k]=ligne[i];
         k++;
       }
@@ -259,7 +335,7 @@ void parseOperation(char *ligne, char* operation, int* offset) {
   *offset=i;
 }
 
-void parseLigne(char *ligne, int* bin, instruction* instructions[]) {
+void parseLigne(char *ligne, int* bin, instruction* instructions[], registre* registres[]) {
   int offset=0,offsetBin=0;
   int registreDec=0;
   instruction *found=NULL;
@@ -278,6 +354,11 @@ void parseLigne(char *ligne, int* bin, instruction* instructions[]) {
   parseOperation(ligne,operation,&offset);
   found=trouveOperation(instructions,operation);
   if (found!=NULL) {
+    /* Si ce n'est pas NOP on parse les operandes */
+    if (!(found->typeInstruction=='R' && found->ordreBits==1 && found->styleRemplissage==2)) {
+      operandes=parseOperandes(ligne,operandes,&offset);
+      traduitOperandes(registres,operandes,nombreOperande(ligne));
+    }
     #ifdef DEBUG
     afficheInstruction(found);
     #endif
@@ -286,7 +367,6 @@ void parseLigne(char *ligne, int* bin, instruction* instructions[]) {
         /* ADD/AND/XOR/OR/SLT/SUB */
         if (found->styleRemplissage==1) {
           offsetBin=6; /* Les 6 premiers zéro */
-          operandes=parseOperandes(ligne,operandes,&offset);
           registreDec=valeurDecimale(operandes[1]);
           decToBinary(registreDec,&offsetBin, bin);
           registreDec=valeurDecimale(operandes[2]);
@@ -303,7 +383,6 @@ void parseLigne(char *ligne, int* bin, instruction* instructions[]) {
         /* SLL */
         else if (found->styleRemplissage==3) {
           offsetBin=11; /* Les 11 premiers zéro */
-          operandes=parseOperandes(ligne,operandes,&offset);
           registreDec=valeurDecimale(operandes[1]);
           decToBinary(registreDec,&offsetBin, bin);
           registreDec=valeurDecimale(operandes[0]);
@@ -319,7 +398,6 @@ void parseLigne(char *ligne, int* bin, instruction* instructions[]) {
           offsetBin=10; /* Les 10 premiers zéro */
           bin[offsetBin]=1;
           offsetBin++;
-          operandes=parseOperandes(ligne,operandes,&offset);
           registreDec=valeurDecimale(operandes[1]);
           decToBinary(registreDec,&offsetBin, bin);
           registreDec=valeurDecimale(operandes[0]);
@@ -332,7 +410,6 @@ void parseLigne(char *ligne, int* bin, instruction* instructions[]) {
         else if (found->styleRemplissage==2) {
           offsetBin=10; /* Les 10 premiers zéro */
           offsetBin++;
-          operandes=parseOperandes(ligne,operandes,&offset);
           registreDec=valeurDecimale(operandes[1]);
           decToBinary(registreDec,&offsetBin, bin);
           registreDec=valeurDecimale(operandes[0]);
@@ -346,7 +423,6 @@ void parseLigne(char *ligne, int* bin, instruction* instructions[]) {
         /* MULT */
         if (found->styleRemplissage==1) {
           offsetBin=6; /* Les 6 premiers zéro */
-          operandes=parseOperandes(ligne,operandes,&offset);
           /* rt/rd/0 */
           for(i=0;i<nombreOperande(ligne);i++) {
             registreDec=valeurDecimale(operandes[i]);
@@ -360,7 +436,6 @@ void parseLigne(char *ligne, int* bin, instruction* instructions[]) {
         /* JR -> Implémentation de la release 1 de l'architecture */
         if (found->styleRemplissage==1) {
           offsetBin=6; /* Les 6 premiers zéro */
-          operandes=parseOperandes(ligne,operandes,&offset);
           registreDec=valeurDecimale(operandes[i]);
           decToBinary(registreDec,&offsetBin, bin);
           offsetBin+=15; /* La boucle for avance de 5 de trop */
@@ -371,7 +446,6 @@ void parseLigne(char *ligne, int* bin, instruction* instructions[]) {
         /* MFHI/MFLO */
         if (found->styleRemplissage==1) {
           offsetBin=16; /* Les 16 premiers zéro */
-          operandes=parseOperandes(ligne,operandes,&offset);
           registreDec=valeurDecimale(operandes[0]);
           decToBinary(registreDec,&offsetBin, bin);
           offsetBin+=5; /* 5 zéro */
@@ -382,7 +456,6 @@ void parseLigne(char *ligne, int* bin, instruction* instructions[]) {
         /* SYSCALL */
         if (found->styleRemplissage==1) {
           offsetBin=6; /* Les 6 premiers zéro */
-          operandes=parseOperandes(ligne,operandes,&offset);
           /* code */
           for(i=0;i<nombreOperande(ligne);i++) {
             registreDec=valeurDecimale(operandes[i]);
@@ -397,7 +470,6 @@ void parseLigne(char *ligne, int* bin, instruction* instructions[]) {
         /* ADDI/BEQ/BNE */
         if (found->styleRemplissage==1) {
           rempliBinTabBin(found->opcode, &offsetBin, bin);
-          operandes=parseOperandes(ligne,operandes,&offset);
           /* ADDI change au niveau de l'instruction présente rt rs imm */
           if (valeurDecimale(found->opcode)==1000) {
             registreDec=valeurDecimale(operandes[1]);
@@ -418,7 +490,6 @@ void parseLigne(char *ligne, int* bin, instruction* instructions[]) {
         /* BGTZ/BLEZ */
         else if (found->styleRemplissage==2) {
           rempliBinTabBin(found->opcode, &offsetBin, bin);
-          operandes=parseOperandes(ligne,operandes,&offset);
           registreDec=valeurDecimale(operandes[0]);
           decToBinary(registreDec,&offsetBin, bin);
           offsetBin+=5; /* Laisse 5 bits à zéro */
@@ -428,7 +499,6 @@ void parseLigne(char *ligne, int* bin, instruction* instructions[]) {
         /* LUI */
         else if (found->styleRemplissage==3) {
           rempliBinTabBin(found->opcode, &offsetBin, bin);
-          operandes=parseOperandes(ligne,operandes,&offset);
           offsetBin+=5; /* Laisse 5 bits à zéro */
           registreDec=valeurDecimale(operandes[0]);
           decToBinary(registreDec,&offsetBin, bin);
@@ -438,7 +508,6 @@ void parseLigne(char *ligne, int* bin, instruction* instructions[]) {
         /* LW/SW */
         else if (found->styleRemplissage==4) {
           rempliBinTabBin(found->opcode, &offsetBin, bin);
-          operandes=parseOperandes(ligne,operandes,&offset);
           registreDec=valeurDecimale(operandes[2]);
           decToBinary(registreDec,&offsetBin, bin);
           registreDec=valeurDecimale(operandes[0]);
@@ -463,13 +532,16 @@ void parseFichier(char *input, char* output) {
   size_t len=0;
   char *ligne=NULL;
   char *listeope="module_hex/listeOpe.txt";
+  char *listereg="module_hex/listeReg.txt";
   int bin[TAILLE_BIT_OPERATION];
   char hex[TAILLE_HEX_OPERATION];
   char *ligneOut=NULL;
   int programCounter=0;
   instruction *instructions[NB_OPERATIONS+1];
+  registre* registres[NB_REGISTRE];
   /* On remplit la structure de stockage à partir du fichier */
   remplissageStructInstruction(instructions,listeope);
+  remplissageStructRegiste(registres,listereg);
   if (fin==NULL) {
     printf("Erreur lors de l'ouverture du fichier '%s'\n",input);
     exit(-1);
@@ -490,7 +562,7 @@ void parseFichier(char *input, char* output) {
         #ifdef VERBEUX
         printf("\n----Instruction----\n%s\n",ligneOut);
         #endif
-        parseLigne(ligneOut,bin,instructions);
+        parseLigne(ligneOut,bin,instructions,registres);
         #ifdef VERBEUX
         printf("------Binaire------\n");
         afficheBin(bin,TAILLE_BIT_OPERATION);
