@@ -1,94 +1,298 @@
-# Modules
+# Spécification de la v1
 
-Nous avons segmenté notre v1 en deux modules, un module hex qui permet de transformer une instruction assembleur en un code hexadécimal et un module tools qui contient des fonctions que l'on utilisera dans tout les modules de notre programme.
+## Prend une instruction et la met en hexadécimal
 
-## Module registres
-
-L’objectif de ce module est de fournir une implémentation des registres d'un processeur MIPS en C. Les fonctions de base de ce module permettront de lire la valeur d'un registre et de changer la valeur d'un registre.
-
-Pour la représentation en mémoire de ces registres nous avons procédé de la manière suivante :
-
-Un structure représentant un registre organisé de la manière suivante :
-```
-+----------------------+
-|                      |
-|  Numéro du registre  |
-|                      |
-+----------------------+
-|                      |
-|       Nom ASCII      |
-|                      |
-+----------------------+
-|                      |
-|  Valeur du registre  |
-|                      |
-+----------------------+
-```
-
-Le numéro du registre, le nom mnémonique et la valeur du registre seront initialisé par une fonction à l'aide d'un fichier. Par défaut la valeur du registre sera initialisé à une valeur arbitraire pour éviter des valeurs aléatoire dans l'affichage dû au malloc.
-
-Afin de pouvoir utiliser la même structure pour les 32 registres GPR et pour les registres spécialisés si le numéro du registre vaut -1 on à affaire à un registre spécialisés. Dans ce cas c'est le nom ASCII qui fera aussi d'identifiant pour le registre.
-
-- Le numéro du registre sera un nombre entier entre -1 et 31 on le stockera sous la forme d'un int.
-- Le nom mnémonique sera un tableau de 5 char car le plus long est zero.
-- La valeur du registre sera un tableau contenant 32 cases pour les 32 bits de leur valeur en binaire. On le stockera sous la forme d'un tableau d'entier.
-
-Il y a donc 35 registres pour notre implémentation. Nous allons donc utilisé un tableau de 35 cases avec chaque case pointant vers une structure décrite ci-dessus associé à un registre.
-
-## Module mémoire
-
-Une case mémoire est composée de 32bits.
-
-La mémoire est stocké entre les adresses 0x00000000 et 0xFFFFFFFF.
-
-Les instructions pouvant accéder à la mémoire dans notre implémentation sont LW et SW. Elles permettent de faire le lien entre un registre et la mémoire en transférant un mot de 32bits soit 4octets.
-
-Ces 4 octets devront être stocké à la suite dans la mémoire en respectant la norme Big Endian (octet de poids fort à l'adresse la plus basse). De plus l'adresse du premier octet devra être divisible par 4.
-
-En résumé la quantité de mémoire utilisé par un programme n'est pas prédictible.
-
-La première question soulevé est la suivante :
-Une adresse pointe vers une case pouvant stocké un octet (8bits) or dans notre cas nous stockons uniquement des mots soit 4 octets (32 bits).
-Faut-il avoir une mémoire géré par mots (bloc de 4 octets) ou une mémoire géré par octet ?
-
-Vu que pour notre implémentation nous n'utilisons pas les directives et que les deux seules opérations accédant à la mémoire sont LW et SW. Nous allons donc faire une implémentation de la mémoire simplifié, pour cela nous allons utilisé la map mémoire suivante.
+Toutes les informations sur les 28 opérateurs seront stocké dans un tableau remplit de la manière suivante :
 
 ```
-0xFFFF +------------------------+
-       |                        |
-       |          Pile          |
-       |                        |
-0x2000 +------------------------+
-       |                        |
-       |        Mémoire         |
-       |                        |
-0x0000 +------------------------+
+ Tableau regroupant les 28 opérations
+
+   0     1                       27
++-----+-----+------------------+-----+
+|  +  |  +  |                  |  +  |
++-----+-----+------------------+-----+
+   |     |                        |
+   |     |                        |
+   |     |                        |
+   |     |                        |
+   v     v                        v
+
+  Structure remplit comme ci-dessous
+
+       +--------------------+
+       |                    |
+       |     Nom ASCII      |
+       |                    |
+       +--------------------+
+       |                    |
+       |       opCode       |
+       |                    |
+       +--------------------+
+       |                    |
+       | Type d'instruction |
+       |                    |
+       +--------------------+
+       |                    |
+       |   Ordre des bits   |
+       |                    |
+       +--------------------+
+       |                    |
+       |  Remplissage type  |
+       |                    |
+       +--------------------+
 ```
 
-La mémoire accessible avec les instructions *LW* et *SW* se trouvera donc entre les adresses 0x0000 et 0x2000 et sera remplit des adresses bases aux adresses hautes.
+Fonctionnement général :
 
-Pour la pile elle se remplit par le bas donc elle se trouvera entre 0xFFFF et 0x2000.
+- On lit le nom de l'opération
+- On cherche la structure correspondant à cette opération
+- On traduit en hexadécimal selon le type d'instruction
 
-Vu que la mémoire ne sera pas trop utilisé nous allons utilisé une listes chaînée dynamiquement alloué pour utiliser le moins de mémoire possible.
+Les instructions sont séparées en 3 familles que nous avons recoupé en groupes et sous-groupes comme décrit ci-dessous.
 
-On aura donc la map mémoire qui contiendra :
-- Une liste pour la mémoire
-- Une pile descendante
+### Instruction de type R
 
-L'utilisation de la pile est géré par le registre *sp* qui pointe vers l'adresse du haut de la pile, on peut donc utiliser la même implématation pour le pile et pour la mémoire seule l'utilisation varie.
+Les bits de 31 à 26 contiennent des 0.
 
-Pour l'implémentation nous avons retenu celle d'une liste chaîné. Chaque maillon de la liste sera composé comme décrit ci-dessous :
-- L'adresse de la case mémoire du premier octet du mot (un multiple de 4)
-- La valeur du mot sous forme de tableau
-- Un pointeur vers l'adresse suivante, si ce pointeur vaut NULL c'est la fin de la mémoire
+Différents cas en fonction du type de type R
 
-Pour une question des questions de simplicité on veillera à ce que les adresses reste dans l'ordre.
+#### Cas 1
+```
+                      Cas 1 - Type R
 
-En résumé un maillon contiendra un mot et sera désigné par l'adresse de la case mémoire du premier octet du mot.
+ 31      26 25    21 20    16 15    11 10     6 5        0
++----------+--------+--------+--------+--------+----------+
+|          |        |        |        |        |          |
+|  000000  |   rs   |   rt   |   rd   |   0    |   func   | SG 1
+|          |        |        |        |        |          |
+|  000000  |   0    |   0    |   0    |   0    |   func   | SG 2
+|          |        |        |        |        |          |
+|  000000  |   0    |   rt   |   rd   |   sa   |   func   | SG 3
+|          |        |        |        |        |          |
++----------+--------+--------+--------+--------+----------+
+```
 
-*Recherche documentaire sur les liens suivant :*
-*https://www-soc.lip6.fr/trac/sesi-almo/chrome/site/docs/ALMO-mips32-archi-asm.pdf*
+##### SG 1 : (0/rs/rt/rd/0/func)
+- ADD : 100000 (25/21 20/16 15/11 10/6 5/0)
+- AND : 100100 (25/21 20/16 15/11 10/6 5/0)
+- XOR : 100110 (25/21 20/16 15/11 10/6 5/0)
+- OR : 100101 (25/21 20/16 15/11 10/6 5/0)
+- SLT : 101010 (25/21 20/16 15/11 10/6 5/0)
+- SUB : 100010 (25/21 20/16 15/11 10/6 5/0)
+##### SG 2 : (0/0/0/0/0/func)
+- NOP : 000000 (25/21 20/16 15/11 10/6 5/0)
+##### SG 3 : (0/0/rt/rd/sa/func)
+- SLL : 000000 (25/21 20/16 15/11 10/6 5/0)
 
-*https://tdinfo.phelma.grenoble-inp.fr/2Aproj/ressources/PHELMA_ProjetInformatique2A_2019-20.pdf*
+#### Cas 2
+```
+                        Cas 2 - Type R
 
-*http://www-id.imag.fr/~briat/perso.html/NACHOS/NACHOS_DOC/CA225b.html*
+ 31      26 25 22 21    21 20    16 15    11 10       6 5       0
++----------+-----+--------+--------+--------+---------+----------+
+|          |     |        |        |        |         |          |
+|  000000  |  0  |   R1   |   rt   |   rd   |   sa    |   func   |  SG 1
+|          |     |        |        |        |         |          |
+|  000000  |  0  |   R0   |   rt   |   rd   |   sa    |   func   |  SG 2
+|          |     |        |        |        |         |          |
++----------+-----+--------+--------+--------+---------+----------+
+```
+
+##### SG 1 : (0/0/R1/rt/rd/sa/func)
+- ROTR : 000010 (25/22 21 20/16 15/11 10/6 5/0)
+##### SG 2 : (0/0/R0/rt/rd/sa/func)
+- SRL : 000010 (25/22 21 20/16 15/11 10/6 5/0)
+
+#### Cas 3
+```
+                  Cas 3 - Type R
+
+ 31      26 25    21 20    16 15    6 5        0
++----------+--------+--------+-------+----------+
+|          |        |        |       |          |
+|  000000  |   rs   |   rt   |   0   |   func   | SG 1
+|          |        |        |       |          |
++----------+--------+--------+-------+----------+
+```
+##### SG 1 : (0/rs/rt/0/func)
+- MULT : 011000 (25/21 20/16 15/6 5/0)
+- DIV : 011010 (25/21 20/16 15/6 5/0)
+
+#### Cas 4
+```
+                Cas 4 - Type R
+
+ 31      26 25    21 20   11 10     6 5        0
++----------+--------+-------+--------+----------+
+|          |        |       |        |          |
+|  000000  |   rs   |   0   |   sa   |   func   | SG 1
+|          |        |       |        |          |
++----------+--------+-------+--------+----------+
+```
+##### SG 1 : (0/rs/0/hint/func)
+- JR : 001000 (25/21 20/11 10/6 5/0)
+
+#### Cas 5
+```
+                Cas 5 - Type R
+
+ 31      26 25   21 20    11 10    6 5        0
++----------+-------+--------+-------+----------+
+|          |       |        |       |          |
+|  000000  |   0   |   rd   |   0   |   func   |  SG 1
+|          |       |        |       |          |
++----------+-------+--------+-------+----------+
+```
+##### SG 1 : (0/0/rd/0/func)
+- MFHI : 010000 (25/16 15/11 10/6 5/0)
+- MFLO : 010010 (25/16 15/11 10/6 5/0)
+
+#### Cas 6
+```
+          Cas 6 - Type R
+
+ 31      26          6 5        0
++----------+----------+----------+
+|          |          |          |
+|  000000  |   code   |   func   |  SG 1
+|          |          |          |
++----------+----------+----------+
+```
+##### SG 1 : (0/code/func)
+- SYSCALL : 001100 (25/6 5/0)
+
+
+### Instruction de type I
+#### Cas 1
+```
+                Cas 1 - Type I
+
+ 31      26 25    21 20    16 15            0
++----------+--------+--------+---------------+
+|          |        |        |               |
+|  opcode  |   rs   |   rt   |   immediate   | SG 1
+|          |        |        |               |
+|  opcode  |   rs   |   0    |   immediate   | SG 2
+|          |        |        |               |
+|  opcode  |   0    |   rt   |   immediate   | SG 3
+|          |        |        |               |
+|  opcode  |  base  |   rt   |    offset     | SG 4
+|          |        |        |               |
++----------+--------+--------+---------------+
+
+```
+##### SG 1 : (opcode/rs/rt/immediate)
+- ADDI : 001000 (25/21 20/16 15/0)
+- BEQ : 000100 (25/21 20/16 15/0)
+- BNE : 000101 (25/21 20/16 15/0)
+
+##### SG 2 : (opcode/rs/0/immediate)
+- BGTZ : 000111 (25/21 20/16 15/0)
+- BLEZ : 000110 (25/21 20/16 15/0)
+
+##### SG 3 : (opcode/0/rt/immediate)
+- LUI : 001111 (25/21 20/16 15/0)
+
+##### SG 4 : (opcode/base/rt/offset)
+- LW : 100011 (25/21 20/16 15/0)
+- SW : 101011 (25/21 20/16 15/0)
+
+
+### Instruction de type J
+#### Cas 1
+```
+      Cas 1 - Type J
+
+ 31      26 25          0
++----------+-------------+
+|          |             |
+|  opcode  | instr_index | SG 1
+|          |             |
++----------+-------------+
+```
+##### SG 1 : (opcode/instr_index)
+- J : 000010 (25/0)
+- JAL : 000011 (25/0)
+
+
+Il y a donc 16 possibilités en tout.
+
+# Spécifications
+
+Tout d'abord pour la v1 notre code ne supportera pas les étiquettes et les directives, nous ne prendrons donc pas en compte les instructions de type J.
+
+## Les étapes pour obtenir la valeur hexadécimale d'une instruction
+
+Nous n'allons pas parler de la manière de récupérer une instruction dans cette partie.
+
+Une instruction désigne : "ADD $20,$20,$3"
+
+### I/ Appel à la parseLigne(char *ligne)
+
+Cette fonction prend en entrée un tableau de char contenant l'instruction et s'occupe de :
+- Remplir un tableau de 32 cases représentant la valeur binaire de l'instruction
+- Remplir un tableau de 8 cases représentant le valeur hexadécimale de l'instruction
+- Afficher le résultat
+- Écrire la valeur hexadécimale de l'instruction dans un fichier
+
+Pour reconnaître
+
+
+**Pour cela on décompose l'opération comme ci-dessous :**
+
+- Remplissage de la mémoire des instructions (structure décrite plus haut) à l'aide d'un fichier
+- Uniformisation de l'instruction (enlève les espaces en trop et les commentaires)
+- Récupération de l'opération (ADD/NOP/SLL...)
+- Recherche dans la mémoire de la structure mémoire correspondant à l'opération
+- Écriture de l'opcode dans le tableau de la représentation binaire de l'opération
+- Recherche de toutes les opérandes et écriture dans le tableau de la représentation binaire en fonction du sous-type d'instruction
+- Inversion du tableau binaire pour être en big endian (bit de point fort à  l'adresse la plus basse)
+- Transformation du tableau binaire en un tableau hexadécimal
+- Écriture de la valeur hexadécimale de l'opération dans un fichier
+
+
+
+
+
+
+Fonctions :
+
+On a :
+Un tableau de taille 26 qui contient les opérations,
+
+Une case = Une structure contenant :
+  - L'opcode
+  - Le type d'instruction
+  - L'ordre des bits (Code du cas)
+  - Le remplissage à faire (Code du SG)
+
+Un tableau de taille 32 correspondant aux bits en binaire de l'opération
+Un tableau de taille 8 correspondant à la valeur hexadécimale de l'opération
+
+- Lecture du nom de l'opération
+  - Tant que on ne rencontre pas une caractère on avance (commence par espace).
+  - Tant qu'on ne rencontre pas un espace on lit le nom de l'opération.
+  - On associe ce nom d'opération avec 6 bit d'opcode
+
+Fonctions annexe :
+- infoOp* informationsNom(char nom[]);
+Prend en entrée le nom de l'instruction et qui retourne un pointeur vers la case du tableau correspondant à cet opérateur
+
+- void binVersHex(int bin[32], int hex[8]);
+Prend en entrée le tableau de la représentation binaire de l'opération et l'adresse du tableau contenant la représentation hexadécimale
+
+- char* enleveEspaces(char *s);
+Enlève tout les espaces d'une chaine de caractère et retourne un pointeur vers la chaine sans espace
+
+- char* enleveCommentaires(char *s)
+Enlève tout ce qui est après un # et retourne un pointeur vers la chaine sans commentaires
+
+- void parseFichier(char *nomFichier)
+Permet de lire ligne à ligne le fichier le parse et exécute la fonction suivante
+
+- void parseOperation(char *ope)
+Transforme une expression en plusieurs blocs et rempli le tableau binaire.
+Le séparateur est dans un premier temps le dollars la virgule
+
+- void decVersBinOffset(int *bin, int x, int offset);
+Offset est la case du tableau à laquelle on commence à écrire la valeur binaire de x

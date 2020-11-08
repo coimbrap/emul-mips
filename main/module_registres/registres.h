@@ -1,7 +1,6 @@
 #ifndef _REGISTRES_H_
 #define _REGISTRES_H_
 
-#define INIT_VALUE 0
 #define TAILLE_MAX_MNEMO 5
 #define NB_BIT_REGISTRE 32
 #define NB_REGISTRE 35
@@ -12,13 +11,13 @@ typedef struct registre {
   int valeur[NB_BIT_REGISTRE];
 } registre;
 
-
 void remplissageStructRegistre(registre *registre[], const char* fichier);
 registre* trouveRegistre(registre* registres[], char* nom);
 char* traduitRegistre(registre* registres[], char* registre);
-void changeRegistre(registre* registre, int valeur[NB_BIT_REGISTRE]);
 
 /* Affichage */
 void afficheRegistre(registre *registre);
 void afficheRegistres(registre *registres[]);
+
+
 #endif

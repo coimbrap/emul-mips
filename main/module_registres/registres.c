@@ -8,7 +8,7 @@
 void remplissageStructRegistre(registre *registres[], const char* fichier) {
   FILE *freg=fopen(fichier,"r");
   registre *tmp=NULL;
-  int i=0,j=0;
+  int i=0;
   if(freg==NULL) {
     printf("Erreur lors de l'ouverture du fichier");
     exit(-1);
@@ -18,9 +18,6 @@ void remplissageStructRegistre(registre *registres[], const char* fichier) {
     registres[i]=malloc(sizeof(registre));
     tmp=registres[i];
     fscanf(freg,"%d,%[^\n]",&tmp->numero,tmp->nom);
-    for(j=0;j<NB_BIT_REGISTRE;j++) {
-      tmp->valeur[j]=INIT_VALUE;
-    }
     fgetc(freg); /* Enlève \n */
   }
   fclose(freg);
@@ -48,6 +45,7 @@ registre* trouveRegistre(registre* registres[], char* nom) {
   return ret;
 }
 
+/* Traduit un nom mnémonique en ça valeur chiffré, si déjà chiffré retourne le chiffre */
 char* traduitRegistre(registre* registres[], char* nom) {
   char *ret=NULL;
   registre *found=NULL;
@@ -66,20 +64,12 @@ char* traduitRegistre(registre* registres[], char* nom) {
   return ret;
 }
 
-void changeRegistre(registre* registre, int valeur[NB_BIT_REGISTRE]) {
-  int i=0;
-  for (i=0;i<NB_BIT_REGISTRE;i++) {
-    registre->valeur[i]=valeur[i];
-  }
-}
 
-/* AFFICHAGE */
-
+/* Affichage */
 /* Affiche les informations contenu dans une structure de stockage */
 void afficheRegistre(registre *registre) {
   printf("Numéro : %d\n", registre->numero);
   printf("Nom : %s\n", registre->nom);
-  afficheBin(registre->valeur,NB_BIT_REGISTRE);
 }
 
 /* Affiche toutes les structures du tableau de stockage */
