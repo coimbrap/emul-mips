@@ -1,6 +1,6 @@
-# Spécification de la v1
+# Projet CS351 : emul-mips
 
-## Prend une instruction et la met en hexadécimal
+## Partie 1 : Traduction d'une instruction en une valeur hexadécimale
 
 Toutes les informations sur les 28 opérateurs seront stocké dans un tableau remplit de la manière suivante :
 
@@ -217,82 +217,37 @@ Différents cas en fonction du type de type R
 
 Il y a donc 16 possibilités en tout.
 
-# Spécifications
+# Spécifications plus avancé
 
 Tout d'abord pour la v1 notre code ne supportera pas les étiquettes et les directives, nous ne prendrons donc pas en compte les instructions de type J.
 
-## Les étapes pour obtenir la valeur hexadécimale d'une instruction
+Dans le cas d'une valeur décimale supérieure à 2^16 ou inférieure à -2^15 on ne garanti pas le résultat car overflow.
+
+Pour la traduction des registres mnémonique nous utilisons un bout du module registres que nous détaillerons dans le rendu suivant (en résumé c'est presque la même chose que pour la mémoire des opcode).
+
+## Obtention de la valeur hexadécimale d'une instruction
 
 Nous n'allons pas parler de la manière de récupérer une instruction dans cette partie.
 
-Une instruction désigne : "ADD $20,$20,$3"
+Une instruction désigne par exemple : "ADD $20,$20,$3"
 
-### I/ Appel à la parseLigne(char *ligne)
-
-Cette fonction prend en entrée un tableau de char contenant l'instruction et s'occupe de :
-- Remplir un tableau de 32 cases représentant la valeur binaire de l'instruction
-- Remplir un tableau de 8 cases représentant le valeur hexadécimale de l'instruction
-- Afficher le résultat
-- Écrire la valeur hexadécimale de l'instruction dans un fichier
-
-Pour reconnaître
-
-
-**Pour cela on décompose l'opération comme ci-dessous :**
+**On décompose l'opération comme ci-dessous :**
 
 - Remplissage de la mémoire des instructions (structure décrite plus haut) à l'aide d'un fichier
 - Uniformisation de l'instruction (enlève les espaces en trop et les commentaires)
 - Récupération de l'opération (ADD/NOP/SLL...)
 - Recherche dans la mémoire de la structure mémoire correspondant à l'opération
+- Traduction des registres mnémonique
 - Écriture de l'opcode dans le tableau de la représentation binaire de l'opération
 - Recherche de toutes les opérandes et écriture dans le tableau de la représentation binaire en fonction du sous-type d'instruction
-- Inversion du tableau binaire pour être en big endian (bit de point fort à  l'adresse la plus basse)
 - Transformation du tableau binaire en un tableau hexadécimal
 - Écriture de la valeur hexadécimale de l'opération dans un fichier
 
+Pour chaque tiret il y a au moins une fonction. Le fonctionnement de nos fonctions est décrit dans les commentaires du code.
 
+## Structure du code
 
-
-
-
-Fonctions :
-
-On a :
-Un tableau de taille 26 qui contient les opérations,
-
-Une case = Une structure contenant :
-  - L'opcode
-  - Le type d'instruction
-  - L'ordre des bits (Code du cas)
-  - Le remplissage à faire (Code du SG)
-
-Un tableau de taille 32 correspondant aux bits en binaire de l'opération
-Un tableau de taille 8 correspondant à la valeur hexadécimale de l'opération
-
-- Lecture du nom de l'opération
-  - Tant que on ne rencontre pas une caractère on avance (commence par espace).
-  - Tant qu'on ne rencontre pas un espace on lit le nom de l'opération.
-  - On associe ce nom d'opération avec 6 bit d'opcode
-
-Fonctions annexe :
-- infoOp* informationsNom(char nom[]);
-Prend en entrée le nom de l'instruction et qui retourne un pointeur vers la case du tableau correspondant à cet opérateur
-
-- void binVersHex(int bin[32], int hex[8]);
-Prend en entrée le tableau de la représentation binaire de l'opération et l'adresse du tableau contenant la représentation hexadécimale
-
-- char* enleveEspaces(char *s);
-Enlève tout les espaces d'une chaine de caractère et retourne un pointeur vers la chaine sans espace
-
-- char* enleveCommentaires(char *s)
-Enlève tout ce qui est après un # et retourne un pointeur vers la chaine sans commentaires
-
-- void parseFichier(char *nomFichier)
-Permet de lire ligne à ligne le fichier le parse et exécute la fonction suivante
-
-- void parseOperation(char *ope)
-Transforme une expression en plusieurs blocs et rempli le tableau binaire.
-Le séparateur est dans un premier temps le dollars la virgule
-
-- void decVersBinOffset(int *bin, int x, int offset);
-Offset est la case du tableau à laquelle on commence à écrire la valeur binaire de x
+Nous avons divisé le code est 3 modules,
+- Le module hex qui regroupe l'essentiel du code
+- Le module tools qui regroupe des fonctions qui nous servirons tout au long du projet (traductions binaire, affichage de tableaux...)
+- Le module registres qui permet de traduire les noms mnémonique en valeur chiffrée. Ce module est la version 0 du module que nous utiliserons dans la deuxième partie. Nous avons choisi d'en faire un module pour plus de simplicité.
