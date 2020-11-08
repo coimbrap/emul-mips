@@ -26,11 +26,14 @@ void inverseTab(int *tab, int n) {
 
 /* Retourne un entier signé correspondant à un entier stocké dans un string */
 int valeurDecimale(char *s) {
-  int num=0,i=0,sign=1;
+  int num=-1,i=0,sign=1;
   /* On détermine le signe */
   if(s[i]=='-'){
     sign=-1;
     i++;
+  }
+  if (s[i]>='0' && s[i]<='9') {
+    num=0;
   }
   /* Pas de for pour déterminer le signe et pour s'arreter dès la fin du nombre */
   while (s[i]>='0' && s[i]<='9'){
@@ -39,6 +42,30 @@ int valeurDecimale(char *s) {
   }
   /* On retourne l'entier avec le bon signe */
   return sign*num;
+}
+
+/* Int vers string de l'int */
+char* intVersChaine(int num) {
+  int tmp=0,sign=0;
+  char *s=malloc(sizeof(int)*sizeof(char));
+  *s='\0';
+  --s;
+  if (num==0) {
+    *s='0';
+  }
+  if (num<0) {
+    sign=1;
+    num*=-1;
+  }
+  for (tmp=num;tmp>0;tmp/=10) {
+    --s;
+    *s=tmp%10+'0';
+  }
+  if (sign) {
+    s--;
+    *s='-';
+  }
+  return s;
 }
 
 /* MANIPILATION BINAIRE */
