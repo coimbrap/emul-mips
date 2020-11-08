@@ -13,13 +13,12 @@ typedef struct registre {
 } registre;
 
 
-void remplissageStructRegiste(registre *registre[], const char* fichier);
+void remplissageStructRegistre(registre *registre[], const char* fichier);
+registre* trouveRegistre(registre* registres[], char* nom);
+char* traduitRegistre(registre* registres[], char* registre);
+void changeRegistre(registre* registre, int valeur[NB_BIT_REGISTRE]);
+
+/* Affichage */
 void afficheRegistre(registre *registre);
 void afficheRegistres(registre *registres[]);
-void afficheBin(int* bin, int size);
-int valeurDecimale(char *s);
-registre* trouveRegistre(registre* registres[], char* nom);
-void changeRegistre(registre* registre, int valeur[NB_BIT_REGISTRE]);
-char* traduitRegiste(registre* registres[], char* registre);
-char* intVersChaine(int num);
 #endif

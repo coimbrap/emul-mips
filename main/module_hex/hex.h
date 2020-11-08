@@ -30,9 +30,10 @@ typedef struct registre {
 
 
 /* TEMP : MEMOIRE REGISTRE */
-void remplissageStructRegiste(registre *registres[], const char* fichier);
+/* Ces fonctions seront dans le module registre dans la suite */
+void remplissageStructRegistre(registre *registres[], const char* fichier);
 registre* trouveRegistre(registre* registres[], char* nom);
-char* traduitRegiste(registre* registres[], char* nom);
+char* traduitRegistre(registre* registres[], char* nom);
 
 /* MEMOIRE INSTRUCTIONS */
 void remplissageStructInstruction(instruction *instructions[], const char* fichier);

@@ -1,8 +1,8 @@
-#include "hex.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include "hex.h"
 
 /* Module tools */
 #include "../module_tools/tools.h"
@@ -11,10 +11,10 @@
 /* Ces fonctions seront déplacé vers le module registre dans l'étape suivante */
 
 /* Remplit la structure des registres à l'aide d'un fichier */
-void remplissageStructRegiste(registre *registres[], const char* fichier) {
+void remplissageStructRegistre(registre *registres[], const char* fichier) {
   FILE *freg=fopen(fichier,"r");
   registre *tmp=NULL;
-  int i=0,j=0;
+  int i=0;
   if(freg==NULL) {
     printf("Erreur lors de l'ouverture du fichier");
     exit(-1);
@@ -52,10 +52,10 @@ registre* trouveRegistre(registre* registres[], char* nom) {
 }
 
 /* Retourne la traduction du nom mnémonique d'un registre, si pas mnémonique retourne l'entrée */
-char* traduitRegiste(registre* registres[], char* nom) {
+char* traduitRegistre(registre* registres[], char* nom) {
   char *ret=NULL;
   registre *found=NULL;
-  if (*nom!=NULL) {
+  if (nom!=NULL) {
     if (valeurDecimale(nom)!=-1) {
       ret=nom;
     }
@@ -288,7 +288,7 @@ void traduitOperandes(registre* registres[], char* operandes[], int nbOperande) 
   int i=0;
   for(i=0;i<nbOperande;i++) {
     if(operandes[i]!=NULL && isalpha(operandes[i][0])) {
-      operandes[i]=traduitRegiste(registres,operandes[i]);
+      operandes[i]=traduitRegistre(registres,operandes[i]);
     }
   }
 }
@@ -531,8 +531,8 @@ void parseFichier(char *input, char* output) {
   FILE *fout=fopen(output, "w");
   size_t len=0;
   char *ligne=NULL;
-  char *listeope="module_hex/listeOpe.txt";
-  char *listereg="module_hex/listeReg.txt";
+  char *listeope="src/listeOpe.txt";
+  char *listereg="src/listeReg.txt";
   int bin[TAILLE_BIT_OPERATION];
   char hex[TAILLE_HEX_OPERATION];
   char *ligneOut=NULL;
@@ -541,7 +541,7 @@ void parseFichier(char *input, char* output) {
   registre* registres[NB_REGISTRE];
   /* On remplit la structure de stockage à partir du fichier */
   remplissageStructInstruction(instructions,listeope);
-  remplissageStructRegiste(registres,listereg);
+  remplissageStructRegistre(registres,listereg);
   if (fin==NULL) {
     printf("Erreur lors de l'ouverture du fichier '%s'\n",input);
     exit(-1);

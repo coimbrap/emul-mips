@@ -1,8 +1,6 @@
 #ifndef _MEMOIRE_H_
 #define _MEMOIRE_H_
 
-
-
 typedef struct element{
   int adresse;
   int valeur;
