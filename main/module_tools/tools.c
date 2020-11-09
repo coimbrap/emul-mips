@@ -1,6 +1,7 @@
 #include "tools.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /* OUTILS GENERAUX */
 
@@ -14,7 +15,7 @@ int puissance(int d, int n){
   return mul;
 }
 
-/* Inverse tout les éléments d'un tableau */
+/* Change le sens d'un tableau */
 void inverseTab(int *tab, int n) {
   int i=0,j=n-1,tmp=0;
   while(i<j) {
@@ -70,6 +71,8 @@ char* intVersChaine(int num) {
 
 /* MANIPILATION BINAIRE */
 
+/* Prend en entrée un tableau d'entier représentant un nombre binaire ainsi que ça taille */
+/* Inverse la valeur (en binaire) de chaque case du tableau passé en entrée dans le tableau binO */
 void inverseBin(int* binS, int* binO, int size) {
   int i=0;
   for (i=0;i<size;i++) {
@@ -82,36 +85,46 @@ void inverseBin(int* binS, int* binO, int size) {
   }
 }
 
+/* Prend en entrée deux tableaux d'entier représentant deux nombre binaire et leur taille (la même) size */
+/* Place la somme de ces deux nombres binaire dans le tableau binR passé en argument */
 void addBin(int* binA, int* binB, int* binR, int size) {
   int i=0,ret=0;
+  /* On renverse les tableaux pour la retenue */
   inverseTab(binA,size);
   inverseTab(binB,size);
   for (i=size-1;i>=0;i--) {
+    /* Si on a les deux à 1 on met la retenu dans le tableau résultat et la retenue à 1 */
     if (binA[i] && binB[i]) {
       binR[i]=ret;
       ret=1;
     }
+    /* Si les deux sont à 0 en met la retenu dans le tableau résultat et la retenue à 0 */
     else if (!binA[i] && !binB[i]){
       binR[i]=ret;
       ret=0;
     }
+    /* Sinon un des deux vaut 1 */
     else {
+      /* Si la retenu est à 1 on met 0 dans le tableau résultat et la retenue à 1 */
       if(ret==1) {
         binR[i]=0;
         ret=1;
       }
+      /* Sinon on met 1 dans le tableau résulat et la retenu à 0 */
       else {
         binR[i]=1;
         ret=0;
       }
     }
   }
-  inverseTab(binR,size);
   /* On remet dans le bon sens */
+  inverseTab(binR,size);
   inverseTab(binA,size);
   inverseTab(binB,size);
 }
 
+/* Prend en entrée un tableau d'entier représentant un nombre binaire ainsi que ça taille */
+/* Ecrit le complément à deux dans le tableau binO aussi passé en entréé */
 void complementADeux(int* binI, int* binO, int size) {
   int *binTmp=NULL;
   int *binOne=NULL;
@@ -119,14 +132,66 @@ void complementADeux(int* binI, int* binO, int size) {
   /* Allocation dynamique des tableaux temporaire */
   if((binTmp=malloc(sizeof(int)*size))==NULL){exit(1);};
   if((binOne=malloc(sizeof(int)*size))==NULL){exit(1);};
+  /* Initialisation du tableau contenant 1 */
   binOne[0]=1;
   for (i=1;i<size;i++) {
     binOne[i]=0;
   }
+  /* On inverse le tableau les 0 deviennent 1 et inversement */
   inverseBin(binI,binTmp,size);
+  /* On ajoute un (def du complément à deux) */
   addBin(binTmp,binOne,binO,size);
+  /* On libère les tableaux temporaire */
   free(binTmp);
   free(binOne);
+}
+
+/* MANIPULATION HEXADECIMALE */
+
+/* Prend en entrée la valeur hexadécimal dans un tableau de char */
+/* Retourne la valeur décimale associé sous forme d'un entier */
+int hexToDec(char* hex) {
+  int i=0,dec=0,base=1;
+  int len=strlen(hex);
+  for(i=len-1;i>=0;i--){
+    if (hex[i]>='0' && hex[i]<='9') {
+      /* Si c'est un nombre on le transforme en entier et on le multiplie par la base */
+      dec+=(hex[i]-'0')*base;
+      base*=16; /* On passe à la puissance d'après */
+    }
+    /* Pour le cas d'une lettre on trouve ça valeur décimale avec une manipulation ascii */
+    else if (hex[i]>='a' && hex[i]<='f') {
+      dec+=(hex[i]-'a'+10)*base;
+      base*=16;
+    }
+    else if (hex[i]>='A' && hex[i]<='F') {
+      dec+=(hex[i]-'A'+10)*base;
+      base*=16;
+    }
+  }
+  return dec;
+}
+
+/* Fonction permettant de traduire des valeurs immédiate hexadécimale en valeur décimale pour la fonction parseOperandes */
+/* Prend en entrée la valeur hexadécimal dans un tableau de char */
+/* Ecrit la valeur décimale dans ce même tableau (pas de problème de taille pour un usage normal) */
+void operandesHextoDec(char* hex) {
+  int i=0,dec=0,inv=0;
+  dec=hexToDec(hex);
+  /* On inverse l'ordre du nombre */
+  while (dec!=0) {
+    inv*=10;
+    inv+=dec%10;
+    dec/=10;
+  }
+  /* On écrit le nombre sous ça forme décimale dans le tableau hex */
+  while (inv>0) {
+    hex[i]=(inv%10)+'0';
+    inv/=10;
+    i++;
+  }
+  /* On marque la fin de la chaine de caractères */
+  hex[i]='\0';
 }
 
 /* AFFICHAGE */

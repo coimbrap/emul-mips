@@ -12,3 +12,14 @@ ADDI $4,$0,52
 
 ADD $29,$0,$8
 ADD $sp,$zero,$t0
+
+ADDI $10,$0,0x34
+ADDI $10,$0,0x1f
+ADDI $10,$0,0xffff
+
+#styleRemplissage
+12034°2
+
+     ADDI               $34,$3,13         #ld
+
+SYSCALL

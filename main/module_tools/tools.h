@@ -15,6 +15,10 @@ void inverseBin(int* binS, int* binO, int size);
 void addBin(int* binA, int* binB, int* binR, int size);
 void complementADeux(int* binI, int* binO, int size);
 
+/* MANIPULATION HEXADECIMALE */
+int hexToDec(char* hex);
+void operandesHextoDec(char* hex);
+
 /* AFFICHAGE */
 void afficheInstruction(instruction *instruction);
 void afficheStructInstruction(instruction *instructions[]);
