@@ -313,7 +313,7 @@ void parseLigne(char *ligne, int* bin, instruction* instructions[], registre* re
     #ifdef DEBUG
     afficheInstruction(found);
     #endif
-    /* Instuction de type R */
+    /* Instruction de type R */
     if (found->typeInstruction=='R') {
       if (found->ordreBits==1) {
         /* ADD/AND/XOR/OR/SLT/SUB */
