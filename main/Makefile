@@ -6,7 +6,7 @@ LDFLAGS =
 all: $(EXEC)
 
 #Cible des tests
-test: test.o tools.o hexDebug.o registres.o memoire.o
+test: test.o tools.o hexDebug.o registres.o memoire.o calcul.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 #Cible principale
@@ -25,6 +25,9 @@ registres.o: module_registres/registres.c module_registres/registres.h
 	$(CC) -c $< $(CFLAGS) -o $@
 
 memoire.o: module_memoire/memoire.c module_memoire/memoire.h
+	$(CC) -c $< $(CFLAGS) -o $@
+
+calcul.o: module_calcul/calcul.c module_calcul/calcul.h
 	$(CC) -c $< $(CFLAGS) -o $@
 
 tools.o: module_tools/tools.c module_tools/tools.h

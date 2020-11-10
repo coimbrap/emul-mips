@@ -2,6 +2,8 @@
 #include "module_tools/tools.h"
 #include "module_registres/registres.h"
 #include "module_memoire/memoire.h"
+#include "module_calcul/calcul.h"
+
 #include <string.h>
 #include <stdio.h>
 
@@ -176,5 +178,13 @@ int main() {
   afficherMemoire(&mem);
   liberation(&mem);
   afficherMemoire(&mem);
+  printf("\n------------------------------------\nDecodage hexa\n------------------------------------\n");
+  validHex("ae4f5dE");
+  validHex("aK4f5dE");
+  validHex("FFFFFFF");
+  validHex("0000000");
+  validHex("GGGGGGG");
+
+
   return 0;
 }
