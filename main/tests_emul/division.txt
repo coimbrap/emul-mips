@@ -1,0 +1,11 @@
+# Version sans mnémonique
+ADDI $1, $0, 2
+ADDI $2, $0, 67108864 # 2
+DIV $2, $1 # 4
+MFLO $3
+DIV $3, $1 # 4
+MFLO $4
+DIV $4, $1 # 4
+MFLO $5
+DIV $5, $1 # 4
+MFLO $6
