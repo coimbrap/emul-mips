@@ -9,10 +9,8 @@ int main() {
   /* Partie 1 */
   int l=0,offsetBin=0;
   char *binNum="11101001";
-  char *nomFichier="tests_emul/test.txt";
   char *listeope="src/listeOpe.txt";
   char *nom="ADD";
-  char *fichierHex="output/hex.txt";
   char *ligne="SLL $10,$23,24";
   instruction *instructions[NB_OPERATIONS+1];
   instruction *found=NULL;
@@ -23,9 +21,9 @@ int main() {
   char hex[TAILLE_HEX_OPERATION]={0,0,0,0,0,0,0};
   /* Partie 2 */
   registre* registres[NB_REGISTRE];
-  registre* found=NULL;
-  char* nom="s0";
-  int valeur[NB_BIT_REGISTRE]={1,0,1,1,1,0,1,1,0,0,1,1,1,1,1,0,1,0,1,0,0,1,0,0,1,0,1,0,1,0,1,1};
+  registre* foundReg=NULL;
+  char* nomReg="s0";
+  char *listereg="src/listeReg.txt";
 
   /* Tests partie 1 */
   for (l=0;l<TAILLE_BIT_OPERATION;l++) {
@@ -34,7 +32,9 @@ int main() {
   printf("\n----------------------------------\nTest Remplissage Structure\n----------------------------------\n");
   remplissageStructInstruction(instructions,listeope);
   afficheStructInstruction(instructions);
-  printf("\n----------------------------------\nTest recheche Structure\n----------------------------------\n");
+  remplissageStructRegistre(registres,listereg);
+  afficheRegistres(registres);
+  printf("\n----------------------------------\nTest recherche Structure\n----------------------------------\n");
   printf("On cherche %s\n", nom);
   found=trouveOperation(instructions,nom);
   if (found!=NULL) {
@@ -75,52 +75,44 @@ int main() {
   printf("\n----------------------------------\nTest parseur ligne\n----------------------------------\n");
   ligne="SLL $10,$23,24";
   printf("%s\n", ligne);
-  parseLigne(ligne,binParse,instructions);
+  parseLigne(ligne,binParse,instructions,registres);
   afficheBin(binParse,TAILLE_BIT_OPERATION);
-  printf("\n------------------------------\nTest binToHex + Fichier\n------------------------------\n");
+  printf("\n------------------------------\nTest binToHex\n------------------------------\n");
   binaryToHex(binHex,hex);
   afficheBin(binHex,TAILLE_BIT_OPERATION);
   afficheHex(hex);
-  ecrireHex(hex,fichierHex);
   binaryToHex(binHex2,hex);
   afficheBin(binHex2,TAILLE_BIT_OPERATION);
   afficheHex(hex);
-  ecrireHex(hex,fichierHex);
-  printf("\n----------------------------------\nTest du Parseur\n----------------------------------\n");
-  parseFichier(nomFichier,"output/test.txt");
   /* Tests partie 2 */
-  remplissageStructRegiste(registres,"src/listeReg.txt");
-  afficheRegistres(registres);
-  printf("\n------------------------------------\nTest recheche et écriture structure\n------------------------------------\n");
+  printf("\n------------------------------------\nTest recherche et écriture structure\n------------------------------------\n");
   printf("On cherche %s\n", nom);
-  found=trouveRegistre(registres,nom);
-  if (found!=NULL) {
-    afficheRegistre(found);
+  foundReg=trouveRegistre(registres,nom);
+  if (foundReg!=NULL) {
+    afficheRegistre(foundReg);
   }
   nom="HI";
   printf("\nOn cherche %s\n", nom);
-  found=trouveRegistre(registres,nom);
-  if (found!=NULL) {
-    afficheRegistre(found);
+  foundReg=trouveRegistre(registres,nom);
+  if (foundReg!=NULL) {
+    afficheRegistre(foundReg);
   }
   nom="12";
   printf("\nOn cherche %s\n", nom);
-  found=trouveRegistre(registres,nom);
-  if (found!=NULL) {
-    afficheRegistre(found);
-    changeRegistre(found,valeur);
-    afficheRegistre(found);
+  foundReg=trouveRegistre(registres,nom);
+  if (foundReg!=NULL) {
+    afficheRegistre(foundReg);
   }
   nom="-1";
   printf("\nOn cherche %s\n", nom);
-  found=trouveRegistre(registres,nom);
-  if (found!=NULL) {
-    afficheRegistre(found);
+  foundReg=trouveRegistre(registres,nom);
+  if (foundReg!=NULL) {
+    afficheRegistre(foundReg);
   }
   printf("\n------------------------------------\nTest traduction registre\n------------------------------------\n");
-  nom="HI";
-  nom=traduitRegiste(registres, nom);
-  printf("Traduction %s\n", nom);
+  nomReg="HI";
+  nomReg=traduitRegistre(registres, nomReg);
+  printf("Traduction %s\n", nomReg);
   memoire mem=NULL;
   printf("\n------------------------------------\nTest de la liste chaînée\n------------------------------------\n");
   /* Insertion en tête */

@@ -15,6 +15,10 @@
 #define TAILLE_MAX_MNEMO 5
 #define NB_BIT_REGISTRE 32
 
+/* Module registres */
+/* Ce module permet la traduction des mnémonique (v0 du module registre de la partie 2) */
+#include "../module_registres/registres.h"
+
 typedef struct instruction {
   char nom[TAILLE_MAX_OPERATEUR]; /* En ascii */
   char opcode[TAILLE_OPCODE+1]; /* ecrit sous forme binaire dans un char pour les 0 */
@@ -22,18 +26,6 @@ typedef struct instruction {
   int ordreBits; /* Cas en fonction du type */
   int styleRemplissage; /* SG en fonction du type */
 } instruction;
-
-typedef struct registre {
-  int numero;
-  char nom[TAILLE_MAX_MNEMO];
-} registre;
-
-
-/* TEMP : MEMOIRE REGISTRE */
-/* Ces fonctions seront dans le module registre dans la suite */
-void remplissageStructRegistre(registre *registres[], const char* fichier);
-registre* trouveRegistre(registre* registres[], char* nom);
-char* traduitRegistre(registre* registres[], char* nom);
 
 /* MEMOIRE INSTRUCTIONS */
 void remplissageStructInstruction(instruction *instructions[], const char* fichier);

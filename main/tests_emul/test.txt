@@ -1,3 +1,6 @@
+#Test des limites du simultateur et du parseur
+# Mnémoniques, valeur imm hexadécimale, ligne bidon, commentaires
+
 BEQ $22,$16,2
 BGTZ $23,-4
 ADDI $7,$7,100000
@@ -12,3 +15,14 @@ ADDI $4,$0,52
 
 ADD $29,$0,$8
 ADD $sp,$zero,$t0
+
+ADDI $10,$0,0x34
+ADDI $10,$0,0x1f
+ADDI $10,$0,0xffff
+
+#styleRemplissage
+12034°2
+
+     ADDI               $34,$3,13         #ld
+
+SYSCALL
