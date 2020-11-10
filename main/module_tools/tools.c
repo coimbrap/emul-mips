@@ -28,20 +28,22 @@ void inverseTab(int *tab, int n) {
 /* Retourne un entier signé correspondant à un entier stocké dans un string */
 int valeurDecimale(char *s) {
   int num=-1,i=0,sign=1;
-  /* On détermine le signe */
-  if(s[i]=='-'){
-    sign=-1;
-    i++;
+  if (s!=NULL) {
+    /* On détermine le signe */
+    if(s[i]=='-'){
+      sign=-1;
+      i++;
+    }
+    if (s[i]>='0' && s[i]<='9') {
+      num=0;
+    }
+    /* Pas de for pour déterminer le signe et pour s'arreter dès la fin du nombre */
+    while (s[i]>='0' && s[i]<='9'){
+      num=num*10+(s[i]-'0'); /* Manipulation ASCII */
+      i++;
+    }
+    /* On retourne l'entier avec le bon signe */
   }
-  if (s[i]>='0' && s[i]<='9') {
-    num=0;
-  }
-  /* Pas de for pour déterminer le signe et pour s'arreter dès la fin du nombre */
-  while (s[i]>='0' && s[i]<='9'){
-    num=num*10+(s[i]-'0'); /* Manipulation ASCII */
-    i++;
-  }
-  /* On retourne l'entier avec le bon signe */
   return sign*num;
 }
 
