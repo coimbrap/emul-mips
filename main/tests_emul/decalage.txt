@@ -1,0 +1,22 @@
+#Teste les décalages binaires SLL/SRL/ROTR 
+
+ADD $16,$0,$0
+LUI $16,254
+#revient à un décalage de 16
+ADDI $17,$0,254
+SLL $17,$17,16
+# On doit avoir 16646144 dans $16 et $17
+
+#On revient au nombre de départ dans $18 à partir de $16
+SRL $18,$16,16
+#On testera avec un sa négatif (ne fonctionne pas sur l'exemple)
+SLL $19,$17,-16
+
+# Test ROTR 
+
+ADDI $8,$0,246
+ROTR $9,$8,9 #11110110 -> 11110110 + (32-9 zero)
+
+
+
+

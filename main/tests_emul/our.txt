@@ -1,9 +1,0 @@
-#Programme de puissance
-#Prend en entrée
-
-ADDI $a0 $zero 15
-ADDI $a1 $0 102
-
-MULT $a0 $a1
-MFHI $20
-MFLO $21

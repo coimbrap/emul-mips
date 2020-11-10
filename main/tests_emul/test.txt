@@ -1,3 +1,6 @@
+#Test des limites du simultateur et du parseur
+# Mnémoniques, valeur imm hexadécimale, ligne bidon, commentaires
+
 BEQ $22,$16,2
 BGTZ $23,-4
 ADDI $7,$7,100000
