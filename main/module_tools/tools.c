@@ -196,6 +196,61 @@ void operandesHextoDec(char* hex) {
   hex[i]='\0';
 }
 
+void hexToBin(char* hex, int* bin) {
+  int i=0;
+  int j=0;
+  int k=0;
+  int temp=0;
+  for(k=0;k<TAILLE_BIT_OPERATION;k++){
+    bin[k]=0;
+  }
+  for(j=0;j<TAILLE_HEX_OPERATION;j++){
+    if(hex[j]=='A'){
+      temp=10;
+    }
+    else if(hex[j]=='B'){
+      temp=11;
+    }
+    else if(hex[j]=='C'){
+      temp=12;
+    }
+    else if(hex[j]=='D'){
+      temp=13;
+    }
+    else if(hex[j]=='E'){
+      temp=14;
+    }
+    else if(hex[j]=='F'){
+      temp=15;
+    }
+    else{
+      temp=hex[j]-48;
+    }
+    while(i<((j+1)*4)){
+      if((temp/8)==1){
+        bin[i]=1;
+        temp=temp-8;
+      }
+      i=i+1;
+      if((temp/4)==1){
+        bin[i]=1;
+        temp=temp-4;
+      }
+      i=i+1;
+      if((temp/2)==1){
+        bin[i]=1;
+        temp=temp-2;
+      }
+      i=i+1;
+      if((temp/1)==1){
+        bin[i]=1;
+        temp=temp-1;
+     }
+      i=i+1;
+    }
+  }
+}
+
 /* AFFICHAGE */
 
 /* Affiche les informations contenu dans une structure de stockage */

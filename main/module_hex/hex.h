@@ -16,12 +16,12 @@
 #define NB_BIT_REGISTRE 32
 
 /* Module registres */
-/* Ce module permet la traduction des mnémonique (v0 du module registre de la partie 2) */
+/* Ce module permet la traduction des mnémonique */
 #include "../module_registres/registres.h"
 
 typedef struct instruction {
   char nom[TAILLE_MAX_OPERATEUR]; /* En ascii */
-  char opcode[TAILLE_OPCODE+1]; /* ecrit sous forme binaire dans un char pour les 0 */
+  char opcode[TAILLE_OPCODE+1]; /* ecrit sous forme binaire dans un char pour les 0 | Pas int* pour fscanf */
   char typeInstruction; /* 'R' || 'I' || 'J' */
   int ordreBits; /* Cas en fonction du type */
   int styleRemplissage; /* SG en fonction du type */
@@ -30,6 +30,7 @@ typedef struct instruction {
 /* MEMOIRE INSTRUCTIONS */
 void remplissageStructInstruction(instruction *instructions[], const char* fichier);
 instruction* trouveOperation(instruction* instructions[], char* nom);
+instruction* trouveOpcode(instruction* instructions[], int* bin);
 
 /* UNIFORMISATION DE L'INSTRUCTION */
 void uniformisationInstruction(char *s, char *out);

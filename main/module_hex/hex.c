@@ -44,6 +44,33 @@ instruction* trouveOperation(instruction* instructions[], char* nom) {
   return ret;
 }
 
+/* Les deux nombres binaire doivent être de la même taille !! */
+int binStrIntCmp(char* binC, int* binD) {
+  int ret=1,i=0;
+  while (ret && binC[i]!='\0') {
+    if ((binC[i]-'0')!=binD[i]) {
+      ret=0;
+    }
+    i++;
+  }
+  return ret;
+}
+
+/* Retourne un pointeur vers la structure contenant toutes les informations d'une opération */
+instruction* trouveOpcode(instruction* instructions[], int* bin) {
+  int i=0, nonTrouvee=1;
+  instruction *ret=NULL;
+  /* On parcourt tout le tableau instructions tant qu'on est pas à la fin ou que l'on à pas trouvé */
+  while (nonTrouvee && i<NB_OPERATIONS) {
+    if (binStrIntCmp(instructions[i]->opcode,bin)) {
+      ret=instructions[i];
+      nonTrouvee=0;
+    }
+    i++;
+  }
+  return ret;
+}
+
 /* UNIFORMISATION DE L'INSTRUCTION */
 
 /* Retourne la chaine d'entrée uniformisé */

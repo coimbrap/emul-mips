@@ -1,5 +1,7 @@
-#include "module_hex/hex.h"
-#include "module_tools/tools.h"
+/*#include "module_hex/hex.h"
+
+#include "module_tools/tools.h"*/
+
 #include "module_registres/registres.h"
 #include "module_memoire/memoire.h"
 #include "module_calcul/calcul.h"
@@ -9,10 +11,9 @@
 
 int main() {
   /* Partie 1 */
-  int l=0,offsetBin=0;
+/*  int l=0,offsetBin=0;
   char *binNum="11101001";
   char *listeope="src/listeOpe.txt";
-  char *nom="ADD";
   char *ligne="SLL $10,$23,24";
   instruction *instructions[NB_OPERATIONS+1];
   instruction *found=NULL;
@@ -20,22 +21,23 @@ int main() {
   int binParse[TAILLE_BIT_OPERATION];
   int binHex[TAILLE_BIT_OPERATION]={0,0,0,0,0,1,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0};
   int binHex2[TAILLE_BIT_OPERATION]={0,0,0,0,0,0,0,0,0,1,1,0,1,0,1,0,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0};
-  char hex[TAILLE_HEX_OPERATION]={0,0,0,0,0,0,0};
+  char hex[TAILLE_HEX_OPERATION]={0,0,0,0,0,0,0}; */
   /* Partie 2 */
   registre* registres[NB_REGISTRE];
   registre* foundReg=NULL;
   char* nomReg="s0";
+  char *nom="ADD";
+
   char *listereg="src/listeReg.txt";
 
   /* Tests partie 1 */
-  for (l=0;l<TAILLE_BIT_OPERATION;l++) {
+/*  for (l=0;l<TAILLE_BIT_OPERATION;l++) {
     bin[l]=0;
   }
   printf("\n----------------------------------\nTest Remplissage Structure\n----------------------------------\n");
   remplissageStructInstruction(instructions,listeope);
   afficheStructInstruction(instructions);
-  remplissageStructRegistre(registres,listereg);
-  afficheRegistres(registres);
+
   printf("\n----------------------------------\nTest recherche Structure\n----------------------------------\n");
   printf("On cherche %s\n", nom);
   found=trouveOperation(instructions,nom);
@@ -71,7 +73,7 @@ int main() {
   rempliBinTabBin(binNum,&offsetBin,bin);
   afficheBin(bin,TAILLE_BIT_OPERATION);
   printf("\n----------------------------------\nTest Dec2Bin\n----------------------------------\n");
-  offsetBin=3; /*Offset de 3*/
+  offsetBin=3;
   decToBinary(6,&offsetBin,bin);
   afficheBin(bin,TAILLE_BIT_OPERATION);
   printf("\n----------------------------------\nTest parseur ligne\n----------------------------------\n");
@@ -85,9 +87,10 @@ int main() {
   afficheHex(hex);
   binaryToHex(binHex2,hex);
   afficheBin(binHex2,TAILLE_BIT_OPERATION);
-  afficheHex(hex);
-  /* Tests partie 2 */
+  afficheHex(hex);*/
   printf("\n------------------------------------\nTest recherche et écriture structure\n------------------------------------\n");
+  remplissageStructRegistre(registres,listereg);
+  afficheRegistres(registres);
   printf("On cherche %s\n", nom);
   foundReg=trouveRegistre(registres,nom);
   if (foundReg!=NULL) {
@@ -178,13 +181,16 @@ int main() {
   afficherMemoire(&mem);
   liberation(&mem);
   afficherMemoire(&mem);
-  printf("\n------------------------------------\nDecodage hexa\n------------------------------------\n");
+  printf("\n------------------------------------\nVerification hexa\n------------------------------------\n");
   validHex("ae4f5dE");
   validHex("aK4f5dE");
   validHex("FFFFFFF");
   validHex("0000000");
   validHex("GGGGGGG");
+  printf("\n------------------------------------\nTraduit hexa\n------------------------------------\n");
 
-
+  traduitHex("0000000");
+  traduitHex("3C140010"); /*LUI $20,16*/
+  traduitHex("02C2B020"); /* ADD $22,$22,$2 */
   return 0;
 }

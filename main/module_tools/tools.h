@@ -18,6 +18,7 @@ void complementADeux(int* binI, int* binO, int size);
 /* MANIPULATION HEXADECIMALE */
 int hexToDec(char* hex);
 void operandesHextoDec(char* hex);
+void hexToBin(char* hex, int* bin);
 
 /* AFFICHAGE */
 void afficheInstruction(instruction *instruction);
