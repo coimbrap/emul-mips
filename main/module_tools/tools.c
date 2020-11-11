@@ -5,6 +5,11 @@
 
 /* OUTILS GENERAUX */
 
+unsigned numDigits(int n) {
+    if (n < 10) return 1;
+    return 1 + numDigits(n / 10);
+}
+
 /* Calcul de la puissance */
 int puissance(int d, int n){
   int i=0;
@@ -170,6 +175,53 @@ int hexToDec(char* hex) {
       dec+=(hex[i]-'A'+10)*base;
       base*=16;
     }
+  }
+  return dec;
+}
+
+char* decToHex(int dec) {
+  int i=0,j=0,tmp=0,k=0;
+  char *hex=(char *)malloc(numDigits(dec)*sizeof(char));
+  char *ret=(char *)malloc((numDigits(dec)+1)*sizeof(char));
+  while (dec!=0) {
+    tmp=dec%16;
+    if (tmp<10) {
+      hex[i]=tmp+'0';
+      i++;
+    }
+    else {
+      hex[i]=tmp+55;
+      i++;
+    }
+    dec/=16;
+  }
+  for(j=i-1;j>=0;j--) {
+    ret[k++]=hex[j];
+  }
+  ret[k]='\0';
+  free(hex);
+  return ret;
+}
+
+/* size comptant de 1 */
+int tabToInt(int* tab,int size) {
+  int i=0,ret=0;
+  ret=tab[0];
+  for (i=1;i<size;i++) {
+    ret*=10;
+    ret+=tab[i];
+  }
+  return ret;
+}
+
+int binToDec(int *bin, int size) {
+  int dec=0,i=0,tmp=0,binI;
+  binI=tabToInt(bin,size);
+  while (binI!= 0) {
+    tmp=binI%10;
+    binI/=10;
+    dec+=tmp*puissance(2, i);
+    i++;
   }
   return dec;
 }
