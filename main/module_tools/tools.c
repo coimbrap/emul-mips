@@ -55,7 +55,8 @@ int valeurDecimale(char *s) {
 /* Int vers string de l'int */
 char* intVersChaine(int num) {
   int tmp=0,sign=0;
-  char *s=malloc(sizeof(int)*sizeof(char));
+  char *s=NULL;
+  if((s=malloc(sizeof(int)*sizeof(char)))==NULL){exit(1);};
   *s='\0';
   --s;
   if (num==0) {
@@ -181,8 +182,10 @@ int hexToDec(char* hex) {
 
 char* decToHex(int dec) {
   int i=0,j=0,tmp=0,k=0;
-  char *hex=(char *)malloc(numDigits(dec)*sizeof(char));
-  char *ret=(char *)malloc((numDigits(dec)+1)*sizeof(char));
+  char *hex=NULL;
+  char *ret=NULL;
+  if((hex=malloc(numDigits(dec)*sizeof(char)))==NULL){exit(1);};
+  if((ret=malloc((numDigits(dec)+1)*sizeof(char)))==NULL){exit(1);};
   while (dec!=0) {
     tmp=dec%16;
     if (tmp<10) {

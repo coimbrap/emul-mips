@@ -63,7 +63,7 @@ void traduitHex(char* hex) {
         if (found->typeInstruction=='R') {
           if (found->ordreBits==1) {
             /* On a 4 champs de 5bits */
-            opeHex=calloc(4,sizeof(int));
+            if((opeHex=calloc(4,sizeof(int)))==NULL){exit(1);};
             for (ope=0;ope<4;ope++) {
               opeHex[ope]=binToDec(&bin[offset],5);
               offset+=5;
@@ -78,7 +78,7 @@ void traduitHex(char* hex) {
           }
           else if (found->ordreBits==2) {
             /* On a 1 champ de 4bits, 1 de 1bit puis 3 de 5bits */
-            opeHex=calloc(5,sizeof(int));
+            if((opeHex=calloc(5,sizeof(int)))==NULL){exit(1);};
             ope=0;
             opeHex[ope++]=binToDec(&bin[offset],4);
             offset+=4;
@@ -94,7 +94,7 @@ void traduitHex(char* hex) {
           }
           else if (found->ordreBits==3) {
             /* 2 champs de 5 bits, 1 de 10bits */
-            opeHex=calloc(3,sizeof(int));
+            if((opeHex=calloc(3,sizeof(int)))==NULL){exit(1);};
             ope=0;
             opeHex[ope++]=binToDec(&bin[offset],5);
             offset+=5;
@@ -108,7 +108,7 @@ void traduitHex(char* hex) {
           }
           else if (found->ordreBits==4) {
             /* 1 de 5bits 1 de bits 1 de 5bits */
-            opeHex=calloc(3,sizeof(int));
+            if((opeHex=calloc(3,sizeof(int)))==NULL){exit(1);};
             ope=0;
             opeHex[ope++]=binToDec(&bin[offset],5);
             offset+=5;
@@ -122,7 +122,7 @@ void traduitHex(char* hex) {
           }
           else if (found->ordreBits==5) {
             /* 1 de 10 2 de 5 */
-            opeHex=calloc(3,sizeof(int));
+            if((opeHex=calloc(3,sizeof(int)))==NULL){exit(1);};
             ope=0;
             opeHex[ope++]=binToDec(&bin[offset],10);
             offset+=10;
@@ -136,7 +136,7 @@ void traduitHex(char* hex) {
           }
           else if (found->ordreBits==6) {
             /* 1 de 20 */
-            opeHex=calloc(1,sizeof(int));
+            if((opeHex=calloc(1,sizeof(int)))==NULL){exit(1);};
             ope=0;
             opeHex[ope++]=binToDec(&bin[offset],20);
             offset+=20;
@@ -159,7 +159,7 @@ void traduitHex(char* hex) {
         if (found->typeInstruction=='I') {
           if (found->ordreBits==1) {
             /* 2*5bits puis 16bits */
-            opeHex=calloc(3,sizeof(int));
+            if((opeHex=calloc(3,sizeof(int)))==NULL){exit(1);};
             ope=0;
             opeHex[ope++]=binToDec(&bin[offset],5);
             offset+=5;
@@ -175,8 +175,6 @@ void traduitHex(char* hex) {
         /* Opération trouvé */
         printf("Traduction %s\n", found->nom);
         free(opeHex);
-
-
       }
     }
   }
