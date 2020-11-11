@@ -15,6 +15,7 @@ typedef struct registre {
 
 void remplissageStructRegistre(registre *registre[], const char* fichier);
 registre* trouveRegistre(registre* registres[], char* nom);
+int* valeurRegistre(registre* registres[], char* nom);
 char* traduitRegistre(registre* registres[], char* registre);
 void changeRegistre(registre* registre, int valeur[NB_BIT_REGISTRE]);
 

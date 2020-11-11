@@ -48,6 +48,28 @@ registre* trouveRegistre(registre* registres[], char* nom) {
   return ret;
 }
 
+/* Retourne un pointeur vers la structure contenant toutes les informations d'une opération */
+int* valeurRegistre(registre* registres[], char* nom) {
+  int i=0, nonTrouvee=1, special=1,find=-2;
+  registre *ret=NULL;
+  if (valeurDecimale(nom)!=-1) {
+    special=0;
+    find=valeurDecimale(nom);
+  }
+  while (nonTrouvee && i<NB_REGISTRE) {
+    if (special && strcmp(registres[i]->nom,nom)==0) {
+      ret=registres[i];
+      nonTrouvee=0;
+    }
+    else if (!special && find==registres[i]->numero) {
+      ret=registres[i];
+      nonTrouvee=0;
+    }
+    i++;
+  }
+  return ret->valeur;
+}
+
 char* traduitRegistre(registre* registres[], char* nom) {
   char *ret=NULL;
   registre *found=NULL;
