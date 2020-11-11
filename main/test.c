@@ -1,6 +1,6 @@
-/*#include "module_hex/hex.h"
+/*#include "module_hex/hex.h"*/
 
-#include "module_tools/tools.h"*/
+#include "module_tools/tools.h"
 
 #include "module_registres/registres.h"
 #include "module_memoire/memoire.h"
@@ -192,5 +192,28 @@ int main() {
   traduitHex("0000000");
   traduitHex("3C140010"); /*LUI $20,16*/
   traduitHex("02C2B020"); /* ADD $22,$22,$2 */
+  traduitHex("00284A42"); /* ROTR $9,$8,9 */
+  traduitHex("01F00018"); /* MULT $15,$16 */
+  traduitHex("03E00008"); /* JR $ra */
+  traduitHex("0000A812"); /* MFLO $21 */
+  traduitHex("0000000C"); /* SYSCALL */
+
+  traduitHex("200FED03"); /* ADDI $15,$0,9956611 */
+
+
+  /*char *hex=NULL;
+  char bin[8]={'1','1','1','1','0','0','0','0'};
+
+  int bin2[]={1,1,1,1,0,0};
+
+  hex=decToHex(52);
+  if(hex!=NULL) {
+    printf("Char : %s\n",hex);
+  }
+
+  printf("%d\n", tabToInt(bin2,5));
+  printf("Dec : %d\n",binToDec(bin2,5));*/
+
+
   return 0;
 }

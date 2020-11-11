@@ -25,4 +25,5 @@ ADDI $10,$0,0xffff
 
      ADDI               $34,$3,13         #ld
 J test
+JR $ra
 SYSCALL
