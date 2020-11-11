@@ -99,16 +99,30 @@ void changeRegistre(registre* registre, int valeur[NB_BIT_REGISTRE]) {
 
 /* Affiche les informations contenu dans une structure de stockage */
 void afficheRegistre(registre *registre) {
-  printf("Numéro : %d\n", registre->numero);
-  printf("Nom : %s\n", registre->nom);
+  char hex[8]; /* Buffer */
+  binaryToHex(registre->valeur,hex);
+  int decReg=hexToDec(hex);
+
+  if (strcmp(registre->nom,"zero")==0) {
+    printf("$%d ($%s)  %-10d   0x%08x   ",registre->numero,registre->nom,decReg,decReg);
+  }
+  else if (registre->numero==-1) {
+    printf("$%s         %-10d   0x%08x   ",registre->nom,decReg,decReg);
+
+  }
+  else if (registre->numero<10) {
+    printf("$%d ($%s)    %-10d   0x%08x   ",registre->numero,registre->nom,decReg,decReg);
+  }
+  else {
+    printf("$%d ($%s)   %-10d   0x%08x   ",registre->numero,registre->nom,decReg,decReg);
+  }
   afficheBin(registre->valeur,NB_BIT_REGISTRE);
 }
-
 /* Affiche toutes les structures du tableau de stockage */
 void afficheRegistres(registre *registres[]) {
   int i=0;
+  printf("\nRegistre    Décimal      Hex          Binaire\n--------------------------------------------------------------------------\n");
   for(i=0;i<NB_REGISTRE;i++) {
-    printf("--%d--\n", i);
     afficheRegistre(registres[i]);
   }
 }
