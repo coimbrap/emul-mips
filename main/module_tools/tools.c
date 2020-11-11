@@ -207,7 +207,7 @@ char* decToHex(int dec) {
 }
 
 /* size comptant de 1 */
-int tabToInt(int* tab,int size) {
+long tabToInt(int* tab,int size) {
   int i=0,ret=0;
   ret=tab[0];
   for (i=1;i<size;i++) {
@@ -218,8 +218,10 @@ int tabToInt(int* tab,int size) {
 }
 
 int binToDec(int *bin, int size) {
-  int dec=0,i=0,tmp=0,binI;
+  int dec=0,i=0,tmp=0;
+  long binI;
   binI=tabToInt(bin,size);
+  afficheBin(bin,size);
   while (binI!= 0) {
     tmp=binI%10;
     binI/=10;
@@ -227,6 +229,20 @@ int binToDec(int *bin, int size) {
     i++;
   }
   return dec;
+}
+
+int* decToBin(long int dec, int binSize) {
+  int *bin=NULL;
+  int i=0;
+  bin=calloc(binSize,sizeof(int));
+
+  while (dec>0) {
+    bin[i]=dec%2;
+    dec/=2;
+    i++;
+  }
+  inverseTab(bin,binSize);
+  return bin;
 }
 
 /* Fonction permettant de traduire des valeurs immédiate hexadécimale en valeur décimale pour la fonction parseOperandes */
