@@ -1,16 +1,20 @@
 #ifndef _MEMOIRE_H_
 #define _MEMOIRE_H_
 
-typedef struct element{
+#define NB_BIT_MEMOIRE 32
+
+#include "../module_tools/tools.h"
+
+typedef struct element {
   int adresse;
-  int valeur;
+  int valeur[NB_BIT_MEMOIRE];
   struct element* suivant;
 } element;
 
 typedef element* memoire;
 
 int estDivisiblePar4(int n);
-void insertion(int adresse, int mot, memoire *m);
+void insertion(int adresse, int mot[NB_BIT_MEMOIRE], memoire *m);
 void suppression(int adresse, memoire *m);
 void afficherMemoire(memoire *m);
 void liberation(memoire *m);
