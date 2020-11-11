@@ -23,10 +23,10 @@ int validHex(char* hex) {
   return ret;
 }
 
-int checkBinVal(int* bin, int* offset, char* valeur) {
-  int i=0,ret=1;
-  while(ret && valeur[i]!='\0') {
-    if (valeurDecimale(&valeur[i])!=bin[i]) {
+int checkBinVal(int* bin, int offset, char* valeur) {
+  int i=offset,ret=1,j=0;
+  while(ret && valeur[j]!='\0') {
+    if ((valeur[j++]-'0')!=bin[i]) {
       ret=0;
     }
     i++;
@@ -52,11 +52,18 @@ void traduitHex(char* hex) {
   if (len==8 && validHex(hex)) {
     hexToBin(hex,bin);
     afficheBin(bin,TAILLE_BIT_OPERATION);
-    if (checkBinVal(bin,&offset,"000000")) {
+    /* PAS OPTI DUTOUT */
+    if (checkBinVal(bin,0,"00000000000000000000000000000000")) {
+      printf("NOP\n");
+    }
+    if (checkBinVal(bin,0,"000000")) {
       printf("instruction de type R\n");
       printf("Opcode : ");
       /* Opcode à partir de la case 26 */
       afficheBin(&bin[26],6);
+      if (checkBinVal(bin,26,"000010")) {
+        printf("Cas particulier\n");
+      }
       offset+=6;
       if ((found=trouveOpcode(instructions, &bin[26], 'R'))!=NULL) {
         /* Instruction de type R */
@@ -77,6 +84,7 @@ void traduitHex(char* hex) {
             }
           }
           else if (found->ordreBits==2) {
+            /* Particulier : ROTR SLR */
             /* On a 1 champ de 4bits, 1 de 1bit puis 3 de 5bits */
             if((opeHex=calloc(5,sizeof(int)))==NULL){exit(1);};
             ope=0;
@@ -87,6 +95,13 @@ void traduitHex(char* hex) {
             for (ope;ope<5;ope++) {
               opeHex[ope]=binToDec(&bin[offset],5);
               offset+=5;
+            }
+            /* On selectionne la bonne structure mémoire (utile pour la suite) */
+            if (opeHex[1]==0) {
+              found=trouveOperation(instructions,"SRL");
+            }
+            else if (opeHex[1]==1) {
+              found=trouveOperation(instructions,"ROTR");
             }
             for (ope=0;ope<5;ope++) {
               printf("Ope R2 : %d\n", opeHex[ope]);
