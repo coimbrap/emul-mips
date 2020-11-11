@@ -61,9 +61,9 @@ void traduitHex(char* hex) {
       printf("Opcode : ");
       /* Opcode à partir de la case 26 */
       afficheBin(&bin[26],6);
-      if (checkBinVal(bin,26,"000010")) {
+      /*if (checkBinVal(bin,26,"000010")) {
         printf("Cas particulier\n");
-      }
+      }*/
       offset+=6;
       if ((found=trouveOpcode(instructions, &bin[26], 'R'))!=NULL) {
         /* Instruction de type R */

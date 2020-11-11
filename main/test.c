@@ -1,4 +1,4 @@
-/*#include "module_hex/hex.h"*/
+#include "module_hex/hex.h"
 
 #include "module_tools/tools.h"
 
@@ -27,6 +27,7 @@ int main() {
   registre* foundReg=NULL;
   char* nomReg="s0";
   char *nom="ADD";
+  int binReg[]={0,0,0,0,0,1,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0};
 
   char *listereg="src/listeReg.txt";
 
@@ -114,36 +115,47 @@ int main() {
   if (foundReg!=NULL) {
     afficheRegistre(foundReg);
   }
+  nom="12";
+  printf("\nOn cherche %s\n", nom);
+  foundReg=trouveRegistre(registres,nom);
+  if (foundReg!=NULL) {
+    changeRegistre(foundReg,binReg);
+    afficheRegistre(foundReg);
+  }
+
+
   printf("\n------------------------------------\nTest traduction registre\n------------------------------------\n");
   nomReg="HI";
   nomReg=traduitRegistre(registres, nomReg);
   printf("Traduction %s\n", nomReg);
   memoire mem=NULL;
+  int m=0;
+
   printf("\n------------------------------------\nTest de la liste chaînée\n------------------------------------\n");
   /* Insertion en tête */
   afficherMemoire(&mem);
-  insertion(0x4,2,&mem);
+  insertion(0x4,decToBin(2,NB_BIT_MEMOIRE),&mem);
   afficherMemoire(&mem);
-  insertion(0x0,1,&mem);
+  insertion(0x0,decToBin(1,NB_BIT_MEMOIRE),&mem);
   afficherMemoire(&mem);
   /* Insertion en queue */
-  insertion(0xffec,4,&mem);
+  insertion(0xffec,decToBin(4,NB_BIT_MEMOIRE),&mem);
   afficherMemoire(&mem);
-  insertion(0xfffc,7,&mem);
+  insertion(0xfffc,decToBin(7,NB_BIT_MEMOIRE),&mem);
   afficherMemoire(&mem);
   /* Insertion au millieu */
-  insertion(0xfff8,6,&mem);
+  insertion(0xfff8,decToBin(6,NB_BIT_MEMOIRE),&mem);
   afficherMemoire(&mem);
-  insertion(0xfff4,5,&mem);
+  insertion(0xfff4,decToBin(5,NB_BIT_MEMOIRE),&mem);
   afficherMemoire(&mem);
-  insertion(0x101c,3,&mem);
+  insertion(0x101c,decToBin(3,NB_BIT_MEMOIRE),&mem);
   afficherMemoire(&mem);
   /* Test doublons */
-  insertion(0xfffc,17,&mem);
+  insertion(0xfffc,decToBin(17,NB_BIT_MEMOIRE),&mem);
   afficherMemoire(&mem);
-  insertion(0x0,10,&mem);
+  insertion(0x0,decToBin(10,NB_BIT_MEMOIRE),&mem);
   afficherMemoire(&mem);
-  insertion(0xffec,14,&mem);
+  insertion(0xffec,decToBin(14,NB_BIT_MEMOIRE),&mem);
   afficherMemoire(&mem);
   /* Suppression en tête */
   suppression(0x0000,&mem);
@@ -171,13 +183,14 @@ int main() {
   afficherMemoire(&mem);
   /* Test libération */
   liberation(&mem);
-  insertion(0x4,2,&mem);
-  insertion(0x0,1,&mem);
-  insertion(0xffec,4,&mem);
-  insertion(0xfffc,7,&mem);
-  insertion(0xfff8,6,&mem);
-  insertion(0xfff4,5,&mem);
-  insertion(0x101c,3,&mem);
+  printf("On libère\n");
+  insertion(0x4,decToBin(2220,NB_BIT_MEMOIRE),&mem);
+  insertion(0x0,decToBin(11202,NB_BIT_MEMOIRE),&mem);
+  insertion(0xffec,decToBin(4203,NB_BIT_MEMOIRE),&mem);
+  insertion(0xfffc,decToBin(21003,NB_BIT_MEMOIRE),&mem);
+  insertion(0xfff8,decToBin(4294967295,NB_BIT_MEMOIRE),&mem);
+  insertion(0xfff4,decToBin(30001,NB_BIT_MEMOIRE),&mem);
+  insertion(0x101c,decToBin(20140,NB_BIT_MEMOIRE),&mem);
   afficherMemoire(&mem);
   liberation(&mem);
   afficherMemoire(&mem);
@@ -203,6 +216,10 @@ int main() {
 
   traduitHex("200FED03"); /* ADDI $15,$0,9956611 */
 
+  char hexT[8];
+  binaryToHex(binReg,hexT);
+  printf("%s\n", hexT);
+  printf("Dec : %d\n",hexToDec(hexT));
 
   /*char *hex=NULL;
   char bin[8]={'1','1','1','1','0','0','0','0'};
