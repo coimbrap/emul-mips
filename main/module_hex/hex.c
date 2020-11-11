@@ -57,12 +57,12 @@ int binStrIntCmp(char* binC, int* binD) {
 }
 
 /* Retourne un pointeur vers la structure contenant toutes les informations d'une opération */
-instruction* trouveOpcode(instruction* instructions[], int* bin) {
+instruction* trouveOpcode(instruction* instructions[], int* bin, char type) {
   int i=0, nonTrouvee=1;
   instruction *ret=NULL;
   /* On parcourt tout le tableau instructions tant qu'on est pas à la fin ou que l'on à pas trouvé */
   while (nonTrouvee && i<NB_OPERATIONS) {
-    if (binStrIntCmp(instructions[i]->opcode,bin)) {
+    if (instructions[i]->typeInstruction==type && binStrIntCmp(instructions[i]->opcode,bin)) {
       ret=instructions[i];
       nonTrouvee=0;
     }
@@ -436,10 +436,8 @@ void parseLigne(char *ligne, int* bin, instruction* instructions[], registre* re
         if (found->styleRemplissage==1) {
           offsetBin=6; /* Les 6 premiers zéro */
           /* code */
-          for(i=0;i<nombreOperande(ligne);i++) {
-            registreDec=valeurDecimale(operandes[i]);
-            decToBinary(registreDec,&offsetBin, bin);
-          }
+          /*  Que faut il mettre ? */
+          offsetBin+=20;
           rempliBinTabBin(found->opcode, &offsetBin, bin);
         }
       }

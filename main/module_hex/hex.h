@@ -30,7 +30,7 @@ typedef struct instruction {
 /* MEMOIRE INSTRUCTIONS */
 void remplissageStructInstruction(instruction *instructions[], const char* fichier);
 instruction* trouveOperation(instruction* instructions[], char* nom);
-instruction* trouveOpcode(instruction* instructions[], int* bin);
+instruction* trouveOpcode(instruction* instructions[], int* bin, char type);
 
 /* UNIFORMISATION DE L'INSTRUCTION */
 void uniformisationInstruction(char *s, char *out);
