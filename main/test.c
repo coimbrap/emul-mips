@@ -189,10 +189,13 @@ int main() {
   validHex("GGGGGGG");
   printf("\n------------------------------------\nTraduit hexa\n------------------------------------\n");
 
-  traduitHex("0000000");
+  traduitHex("00000000"); /* NOP cas full 0 */
   traduitHex("3C140010"); /*LUI $20,16*/
   traduitHex("02C2B020"); /* ADD $22,$22,$2 */
   traduitHex("00284A42"); /* ROTR $9,$8,9 */
+  traduitHex("00084A42"); /* SRL $9,$8,9 */
+  traduitHex("00118C00"); /* SLL $17,$17,16 cas particulier (opcode 000000)*/
+
   traduitHex("01F00018"); /* MULT $15,$16 */
   traduitHex("03E00008"); /* JR $ra */
   traduitHex("0000A812"); /* MFLO $21 */

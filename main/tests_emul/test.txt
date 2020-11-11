@@ -27,3 +27,6 @@ ADDI $10,$0,0xffff
 J test
 JR $ra
 SYSCALL
+
+SRL $9,$8,9
+ROTR $9,$8,9
