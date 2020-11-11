@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "../module_tools/tools.h"
+#include "../module_registres/registres.h"
 
 int validHex(char* hex) {
   int len=strlen(hex);
@@ -37,13 +38,17 @@ int checkBinVal(int* bin, int* offset, char* valeur) {
 void traduitHex(char* hex) {
   int len=strlen(hex);
   int i=0,offset=0;
+  int ope=0;
   int bin[TAILLE_BIT_OPERATION];
+  int* opeHex=NULL;
   instruction* instructions[NB_OPERATIONS+1];
   instruction* found;
   char *listeope="src/listeOpe.txt";
-
+  registre* registres[NB_REGISTRE];
+  registre* foundReg=NULL;
+  char *listereg="src/listeReg.txt";
+  remplissageStructRegistre(registres,listereg);
   remplissageStructInstruction(instructions,listeope);
-
   if (len==8 && validHex(hex)) {
     hexToBin(hex,bin);
     afficheBin(bin,TAILLE_BIT_OPERATION);
@@ -52,18 +57,126 @@ void traduitHex(char* hex) {
       printf("Opcode : ");
       /* Opcode à partir de la case 26 */
       afficheBin(&bin[26],6);
-      if ((found=trouveOpcode(instructions, &bin[26]))!=NULL) {
+      offset+=6;
+      if ((found=trouveOpcode(instructions, &bin[26], 'R'))!=NULL) {
+        /* Instruction de type R */
+        if (found->typeInstruction=='R') {
+          if (found->ordreBits==1) {
+            /* On a 4 champs de 5bits */
+            opeHex=calloc(4,sizeof(int));
+            for (ope=0;ope<4;ope++) {
+              opeHex[ope]=binToDec(&bin[offset],5);
+              offset+=5;
+            }
+            for (ope=0;ope<4;ope++) {
+              printf("Ope R1 : %d\n", opeHex[ope]);
+            }
+            /* ADD/AND/XOR/OR/SLT/SUB */
+            if (found->styleRemplissage==1) {
+
+            }
+          }
+          else if (found->ordreBits==2) {
+            /* On a 1 champ de 4bits, 1 de 1bit puis 3 de 5bits */
+            opeHex=calloc(5,sizeof(int));
+            ope=0;
+            opeHex[ope++]=binToDec(&bin[offset],4);
+            offset+=4;
+            opeHex[ope++]=binToDec(&bin[offset],1);
+            offset+=1;
+            for (ope;ope<5;ope++) {
+              opeHex[ope]=binToDec(&bin[offset],5);
+              offset+=5;
+            }
+            for (ope=0;ope<5;ope++) {
+              printf("Ope R2 : %d\n", opeHex[ope]);
+            }
+          }
+          else if (found->ordreBits==3) {
+            /* 2 champs de 5 bits, 1 de 10bits */
+            opeHex=calloc(3,sizeof(int));
+            ope=0;
+            opeHex[ope++]=binToDec(&bin[offset],5);
+            offset+=5;
+            opeHex[ope++]=binToDec(&bin[offset],5);
+            offset+=5;
+            opeHex[ope++]=binToDec(&bin[offset],10);
+            offset+=10;
+            for (ope=0;ope<3;ope++) {
+              printf("Ope R3 : %d\n", opeHex[ope]);
+            }
+          }
+          else if (found->ordreBits==4) {
+            /* 1 de 5bits 1 de bits 1 de 5bits */
+            opeHex=calloc(3,sizeof(int));
+            ope=0;
+            opeHex[ope++]=binToDec(&bin[offset],5);
+            offset+=5;
+            opeHex[ope++]=binToDec(&bin[offset],10);
+            offset+=10;
+            opeHex[ope++]=binToDec(&bin[offset],5);
+            offset+=5;
+            for (ope=0;ope<3;ope++) {
+              printf("Ope R4 : %d\n", opeHex[ope]);
+            }
+          }
+          else if (found->ordreBits==5) {
+            /* 1 de 10 2 de 5 */
+            opeHex=calloc(3,sizeof(int));
+            ope=0;
+            opeHex[ope++]=binToDec(&bin[offset],10);
+            offset+=10;
+            opeHex[ope++]=binToDec(&bin[offset],5);
+            offset+=5;
+            opeHex[ope++]=binToDec(&bin[offset],5);
+            offset+=5;
+            for (ope=0;ope<3;ope++) {
+              printf("Ope R5 : %d\n", opeHex[ope]);
+            }
+          }
+          else if (found->ordreBits==6) {
+            /* 1 de 20 */
+            opeHex=calloc(1,sizeof(int));
+            ope=0;
+            opeHex[ope++]=binToDec(&bin[offset],20);
+            offset+=20;
+            for (ope=0;ope<1;ope++) {
+              printf("Ope R6 : %d\n", opeHex[ope]);
+            }
+          }
+        }
         /* Opération trouvé */
         printf("Traduction %s\n", found->nom);
+        free(opeHex);
 
       }
     }
     else {
       printf("Opcode : ");
       afficheBin(bin,6);
-      if ((found=trouveOpcode(instructions, bin))!=NULL) {
+      if ((found=trouveOpcode(instructions, bin, 'I'))!=NULL) {
+        /* Instruction de type I */
+        if (found->typeInstruction=='I') {
+          if (found->ordreBits==1) {
+            /* 2*5bits puis 16bits */
+            opeHex=calloc(3,sizeof(int));
+            ope=0;
+            opeHex[ope++]=binToDec(&bin[offset],5);
+            offset+=5;
+            opeHex[ope++]=binToDec(&bin[offset],5);
+            offset+=5;
+            opeHex[ope++]=binToDec(&bin[offset],16);
+            offset+=16;
+            for (ope=0;ope<3;ope++) {
+              printf("Ope R5 : %d\n", opeHex[ope]);
+            }
+          }
+        }
         /* Opération trouvé */
         printf("Traduction %s\n", found->nom);
+        free(opeHex);
+
+
       }
     }
   }
