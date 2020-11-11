@@ -131,6 +131,16 @@ int main() {
   memoire mem=NULL;
   int m=0;
 
+  int* binTmp=NULL;
+  char hex[8];
+  binTmp=decToBin(0xffffffff,NB_BIT_MEMOIRE);
+  afficheBin(binTmp,32);
+  binaryToHex(binTmp,hex);
+  afficheHex(hex);
+  long int test=0xffffffff;
+  printf("%ld\n", test);
+  printf("%ld\n", hexToDec(hex));
+
   printf("\n------------------------------------\nTest de la liste chaînée\n------------------------------------\n");
   /* Insertion en tête */
   afficherMemoire(&mem);
@@ -188,7 +198,7 @@ int main() {
   insertion(0x0,decToBin(11202,NB_BIT_MEMOIRE),&mem);
   insertion(0xffec,decToBin(4203,NB_BIT_MEMOIRE),&mem);
   insertion(0xfffc,decToBin(21003,NB_BIT_MEMOIRE),&mem);
-  insertion(0xfff8,decToBin(4294967295,NB_BIT_MEMOIRE),&mem);
+  insertion(0xfff8,decToBin(0xffffffff,NB_BIT_MEMOIRE),&mem);
   insertion(0xfff4,decToBin(30001,NB_BIT_MEMOIRE),&mem);
   insertion(0x101c,decToBin(20140,NB_BIT_MEMOIRE),&mem);
   afficherMemoire(&mem);
@@ -219,7 +229,7 @@ int main() {
   char hexT[8];
   binaryToHex(binReg,hexT);
   printf("%s\n", hexT);
-  printf("Dec : %d\n",hexToDec(hexT));
+  printf("Dec : %ld\n",hexToDec(hexT));
 
   /*char *hex=NULL;
   char bin[8]={'1','1','1','1','0','0','0','0'};
