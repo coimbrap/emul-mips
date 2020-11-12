@@ -6,6 +6,13 @@
 #include "../module_tools/tools.h"
 #include "../module_registres/registres.h"
 
+/* Fonctionne uniquement avec des tableaux de 32 cases */
+int decValue(int* binTab) {
+  char hexTab[8];
+  binaryToHex(binTab,hexTab);
+  return hexToDec(hexTab);
+}
+
 int validHex(char* hex) {
   int len=strlen(hex);
   int valid=0,i=0,ret=-1;
@@ -53,7 +60,7 @@ void traduitHex(char* hex) {
     hexToBin(hex,bin);
     afficheBin(bin,TAILLE_BIT_OPERATION);
     /* PAS OPTI DUTOUT */
-    if (checkBinVal(bin,0,"00000000000000000000000000000000")) {
+    if (strcmp(hex,"0000000")==0) {
       printf("NOP\n");
     }
     if (checkBinVal(bin,0,"000000")) {
@@ -196,5 +203,13 @@ void traduitHex(char* hex) {
   else {
     printf("Format de l'instruction incorrect %s\n", hex);
   }
+  int binReg[]={1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+  char *nom="sp";
+  registre* foundsReg=NULL;
+  foundsReg=trouveRegistre(registres,nom);
+  changeRegistre(foundsReg,binReg);
+
+  afficheRegistre(foundsReg);
+  printf("%d\n",decValue(valeurRegistre(registres,nom)));
   printf("\n");
 }
