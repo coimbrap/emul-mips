@@ -210,6 +210,8 @@ void traduitHex(char* hex) {
   changeRegistre(foundsReg,binReg);
 
   afficheRegistre(foundsReg);
+  printf("Test\n");
+  afficheBin(valeurRegistre(registres,nom),32);
   printf("%d\n",decValue(valeurRegistre(registres,nom)));
   printf("\n");
 }

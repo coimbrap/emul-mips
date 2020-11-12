@@ -20,7 +20,7 @@ int binToDec(int *bin, int size);
 int* decToBin(int dec, int binSize);
 
 /* MANIPULATION HEXADECIMALE */
-long int hexToDec(char* hex);
+int hexToDec(char* hex);
 char* decToHex(int dec);
 void operandesHextoDec(char* hex);
 void hexToBin(char* hex, int* bin);

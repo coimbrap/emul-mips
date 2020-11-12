@@ -158,7 +158,7 @@ void complementADeux(int* binI, int* binO, int size) {
 
 /* Prend en entrée la valeur hexadécimal dans un tableau de char */
 /* Retourne la valeur décimale associé sous forme d'un entier */
-long int hexToDec(char* hex) {
+int hexToDec(char* hex) {
   int i=0;
   long int dec=0,base=1;
   int len=strlen(hex);
@@ -235,7 +235,6 @@ int binToDec(int *bin, int size) {
 int* decToBin(int dec, int binSize) {
   int *bin=NULL,*binTmp=NULL;
   int i=0,neg=0,j=0;
-
   bin=calloc(binSize,sizeof(int));
   binTmp=calloc(binSize,sizeof(int));
 
