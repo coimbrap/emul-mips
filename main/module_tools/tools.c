@@ -6,8 +6,8 @@
 /* OUTILS GENERAUX */
 
 unsigned numDigits(int n) {
-    if (n < 10) return 1;
-    return 1 + numDigits(n / 10);
+  if (n < 10) return 1;
+  return 1 + numDigits(n / 10);
 }
 
 /* Calcul de la puissance */
@@ -232,15 +232,25 @@ int binToDec(int *bin, int size) {
   return dec;
 }
 
-int* decToBin(long int dec, int binSize) {
-  int *bin=NULL;
-  int i=0;
-  bin=calloc(binSize,sizeof(int));
+int* decToBin(int dec, int binSize) {
+  int *bin=NULL,*binTmp=NULL;
+  int i=0,neg=0,j=0;
 
+  bin=calloc(binSize,sizeof(int));
+  binTmp=calloc(binSize,sizeof(int));
+
+  if (dec<0) {
+    neg=1;
+    dec=-dec;
+  }
   while (dec>0) {
     bin[i]=dec%2;
     dec/=2;
     i++;
+  }
+  if (neg) {
+    complementADeux(bin,binTmp,binSize);
+    bin=binTmp;
   }
   inverseTab(bin,binSize);
   return bin;

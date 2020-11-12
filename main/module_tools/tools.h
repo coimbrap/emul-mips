@@ -17,7 +17,7 @@ void inverseBin(int* binS, int* binO, int size);
 void addBin(int* binA, int* binB, int* binR, int size);
 void complementADeux(int* binI, int* binO, int size);
 int binToDec(int *bin, int size);
-int* decToBin(long int dec, int binSize);
+int* decToBin(int dec, int binSize);
 
 /* MANIPULATION HEXADECIMALE */
 long int hexToDec(char* hex);
