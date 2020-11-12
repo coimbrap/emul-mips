@@ -30,6 +30,7 @@ void remplissageStructRegistre(registre *registres[], const char* fichier) {
 registre* trouveRegistre(registre* registres[], char* nom) {
   int i=0, nonTrouvee=1, special=1,find=-2;
   registre *ret=NULL;
+
   if (valeurDecimale(nom)!=-1) {
     special=0;
     find=valeurDecimale(nom);
@@ -52,6 +53,8 @@ registre* trouveRegistre(registre* registres[], char* nom) {
 int* valeurRegistre(registre* registres[], char* nom) {
   int i=0, nonTrouvee=1, special=1,find=-2;
   registre *ret=NULL;
+  nom=traduitRegistre(registres,nom);
+
   if (valeurDecimale(nom)!=-1) {
     special=0;
     find=valeurDecimale(nom);
@@ -118,6 +121,7 @@ void afficheRegistre(registre *registre) {
   }
   afficheBin(registre->valeur,NB_BIT_REGISTRE);
 }
+
 /* Affiche toutes les structures du tableau de stockage */
 void afficheRegistres(registre *registres[]) {
   int i=0;

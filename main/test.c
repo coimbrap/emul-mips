@@ -125,7 +125,7 @@ int main() {
 
 
   printf("\n------------------------------------\nTest traduction registre\n------------------------------------\n");
-  nomReg="HI";
+  nomReg="sp";
   nomReg=traduitRegistre(registres, nomReg);
   printf("Traduction %s\n", nomReg);
   memoire mem=NULL;
@@ -225,12 +225,12 @@ int main() {
   traduitHex("0000000C"); /* SYSCALL */
 
   traduitHex("200FED03"); /* ADDI $15,$0,9956611 */
-
+/*
   char hexT[8];
   binaryToHex(binReg,hexT);
   printf("%s\n", hexT);
   printf("Dec : %ld\n",hexToDec(hexT));
-
+*/
   /*char *hex=NULL;
   char bin[8]={'1','1','1','1','0','0','0','0'};
 
@@ -245,5 +245,8 @@ int main() {
   printf("Dec : %d\n",binToDec(bin2,5));*/
 
 
+/*  afficheBin(decToBin(-5,32),32);
+  printf("%d\n",decValue(decToBin(-5,32)));
+*/
   return 0;
 }
