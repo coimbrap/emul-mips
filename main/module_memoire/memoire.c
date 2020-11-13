@@ -16,7 +16,7 @@ void afficherMemoire(memoire *m) {
   }
   else {
     while(increment!=NULL) {
-      binaryToHex(increment->valeur,hex);
+      binaryToHex(increment->valeur,hex,NB_BIT_MEMOIRE);
       decReg=hexToDec(hex);
       printf("0x%04x      %-10ld   0x%08lx   ",increment->adresse,decReg,decReg);
       afficheBin(increment->valeur,NB_BIT_MEMOIRE);

@@ -102,7 +102,7 @@ void changeRegistre(registre* registre, int valeur[NB_BIT_REGISTRE]) {
 
 /* Affiche les informations contenu dans une structure de stockage */
 void afficheRegistre(registre *registre) {
-  int decReg=decValue(registre->valeur);
+  int decReg=decValue(registre->valeur,NB_BIT_REGISTRE);
   if (strcmp(registre->nom,"zero")==0) {
     printf("$%d ($%s)  %-10d   0x%08x   ",registre->numero,registre->nom,decReg,decReg);
   }

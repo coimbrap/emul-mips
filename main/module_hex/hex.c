@@ -173,12 +173,12 @@ void rempliBinTabBin(char* cBin, int* offset, int* bin) {
 /* PARTIE HEXADECIMAL */
 
 /* Transforme un tableau représentant une valeur binaire sur 32 bits en un tableau hexadécimal sur 8bits */
-void binaryToHex(int* bin, char* hex){
+void binaryToHex(int* bin, char* hex, int size) {
   int i=0, j=0, k=0, l=0;
   int temp1=0;
   char temp2=0;
   int pui=3;
-  for(i=0;i<TAILLE_BIT_OPERATION;i+=8){
+  for(i=0;i<size;i+=8){
     for(j=i;j<(i+8);j+=4){
       k=j;
       pui=3;
@@ -310,8 +310,11 @@ void parseOperation(char *ligne, char* operation, int* offset) {
   *offset=i;
 }
 
-void parseLigne(char *ligne, int* bin, instruction* instructions[], registre* registres[]) {
-  int offset=0,offsetBin=0;
+/* Traduit une ligne passé en argument (*ligne) en un tableau de représentation binaire (int* bin) */
+/* Retourne 0 si l'operation n'existe pas 1 sinon */
+/* Prend la memoire des registres et des instructions en entrée */
+int parseLigne(char *ligne, int* bin, instruction* instructions[], registre* registres[]) {
+  int offset=0,offsetBin=0,ret=0;
   int registreDec=0;
   instruction *found=NULL;
   int i=0,l=0;
@@ -332,6 +335,7 @@ void parseLigne(char *ligne, int* bin, instruction* instructions[], registre* re
 
   /* Si l'opération à été trouvé dans la structure mémoire on continu */
   if (found!=NULL) {
+    ret=1;
     /* Si ce n'est pas NOP on parse les operandes */
     if (!(found->typeInstruction=='R' && found->ordreBits==1 && found->styleRemplissage==2)) {
       operandes=parseOperandes(ligne,operandes,&offset);
@@ -500,6 +504,7 @@ void parseLigne(char *ligne, int* bin, instruction* instructions[], registre* re
     afficheBin(bin,TAILLE_BIT_OPERATION);
     #endif
   }
+  return ret;
 }
 
 /* Lit le fichier d'instruction assembleur ligne par ligne */
@@ -541,27 +546,30 @@ void parseFichier(char *input, char* output) {
       ligneOut=(char *)malloc(strlen(ligne)*sizeof(char));
       uniformisationInstruction(ligne,ligneOut);
       if(ligneOut[0]!='\0') { /* Si la ligne uniformisé n'est pas vide */
-        /* On a quelque chose */
-        #ifdef VERBEUX
-        printf("\n----Instruction----\n%s\n",ligneOut);
-        #endif
-        parseLigne(ligneOut,bin,instructions,registres); /* On parse la ligne */
-        #ifdef VERBEUX
-        printf("------Binaire------\n");
-        afficheBin(bin,TAILLE_BIT_OPERATION);
-        #endif
-        binaryToHex(bin,hex); /* On transforme en hexadécimal */
-        #ifdef VERBEUX
-        printf("----Hexadécimal----\n");
-        afficheHex(hex);
-        #endif
-        ecrireHex(hex,output); /* On écrit la valeur hexadécimale */
-        /* On affiche le tout dans le terminal pour l'utilisateur */
-        printf("%08d ", programCounter);
-        afficheHexNoEnter(hex);
-        printf("    %s\n", ligneOut);
-        programCounter+=4;
-      }
+         /* On a quelque chose */
+         #ifdef VERBEUX
+         printf("\n----Instruction----\n%s\n",ligneOut);
+         #endif
+         /* Retourne 1 si on a trouvé quelque chose */
+         if (parseLigne(ligneOut,bin,instructions,registres)) {
+           /* On parse la ligne */
+          #ifdef VERBEUX
+          printf("------Binaire------\n");
+          afficheBin(bin,TAILLE_BIT_OPERATION);
+          #endif
+          binaryToHex(bin,hex,TAILLE_BIT_OPERATION); /* On transforme en hexadécimal */
+          #ifdef VERBEUX
+          printf("----Hexadécimal----\n");
+          afficheHex(hex);
+          #endif
+          ecrireHex(hex,output); /* On écrit la valeur hexadécimale */
+          /* On affiche le tout dans le terminal pour l'utilisateur */
+          printf("%08d ", programCounter);
+          afficheHexNoEnter(hex);
+          printf("    %s\n", ligneOut);
+          programCounter+=4;
+         }
+       }
       free(ligneOut); /* On libère la ligne uniformisé */
     }
   }

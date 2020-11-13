@@ -39,7 +39,7 @@ void uniformisationInstruction(char *s, char *out);
 void decToBinary(int n, int* offset, int* bin);
 void decToBinaryImm(int n, int* offset, int* bin);
 void rempliBinTabBin(char* cBin, int* offset, int* bin);
-void binaryToHex(int* bin, char* hex);
+void binaryToHex(int* bin, char* hex, int size);
 void ecrireHex(char* hex, char *fichier);
 
 /* PARSSAGE DE L'INSTRUCTION */
@@ -47,7 +47,7 @@ int nombreOperande(char *s);
 void traduitOperandes(registre* registres[], char* operandes[], int nbOperande);
 char** parseOperandes(char *ligne, char* operandes[], int* offset);
 void parseOperation(char *ligne, char* operation, int* offset);
-void parseLigne(char *ligne, int* bin, instruction* instructions[], registre* registres[]);
+int parseLigne(char *ligne, int* bin, instruction* instructions[], registre* registres[]);
 void parseFichier(char *input, char* output);
 
 #endif

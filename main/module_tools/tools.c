@@ -5,6 +5,15 @@
 
 /* OUTILS GENERAUX */
 
+/* Fonctionne uniquement avec des tableaux de 32 cases */
+int decValue(int* binTab, int size) {
+  int tailleHex=size/4;
+  char *hexTab=NULL;
+  hexTab=calloc(tailleHex+1,sizeof(char));
+  binaryToHex(binTab,hexTab,size);
+  return hexToDec(hexTab);
+}
+
 unsigned numDigits(int n) {
   if (n < 10) return 1;
   return 1 + numDigits(n / 10);
@@ -234,10 +243,9 @@ int binToDec(int *bin, int size) {
 
 int* decToBin(int dec, int binSize) {
   int *bin=NULL,*binTmp=NULL;
-  int i=0,neg=0,j=0;
+  int i=0,neg=0;
   bin=calloc(binSize,sizeof(int));
   binTmp=calloc(binSize,sizeof(int));
-
   if (dec<0) {
     neg=1;
     dec=-dec;

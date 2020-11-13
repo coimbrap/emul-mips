@@ -6,13 +6,6 @@
 #include "../module_tools/tools.h"
 #include "../module_registres/registres.h"
 
-/* Fonctionne uniquement avec des tableaux de 32 cases */
-int decValue(int* binTab) {
-  char hexTab[8];
-  binaryToHex(binTab,hexTab);
-  return hexToDec(hexTab);
-}
-
 int validHex(char* hex) {
   int len=strlen(hex);
   int valid=0,i=0,ret=-1;
@@ -42,35 +35,32 @@ int checkBinVal(int* bin, int offset, char* valeur) {
 }
 
 /* Prend en entrée une instruction hexadécimale (demandé dans les specifications) */
-void traduitHex(char* hex) {
+void traduitHex(char* hex, registre** registres, instruction** instructions) {
   int len=strlen(hex);
-  int i=0,offset=0;
+  int offset=0;
   int ope=0;
   int bin[TAILLE_BIT_OPERATION];
   int* opeHex=NULL;
-  instruction* instructions[NB_OPERATIONS+1];
-  instruction* found;
-  char *listeope="src/listeOpe.txt";
-  registre* registres[NB_REGISTRE];
-  registre* foundReg=NULL;
-  char *listereg="src/listeReg.txt";
-  remplissageStructRegistre(registres,listereg);
-  remplissageStructInstruction(instructions,listeope);
+  instruction *found=NULL;
+  int imm=0;
+  registre *rs=NULL;
+  registre *rt=NULL;
+  registre *rd=NULL;
+  int intOpcode=0;
+  int value=0;
+
   if (len==8 && validHex(hex)) {
     hexToBin(hex,bin);
     afficheBin(bin,TAILLE_BIT_OPERATION);
     /* PAS OPTI DUTOUT */
-    if (strcmp(hex,"0000000")==0) {
-      printf("NOP\n");
+    if (strcmp(hex,"00000000")==0) {
+      printf("NOPP\n");
     }
-    if (checkBinVal(bin,0,"000000")) {
+    else if (checkBinVal(bin,0,"000000")) {
       printf("instruction de type R\n");
       printf("Opcode : ");
       /* Opcode à partir de la case 26 */
       afficheBin(&bin[26],6);
-      /*if (checkBinVal(bin,26,"000010")) {
-        printf("Cas particulier\n");
-      }*/
       offset+=6;
       if ((found=trouveOpcode(instructions, &bin[26], 'R'))!=NULL) {
         /* Instruction de type R */
@@ -85,9 +75,70 @@ void traduitHex(char* hex) {
             for (ope=0;ope<4;ope++) {
               printf("Ope R1 : %d\n", opeHex[ope]);
             }
+            intOpcode=valeurDecimale(found->opcode);
+            value=0;
             /* ADD/AND/XOR/OR/SLT/SUB */
             if (found->styleRemplissage==1) {
-
+              rs=trouveRegistre(registres,intVersChaine(opeHex[0]));
+              rt=trouveRegistre(registres,intVersChaine(opeHex[1]));
+              rd=trouveRegistre(registres,intVersChaine(opeHex[2]));
+              afficheRegistre(rs);
+              afficheRegistre(rt);
+              afficheRegistre(rd);
+              if (rs!=NULL && rt!=NULL && rd!=NULL) {
+                printf("R1 : Registres trouvé\n");
+                /* ADD */
+                if (intOpcode==100000) {
+                  value=decValue(rs->valeur,NB_BIT_REGISTRE)+decValue(rt->valeur,NB_BIT_REGISTRE);
+                  if (value<=0xffffffff) {
+                    changeRegistre(rd,decToBin(value,NB_BIT_REGISTRE));
+                    afficheRegistre(rd);
+                  }
+                  else {
+                    printf("Exception : Overflow\nNo changes\n");
+                  }
+                }
+                /* AND */
+                else if (intOpcode==100100) {
+                  value=decValue(rs->valeur,NB_BIT_REGISTRE)&decValue(rt->valeur,NB_BIT_REGISTRE);
+                  changeRegistre(rd,decToBin(value,NB_BIT_REGISTRE));
+                  afficheRegistre(rd);
+                }
+                /* XOR */
+                else if (intOpcode==100110) {
+                  value=decValue(rs->valeur,NB_BIT_REGISTRE)^decValue(rt->valeur,NB_BIT_REGISTRE);
+                  changeRegistre(rd,decToBin(value,NB_BIT_REGISTRE));
+                  afficheRegistre(rd);
+                }
+                /* OR */
+                else if (intOpcode==100101) {
+                  value=decValue(rs->valeur,NB_BIT_REGISTRE)|decValue(rt->valeur,NB_BIT_REGISTRE);
+                  changeRegistre(rd,decToBin(value,NB_BIT_REGISTRE));
+                  afficheRegistre(rd);
+                }
+                else if (intOpcode==101010) {
+                  if ((value=decValue(rs->valeur,NB_BIT_REGISTRE)<decValue(rt->valeur,NB_BIT_REGISTRE))) {
+                    changeRegistre(rd,decToBin(1,NB_BIT_REGISTRE));
+                  }
+                  else {
+                    changeRegistre(rd,decToBin(0,NB_BIT_REGISTRE));
+                  }
+                }
+                else if (intOpcode==100010) {
+                  value=decValue(rs->valeur,NB_BIT_REGISTRE)-decValue(rt->valeur,NB_BIT_REGISTRE);
+                  changeRegistre(rd,decToBin(value,NB_BIT_REGISTRE));
+                  afficheRegistre(rd);
+                }
+              }
+            }
+            /*NOP déjà fait*/
+            /* SLL */
+            else if (found->styleRemplissage==3) {
+              rt=trouveRegistre(registres,intVersChaine(opeHex[1]));
+              rd=trouveRegistre(registres,intVersChaine(opeHex[2]));
+              value=decValue(rt->valeur,NB_BIT_REGISTRE)>>opeHex[3];
+              changeRegistre(rd,decToBin(value,NB_BIT_REGISTRE));
+              afficheRegistre(rd);
             }
           }
           else if (found->ordreBits==2) {
@@ -99,7 +150,7 @@ void traduitHex(char* hex) {
             offset+=4;
             opeHex[ope++]=binToDec(&bin[offset],1);
             offset+=1;
-            for (ope;ope<5;ope++) {
+            for (ope=ope;ope<5;ope++) {
               opeHex[ope]=binToDec(&bin[offset],5);
               offset+=5;
             }
@@ -177,6 +228,9 @@ void traduitHex(char* hex) {
       printf("Opcode : ");
       afficheBin(bin,6);
       if ((found=trouveOpcode(instructions, bin, 'I'))!=NULL) {
+        int intOpcode=valeurDecimale(found->opcode);
+        int value=0;
+        offset=6;
         /* Instruction de type I */
         if (found->typeInstruction=='I') {
           if (found->ordreBits==1) {
@@ -187,10 +241,33 @@ void traduitHex(char* hex) {
             offset+=5;
             opeHex[ope++]=binToDec(&bin[offset],5);
             offset+=5;
-            opeHex[ope++]=binToDec(&bin[offset],16);
+            opeHex[ope++]=decValue(&bin[offset],16);
+            afficheBin(&bin[offset],16);
+            printf("LUUT : %d\n",opeHex[2]);
             offset+=16;
             for (ope=0;ope<3;ope++) {
               printf("Ope R5 : %d\n", opeHex[ope]);
+            }
+            printf("REMP : %d\n", found->styleRemplissage);
+            if (found->styleRemplissage==1) {
+              rs=trouveRegistre(registres,intVersChaine(opeHex[0]));
+              rt=trouveRegistre(registres,intVersChaine(opeHex[1]));
+              imm=opeHex[2];
+              afficheRegistre(rs);
+              afficheRegistre(rt);
+              /* ADD */
+              if (intOpcode==1000) {
+                value=decValue(rs->valeur,NB_BIT_REGISTRE)+imm;
+                if (value<=0xffffffff) {
+                  changeRegistre(rt,decToBin(value,NB_BIT_REGISTRE));
+                  afficheRegistre(rs);
+
+                  afficheRegistre(rt);
+                }
+                else {
+                  printf("Exception : Overflow\nNo changes\n");
+                }
+              }
             }
           }
         }
@@ -203,15 +280,5 @@ void traduitHex(char* hex) {
   else {
     printf("Format de l'instruction incorrect %s\n", hex);
   }
-  int binReg[]={1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
-  char *nom="sp";
-  registre* foundsReg=NULL;
-  foundsReg=trouveRegistre(registres,nom);
-  changeRegistre(foundsReg,binReg);
-
-  afficheRegistre(foundsReg);
-  printf("Test\n");
-  afficheBin(valeurRegistre(registres,nom),32);
-  printf("%d\n",decValue(valeurRegistre(registres,nom)));
   printf("\n");
 }

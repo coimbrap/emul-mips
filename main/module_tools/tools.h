@@ -5,6 +5,7 @@
 #include "../module_hex/hex.h"
 
 /* OUTILS GENERAUX */
+int decValue(int* binTab, int size);
 unsigned numDigits(int n);
 int puissance(int d, int n);
 void inverseTab(int *tab, int n);

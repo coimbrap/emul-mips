@@ -28,8 +28,14 @@ int main() {
   char* nomReg="s0";
   char *nom="ADD";
   int binReg[]={0,0,0,0,0,1,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0};
-
   char *listereg="src/listeReg.txt";
+  char *listeope="src/listeOpe.txt";
+  instruction *instructions[NB_OPERATIONS+1];
+  registre* registresD[NB_REGISTRE];
+
+  memoire mem=NULL;
+  int* binTmp=NULL;
+  char hex[8];
 
   /* Tests partie 1 */
 /*  for (l=0;l<TAILLE_BIT_OPERATION;l++) {
@@ -128,18 +134,11 @@ int main() {
   nomReg="sp";
   nomReg=traduitRegistre(registres, nomReg);
   printf("Traduction %s\n", nomReg);
-  memoire mem=NULL;
-  int m=0;
 
-  int* binTmp=NULL;
-  char hex[8];
   binTmp=decToBin(0xffffffff,NB_BIT_MEMOIRE);
   afficheBin(binTmp,32);
-  binaryToHex(binTmp,hex);
+  binaryToHex(binTmp,hex,32);
   afficheHex(hex);
-  long int test=0xffffffff;
-  printf("%ld\n", test);
-  printf("%ld\n", hexToDec(hex));
 
   printf("\n------------------------------------\nTest de la liste chaînée\n------------------------------------\n");
   /* Insertion en tête */
@@ -212,19 +211,29 @@ int main() {
   validHex("GGGGGGG");
   printf("\n------------------------------------\nTraduit hexa\n------------------------------------\n");
 
-  traduitHex("00000000"); /* NOP cas full 0 */
-  traduitHex("3C140010"); /*LUI $20,16*/
-  traduitHex("02C2B020"); /* ADD $22,$22,$2 */
-  traduitHex("00284A42"); /* ROTR $9,$8,9 */
-  traduitHex("00084A42"); /* SRL $9,$8,9 */
-  traduitHex("00118C00"); /* SLL $17,$17,16 cas particulier (opcode 000000)*/
+  remplissageStructRegistre(registresD,listereg);
+  remplissageStructInstruction(instructions,listeope);
 
-  traduitHex("01F00018"); /* MULT $15,$16 */
-  traduitHex("03E00008"); /* JR $ra */
-  traduitHex("0000A812"); /* MFLO $21 */
-  traduitHex("0000000C"); /* SYSCALL */
 
-  traduitHex("200FED03"); /* ADDI $15,$0,9956611 */
+  traduitHex("00000000",registresD,instructions); /* NOP cas full 0 */
+  traduitHex("3C140010",registresD,instructions); /*LUI $20,16*/
+  traduitHex("02C2B020",registresD,instructions); /* ADD $22,$22,$2 */
+  traduitHex("00284A42",registresD,instructions); /* ROTR $9,$8,9 */
+  traduitHex("00084A42",registresD,instructions); /* SRL $9,$8,9 */
+  traduitHex("00118C00",registresD,instructions); /* SLL $17,$17,16 cas particulier (opcode 000000)*/
+
+  traduitHex("01F00018",registresD,instructions); /* MULT $15,$16 */
+  traduitHex("03E00008",registresD,instructions); /* JR $ra */
+  traduitHex("0000A812",registresD,instructions); /* MFLO $21 */
+  traduitHex("0000000C",registresD,instructions); /* SYSCALL */
+
+
+  traduitHex("200F4930",registresD,instructions);
+  traduitHex("200E1327",registresD,instructions);
+  traduitHex("01CF6820",registresD,instructions);
+  traduitHex("01CF6022",registresD,instructions);
+
+
 /*
   char hexT[8];
   binaryToHex(binReg,hexT);

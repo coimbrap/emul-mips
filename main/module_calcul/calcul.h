@@ -5,7 +5,5 @@
 
 int validHex(char* hex);
 int checkBinVal(int* bin, int offset, char* valeur);
-void traduitHex(char* hex);
-int decValue(int* binTab);
-
+void traduitHex(char* hex, registre** registres, instruction** instructions);
 #endif

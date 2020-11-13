@@ -34,7 +34,6 @@ int main(int argc, char *argv[]) {
     insertion(0x0,decToBin(11202,NB_BIT_MEMOIRE),&mem);
     insertion(0xffec,decToBin(4203,NB_BIT_MEMOIRE),&mem);
     insertion(0xfffc,decToBin(21003,NB_BIT_MEMOIRE),&mem);
-    insertion(0xfff8,decToBin(4294967295,NB_BIT_MEMOIRE),&mem);
     insertion(0xfff4,decToBin(30001,NB_BIT_MEMOIRE),&mem);
     insertion(0x101c,decToBin(20140,NB_BIT_MEMOIRE),&mem);
     afficherMemoire(&mem);
