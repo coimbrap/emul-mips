@@ -5,6 +5,7 @@
 #include "../module_hex/hex.h"
 
 /* OUTILS GENERAUX */
+int complementInt(int value, int bits);
 int decValue(int* binTab, int size);
 unsigned numDigits(int n);
 int puissance(int d, int n);

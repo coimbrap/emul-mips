@@ -5,6 +5,13 @@
 
 /* OUTILS GENERAUX */
 
+int complementInt(int value, int bits) {
+  if ((value & (1 << (bits-1))) !=0) {
+    value=value-(1 << bits);
+  }
+  return value;
+}
+
 /* Fonctionne uniquement avec des tableaux de 32 cases */
 int decValue(int* binTab, int size) {
   int tailleHex=size/4;
@@ -169,23 +176,32 @@ void complementADeux(int* binI, int* binO, int size) {
 /* Retourne la valeur décimale associé sous forme d'un entier */
 int hexToDec(char* hex) {
   int i=0;
-  long int dec=0,base=1;
+  int dec=0,base=1;
   int len=strlen(hex);
-  for(i=len-1;i>=0;i--){
-    if (hex[i]>='0' && hex[i]<='9') {
-      /* Si c'est un nombre on le transforme en entier et on le multiplie par la base */
-      dec+=(hex[i]-'0')*base;
-      base*=16; /* On passe à la puissance d'après */
+  if (len<=8) {
+    for(i=len-1;i>=0;i--){
+      if (hex[i]>='0' && hex[i]<='9') {
+        /* Si c'est un nombre on le transforme en entier et on le multiplie par la base */
+        dec+=(hex[i]-'0')*base;
+        base*=16; /* On passe à la puissance d'après */
+      }
+      /* Pour le cas d'une lettre on trouve ça valeur décimale avec une manipulation ascii */
+      else if (hex[i]>='a' && hex[i]<='f') {
+        dec+=(hex[i]-'a'+10)*base;
+        base*=16;
+      }
+      else if (hex[i]>='A' && hex[i]<='F') {
+        dec+=(hex[i]-'A'+10)*base;
+        base*=16;
+      }
     }
-    /* Pour le cas d'une lettre on trouve ça valeur décimale avec une manipulation ascii */
-    else if (hex[i]>='a' && hex[i]<='f') {
-      dec+=(hex[i]-'a'+10)*base;
-      base*=16;
+    /* Gère les valeurs négative pour des nombre de moins de 8octets et donc le nombre d'octet est une mutlitple de 4*/
+    if (len!=8 && len%4==0) {
+      dec=complementInt(dec,len*4);
     }
-    else if (hex[i]>='A' && hex[i]<='F') {
-      dec+=(hex[i]-'A'+10)*base;
-      base*=16;
-    }
+  }
+  else {
+    printf("Nombre trop grand\n");
   }
   return dec;
 }
