@@ -23,7 +23,7 @@ void remplissageStructInstruction(instruction *instructions[], const char* fichi
     instructions[i]=malloc(sizeof(instruction));
     tmp=instructions[i];
     /* La ligne dans le fichier est de la forme : ADD,100000,R,1,1 */
-    fscanf(fs,"%[^,],%[^,],%c,%d,%d*",tmp->nom,tmp->opcode,&tmp->typeInstruction,&tmp->ordreBits,&tmp->styleRemplissage);
+    fscanf(fs,"%[^,],%[^,],%c,%d,%d,%d*",tmp->nom,tmp->opcode,&tmp->typeInstruction,&tmp->ordreBits,&tmp->styleRemplissage,&tmp->nbOperande);
     fgetc(fs); /* Enlève \n */
   }
   fclose(fs);
@@ -213,6 +213,7 @@ void binaryToHex(int* bin, char* hex, int size) {
       l++;
     }
   }
+  hex[l]='\0';
 }
 
 /* Ecrit la valeur hexadécimale dans un fichier */
@@ -237,14 +238,14 @@ void ecrireHex(char* hex, char *fichier){
 
 /* Retourne le nombre d'opérande dans un opération passée en entrée */
 int nombreOperande(char *s) {
-  int ret=0,i=0;
+  int ret=0,i=0,commence=0;
   while(s[i]!='\0') {
-    if (s[i]==',' || s[i]=='(') {
-      ret++;
-    }
+    if(isalpha(s[i]) && !commence) {commence=1;}
+    if (commence && (s[i]==',' || s[i]=='(' || s[i]=='\n')) {ret++;}
     i++;
   }
-  return ret+1;
+  if (ret!=0) {ret++;}
+  return ret;
 }
 
 /* Permet de traduire toutes les opérandes d'un tableau de strings d'operandes */
@@ -334,8 +335,8 @@ int parseLigne(char *ligne, int* bin, instruction* instructions[], registre* reg
   found=trouveOperation(instructions,operation);
 
   /* Si l'opération à été trouvé dans la structure mémoire on continu */
-  if (found!=NULL) {
-    ret=1;
+  if (found!=NULL && nombreOperande(ligne)==found->nbOperande) {
+    ret=1; /* On a une expression valide */
     /* Si ce n'est pas NOP on parse les operandes */
     if (!(found->typeInstruction=='R' && found->ordreBits==1 && found->styleRemplissage==2)) {
       operandes=parseOperandes(ligne,operandes,&offset);
@@ -499,10 +500,6 @@ int parseLigne(char *ligne, int* bin, instruction* instructions[], registre* reg
         }
       }
     }
-    #ifdef DEBUG
-    printf("----Tableau Binaire----\n");
-    afficheBin(bin,TAILLE_BIT_OPERATION);
-    #endif
   }
   return ret;
 }
@@ -572,7 +569,7 @@ void parseFichier(char *input, char* output, int mode) {
             printf("Instruction assembleur ligne %d : \n%s\n\n",lignes,ligneOut);
             printf("Expression hexadécimale : \n%s\n\n", hex);
             printf("passer l'instruction: [p], instruction suivante: [enter], saut de la lecture: [s]\n");
-            while((((c=getchar())!='\n') && c!='s' && c!='p') && c!= EOF);
+            while(((c=getchar())!='\n') && c!='s' && c!='p' && c!= EOF);
             if (c=='\n') {
               ecrireHex(hex,output); /* On écrit la valeur hexadécimale */
               fprintf(tmp,"%08d 0x%s   %s\n",programCounter,hex,ligneOut);
@@ -622,5 +619,7 @@ void parseFichier(char *input, char* output, int mode) {
     printf("Pas d'affichage\n");
   }
   fclose(tmp);
+  remove(".tmp");
   fclose(fin); /* On ferme le fichier d'entrée */
+  printf("C'est fini\n");
 }

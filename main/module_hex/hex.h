@@ -26,6 +26,7 @@ typedef struct instruction {
   char typeInstruction; /* 'R' || 'I' || 'J' */
   int ordreBits; /* Cas en fonction du type */
   int styleRemplissage; /* SG en fonction du type */
+  int nbOperande;
 } instruction;
 
 /* MEMOIRE INSTRUCTIONS */
