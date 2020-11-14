@@ -4,7 +4,6 @@
 #include <string.h>
 
 #include "../module_tools/tools.h"
-#include "../module_registres/registres.h"
 
 int validHex(char* hex) {
   int len=strlen(hex);
@@ -35,7 +34,7 @@ int checkBinVal(int* bin, int offset, char* valeur) {
 }
 
 /* Prend en entrée une instruction hexadécimale (demandé dans les specifications) */
-void traduitHex(char* hex, registre** registres, instruction** instructions) {
+void traduitHex(char* hex, registre** registres, instruction** instructions, memoire *mem, int* pc) {
   int len=strlen(hex);
   int offset=0;
   int ope=0;
@@ -217,6 +216,7 @@ void traduitHex(char* hex, registre** registres, instruction** instructions) {
               printf("Ope R6 : %d\n", opeHex[ope]);
             }
           }
+          *pc+=4;
         }
         /* Opération trouvé */
         printf("Traduction %s\n", found->nom);
@@ -253,9 +253,10 @@ void traduitHex(char* hex, registre** registres, instruction** instructions) {
               rs=trouveRegistre(registres,intVersChaine(opeHex[0]));
               rt=trouveRegistre(registres,intVersChaine(opeHex[1]));
               imm=opeHex[2];
+
               afficheRegistre(rs);
               afficheRegistre(rt);
-              /* ADD */
+              /* ADDI */
               if (intOpcode==1000) {
                 value=decValue(rs->valeur,NB_BIT_REGISTRE)+imm;
                 if (value<=0xffffffff) {
@@ -267,6 +268,7 @@ void traduitHex(char* hex, registre** registres, instruction** instructions) {
                 else {
                   printf("Exception : Overflow\nNo changes\n");
                 }
+                *pc+=4;
               }
             }
           }
@@ -281,4 +283,49 @@ void traduitHex(char* hex, registre** registres, instruction** instructions) {
     printf("Format de l'instruction incorrect %s\n", hex);
   }
   printf("\n");
+}
+
+
+int chargeProgramme(memoire *mem, const char* progHex) {
+  FILE *prog=NULL;
+  char* instruction=NULL;
+  int i=0;
+  size_t len=0;
+  int instructionBin[TAILLE_BIT_OPERATION];
+  int pc=INIT_PC;
+
+  prog=fopen(progHex,"r");
+  if(NULL==prog){
+    printf("Erreur d'ouverture du fichier\n");
+    exit(-1);
+  }
+  while (getline(&instruction,&len,prog)!=-1) {
+    hexToBin(instruction,instructionBin);
+    insertion(pc,instructionBin,mem);
+    pc+=4;
+  }
+  free(instruction);
+  fclose(prog);
+  return (pc-4);
+}
+
+void execProgramme(memoire *mem, registre** registres, instruction** instructions, char* prog) {
+  char hex[TAILLE_HEX_OPERATION];
+  int* bin=NULL;
+  int pcMax=0,pc=INIT_PC;
+  registre *PC=trouveRegistre(registres,"PC");
+  pcMax=chargeProgramme(mem,prog);
+  while(pc<=pcMax) {
+    bin=valeurMemoire(pc,mem);
+    printf("Passed Ox%04x\n",pc);
+    afficheBin(bin,32);
+    binaryToHex(bin,hex,NB_BIT_MEMOIRE);
+    printf("Hex : %s\n", hex);
+    traduitHex(hex,registres,instructions,mem,&pc); /* S'occupe d'incrémenter le PC */
+    changeRegistre(PC,decToBin(pc,NB_BIT_REGISTRE));
+  }
+  afficheRegistres(registres);
+
+
+
 }
