@@ -247,7 +247,6 @@ int binToDec(int *bin, int size) {
   int dec=0,i=0,tmp=0;
   long binI;
   binI=tabToInt(bin,size);
-  afficheBin(bin,size);
   while (binI!= 0) {
     tmp=binI%10;
     binI/=10;
