@@ -50,16 +50,23 @@ void traduitHex(char* hex, registre** registres, instruction** instructions, mem
 
   if (len==8 && validHex(hex)) {
     hexToBin(hex,bin);
+    #ifdef DEBUG
     afficheBin(bin,TAILLE_BIT_OPERATION);
+    #endif
     /* PAS OPTI DUTOUT */
     if (strcmp(hex,"00000000")==0) {
+      #ifdef DEBUG
       printf("NOPP\n");
+      #endif
+
     }
     else if (checkBinVal(bin,0,"000000")) {
+      #ifdef DEBUG
       printf("instruction de type R\n");
       printf("Opcode : ");
       /* Opcode à partir de la case 26 */
       afficheBin(&bin[26],6);
+      #endif
       offset+=6;
       if ((found=trouveOpcode(instructions, &bin[26], 'R'))!=NULL) {
         /* Instruction de type R */
@@ -71,9 +78,11 @@ void traduitHex(char* hex, registre** registres, instruction** instructions, mem
               opeHex[ope]=binToDec(&bin[offset],5);
               offset+=5;
             }
+            #ifdef DEBUG
             for (ope=0;ope<4;ope++) {
               printf("Ope R1 : %d\n", opeHex[ope]);
             }
+            #endif
             intOpcode=valeurDecimale(found->opcode);
             value=0;
             /* ADD/AND/XOR/OR/SLT/SUB */
@@ -81,17 +90,20 @@ void traduitHex(char* hex, registre** registres, instruction** instructions, mem
               rs=trouveRegistre(registres,intVersChaine(opeHex[0]));
               rt=trouveRegistre(registres,intVersChaine(opeHex[1]));
               rd=trouveRegistre(registres,intVersChaine(opeHex[2]));
+              #ifdef DEBUG
               afficheRegistre(rs);
               afficheRegistre(rt);
               afficheRegistre(rd);
+              #endif
               if (rs!=NULL && rt!=NULL && rd!=NULL) {
-                printf("R1 : Registres trouvé\n");
                 /* ADD */
                 if (intOpcode==100000) {
                   value=decValue(rs->valeur,NB_BIT_REGISTRE)+decValue(rt->valeur,NB_BIT_REGISTRE);
                   if (value<=0xffffffff) {
                     changeRegistre(rd,decToBin(value,NB_BIT_REGISTRE));
+                    #ifdef DEBUG
                     afficheRegistre(rd);
+                    #endif
                   }
                   else {
                     printf("Exception : Overflow\nNo changes\n");
@@ -101,19 +113,25 @@ void traduitHex(char* hex, registre** registres, instruction** instructions, mem
                 else if (intOpcode==100100) {
                   value=decValue(rs->valeur,NB_BIT_REGISTRE)&decValue(rt->valeur,NB_BIT_REGISTRE);
                   changeRegistre(rd,decToBin(value,NB_BIT_REGISTRE));
+                  #ifdef DEBUG
                   afficheRegistre(rd);
+                  #endif
                 }
                 /* XOR */
                 else if (intOpcode==100110) {
                   value=decValue(rs->valeur,NB_BIT_REGISTRE)^decValue(rt->valeur,NB_BIT_REGISTRE);
                   changeRegistre(rd,decToBin(value,NB_BIT_REGISTRE));
+                  #ifdef DEBUG
                   afficheRegistre(rd);
+                  #endif
                 }
                 /* OR */
                 else if (intOpcode==100101) {
                   value=decValue(rs->valeur,NB_BIT_REGISTRE)|decValue(rt->valeur,NB_BIT_REGISTRE);
                   changeRegistre(rd,decToBin(value,NB_BIT_REGISTRE));
+                  #ifdef DEBUG
                   afficheRegistre(rd);
+                  #endif
                 }
                 else if (intOpcode==101010) {
                   if ((value=decValue(rs->valeur,NB_BIT_REGISTRE)<decValue(rt->valeur,NB_BIT_REGISTRE))) {
@@ -126,7 +144,9 @@ void traduitHex(char* hex, registre** registres, instruction** instructions, mem
                 else if (intOpcode==100010) {
                   value=decValue(rs->valeur,NB_BIT_REGISTRE)-decValue(rt->valeur,NB_BIT_REGISTRE);
                   changeRegistre(rd,decToBin(value,NB_BIT_REGISTRE));
+                  #ifdef DEBUG
                   afficheRegistre(rd);
+                  #endif
                 }
               }
             }
@@ -137,7 +157,9 @@ void traduitHex(char* hex, registre** registres, instruction** instructions, mem
               rd=trouveRegistre(registres,intVersChaine(opeHex[2]));
               value=decValue(rt->valeur,NB_BIT_REGISTRE)>>opeHex[3];
               changeRegistre(rd,decToBin(value,NB_BIT_REGISTRE));
+              #ifdef DEBUG
               afficheRegistre(rd);
+              #endif
             }
           }
           else if (found->ordreBits==2) {
@@ -160,9 +182,11 @@ void traduitHex(char* hex, registre** registres, instruction** instructions, mem
             else if (opeHex[1]==1) {
               found=trouveOperation(instructions,"ROTR");
             }
+            #ifdef DEBUG
             for (ope=0;ope<5;ope++) {
               printf("Ope R2 : %d\n", opeHex[ope]);
             }
+            #endif
           }
           else if (found->ordreBits==3) {
             /* 2 champs de 5 bits, 1 de 10bits */
@@ -174,9 +198,11 @@ void traduitHex(char* hex, registre** registres, instruction** instructions, mem
             offset+=5;
             opeHex[ope++]=binToDec(&bin[offset],10);
             offset+=10;
+            #ifdef DEBUG
             for (ope=0;ope<3;ope++) {
               printf("Ope R3 : %d\n", opeHex[ope]);
             }
+            #endif
           }
           else if (found->ordreBits==4) {
             /* 1 de 5bits 1 de bits 1 de 5bits */
@@ -188,9 +214,11 @@ void traduitHex(char* hex, registre** registres, instruction** instructions, mem
             offset+=10;
             opeHex[ope++]=binToDec(&bin[offset],5);
             offset+=5;
+            #ifdef DEBUG
             for (ope=0;ope<3;ope++) {
               printf("Ope R4 : %d\n", opeHex[ope]);
             }
+            #endif
           }
           else if (found->ordreBits==5) {
             /* 1 de 10 2 de 5 */
@@ -202,9 +230,11 @@ void traduitHex(char* hex, registre** registres, instruction** instructions, mem
             offset+=5;
             opeHex[ope++]=binToDec(&bin[offset],5);
             offset+=5;
+            #ifdef DEBUG
             for (ope=0;ope<3;ope++) {
               printf("Ope R5 : %d\n", opeHex[ope]);
             }
+            #endif
           }
           else if (found->ordreBits==6) {
             /* 1 de 20 */
@@ -212,21 +242,27 @@ void traduitHex(char* hex, registre** registres, instruction** instructions, mem
             ope=0;
             opeHex[ope++]=binToDec(&bin[offset],20);
             offset+=20;
+            #ifdef DEBUG
             for (ope=0;ope<1;ope++) {
               printf("Ope R6 : %d\n", opeHex[ope]);
             }
+            #endif
           }
           *pc+=4;
         }
+        #ifdef DEBUG
         /* Opération trouvé */
         printf("Traduction %s\n", found->nom);
+        #endif
         free(opeHex);
 
       }
     }
     else {
+      #ifdef DEBUG
       printf("Opcode : ");
       afficheBin(bin,6);
+      #endif
       if ((found=trouveOpcode(instructions, bin, 'I'))!=NULL) {
         int intOpcode=valeurDecimale(found->opcode);
         int value=0;
@@ -242,28 +278,32 @@ void traduitHex(char* hex, registre** registres, instruction** instructions, mem
             opeHex[ope++]=binToDec(&bin[offset],5);
             offset+=5;
             opeHex[ope++]=decValue(&bin[offset],16);
+            offset+=16;
+            #ifdef DEBUG
             afficheBin(&bin[offset],16);
             printf("LUUT : %d\n",opeHex[2]);
-            offset+=16;
             for (ope=0;ope<3;ope++) {
               printf("Ope R5 : %d\n", opeHex[ope]);
             }
             printf("REMP : %d\n", found->styleRemplissage);
+            #endif
             if (found->styleRemplissage==1) {
               rs=trouveRegistre(registres,intVersChaine(opeHex[0]));
               rt=trouveRegistre(registres,intVersChaine(opeHex[1]));
               imm=opeHex[2];
-
+              #ifdef DEBUG
               afficheRegistre(rs);
               afficheRegistre(rt);
+              #endif
               /* ADDI */
               if (intOpcode==1000) {
                 value=decValue(rs->valeur,NB_BIT_REGISTRE)+imm;
                 if (value<=0xffffffff) {
                   changeRegistre(rt,decToBin(value,NB_BIT_REGISTRE));
+                  #ifdef DEBUG
                   afficheRegistre(rs);
-
                   afficheRegistre(rt);
+                  #endif
                 }
                 else {
                   printf("Exception : Overflow\nNo changes\n");
@@ -274,7 +314,9 @@ void traduitHex(char* hex, registre** registres, instruction** instructions, mem
           }
         }
         /* Opération trouvé */
+        #ifdef DEBUG
         printf("Traduction %s\n", found->nom);
+        #endif
         free(opeHex);
       }
     }
@@ -282,7 +324,9 @@ void traduitHex(char* hex, registre** registres, instruction** instructions, mem
   else {
     printf("Format de l'instruction incorrect %s\n", hex);
   }
+  #ifdef DEBUG
   printf("\n");
+  #endif
 }
 
 
@@ -317,15 +361,14 @@ void execProgramme(memoire *mem, registre** registres, instruction** instruction
   pcMax=chargeProgramme(mem,prog);
   while(pc<=pcMax) {
     bin=valeurMemoire(pc,mem);
-    printf("Passed Ox%04x\n",pc);
+    #ifdef DEBUG
     afficheBin(bin,32);
+    #endif
     binaryToHex(bin,hex,NB_BIT_MEMOIRE);
-    printf("Hex : %s\n", hex);
     traduitHex(hex,registres,instructions,mem,&pc); /* S'occupe d'incrémenter le PC */
     changeRegistre(PC,decToBin(pc,NB_BIT_REGISTRE));
   }
+  #ifdef DEBUG
   afficheRegistres(registres);
-
-
-
+  #endif
 }
