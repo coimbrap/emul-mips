@@ -6,9 +6,9 @@ int estDivisiblePar4(int n) {
   return !(n&3);
 }
 
-void afficherMemoire(memoire *m) {
+void afficherMemoires(memoire *m) {
 	memoire increment=*m;
-  long int decReg=0;
+  int decReg=0;
   char hex[8]; /* Buffer */
   printf("\nAdresse     Décimal      Hex          Binaire\n--------------------------------------------------------------------------\n");
   if(increment==NULL) {
@@ -16,14 +16,53 @@ void afficherMemoire(memoire *m) {
   }
   else {
     while(increment!=NULL) {
-      binaryToHex(increment->valeur,hex,NB_BIT_MEMOIRE);
-      decReg=hexToDec(hex);
-      printf("0x%04x      %-10ld   0x%08lx   ",increment->adresse,decReg,decReg);
-      afficheBin(increment->valeur,NB_BIT_MEMOIRE);
+      afficherMemoire(increment);
       increment=increment->suivant;
     }
 		printf("\n");
   }
+}
+
+void afficherMemoire(memoire slot) {
+  int decReg=0;
+  char hex[8]; /* Buffer */
+  if(slot==NULL) {
+    printf("No record\n");
+  }
+  else {
+    binaryToHex(slot->valeur,hex,NB_BIT_MEMOIRE);
+    decReg=hexToDec(hex);
+    printf("0x%04x      %-10d   0x%08x   ",slot->adresse,decReg,decReg);
+    afficheBin(slot->valeur,NB_BIT_MEMOIRE);
+  }
+}
+
+int* valeurMemoire(int adresse, memoire *m) {
+  memoire increment=NULL;
+  int* binMem=NULL;
+  if (estDivisiblePar4(adresse)) {
+  	if (*m==NULL) {
+  		printf("Affichage : mémoire vide\n");
+  	}
+  	/* Il reste un unique élément dans la mémoire est c'est celui à supprimer */
+  	else if(((*m)->suivant==NULL) && ((*m)->adresse)==adresse) {
+  		binMem=(*m)->valeur;
+  	}
+  	else {
+  		increment=*m; /* On utilise un incrément pour ne pas modifier *m */
+  		/* On parcourt la mémoire tant quelle n'est pas fini et que l'indice n'est pas atteint */
+  		while (increment->suivant!=NULL && ((increment)->adresse)<(adresse)) {
+  			increment=increment->suivant; /* On avance d'un élément */
+  		}
+      if (increment->adresse==adresse) {
+        binMem=increment->valeur;
+      }
+  	}
+  }
+  else {
+    printf("Vous essayez d'afficher au millieu d'un mot 0x%04x\n",adresse);
+  }
+  return binMem;
 }
 
 void insertion(int adresse, int mot[NB_BIT_MEMOIRE], memoire *m) {

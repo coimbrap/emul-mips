@@ -16,7 +16,9 @@ typedef element* memoire;
 int estDivisiblePar4(int n);
 void insertion(int adresse, int mot[NB_BIT_MEMOIRE], memoire *m);
 void suppression(int adresse, memoire *m);
-void afficherMemoire(memoire *m);
+void afficherMemoires(memoire *m);
+void afficherMemoire(memoire slot);
 void liberation(memoire *m);
+int* valeurMemoire(int adresse, memoire *m);
 
 #endif

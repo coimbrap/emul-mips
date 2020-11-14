@@ -310,26 +310,33 @@ Vu que pour notre implémentation nous n'utilisons pas les directives et que les
 ```
 0xFFFF +------------------------+
        |                        |
+       |       Programme        |
+       |                        |
+0xDDDD +------------------------+
+       |                        |
        |          Pile          |
        |                        |
-0x2000 +------------------------+
+0xAAAA +------------------------+
        |                        |
        |        Mémoire         |
        |                        |
 0x0000 +------------------------+
 ```
 
-La mémoire accessible avec les instructions *LW* et *SW* se trouvera donc entre les adresses 0x0000 et 0x2000 et sera remplit des adresses bases aux adresses hautes.
+La mémoire est accessible avec les instructions *LW* et *SW* se trouvera donc entre les adresses 0x0000 et 0x2000 et sera remplit des adresses bases aux adresses hautes.
 
-Pour la pile elle se remplit par le bas donc elle se trouvera entre 0xFFFF et 0x2000.
+Pour la pile elle se remplit par le bas donc elle se trouvera entre 0xDDDD et 0xAAAA. Cela nous laisse de la place si on veut par la suite ajouter des parties à notre map mémoire.
 
 Vu que la mémoire ne sera pas trop utilisé nous allons utilisé une listes chaînée dynamiquement alloué pour utiliser le moins de mémoire possible.
 
 On aura donc la map mémoire qui contiendra :
 - Une liste pour la mémoire
+- Une liste pour le programme
 - Une pile descendante
 
-L'utilisation de la pile est géré par le registre *sp* qui pointe vers l'adresse du haut de la pile, on peut donc utiliser la même implématation pour le pile et pour la mémoire seule l'utilisation varie.
+L'utilisation de la pile est géré par le registre *sp* qui pointe vers l'adresse du haut de la pile, on peut donc utiliser la même implémentation pour le pile et pour la mémoire seule l'utilisation varie.
+
+De même pour le programme, l'instruction en cours sera pointé par le registre *PC*. A noté que avant d'incrémenter le PC il faudra vérifié que l'on est bien une case après.
 
 Pour l'implémentation nous avons retenu celle d'une liste chaîné. Chaque maillon de la liste sera composé comme décrit ci-dessous :
 - L'adresse de la case mémoire du premier octet du mot (un multiple de 4)
@@ -341,8 +348,6 @@ Pour une question des questions de simplicité on veillera à ce que les adresse
 En résumé un maillon contiendra un mot et sera désigné par l'adresse de la case mémoire du premier octet du mot.
 
 *Recherche documentaire sur les liens suivant :*
-*https://www-soc.lip6.fr/trac/sesi-almo/chrome/site/docs/ALMO-mips32-archi-asm.pdf*
-
-*https://tdinfo.phelma.grenoble-inp.fr/2Aproj/ressources/PHELMA_ProjetInformatique2A_2019-20.pdf*
-
-*http://www-id.imag.fr/~briat/perso.html/NACHOS/NACHOS_DOC/CA225b.html*
+- *https://www-soc.lip6.fr/trac/sesi-almo/chrome/site/docs/ALMO-mips32-archi-asm.pdf*
+- *https://tdinfo.phelma.grenoble-inp.fr/2Aproj/ressources/PHELMA_ProjetInformatique2A_2019-20.pdf*
+- *http://www-id.imag.fr/~briat/perso.html/NACHOS/NACHOS_DOC/CA225b.html*
