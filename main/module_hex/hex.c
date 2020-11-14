@@ -509,10 +509,11 @@ int parseLigne(char *ligne, int* bin, instruction* instructions[], registre* reg
 
 /* Lit le fichier d'instruction assembleur ligne par ligne */
 /* Parse l'expression puis lance le remplissage du tableau binaire */
-void parseFichier(char *input, char* output) {
+void parseFichier(char *input, char* output, int mode) {
   /* Fichiers d'entrée et de sortie du programme */
   FILE *fin=fopen(input, "r");
   FILE *fout=fopen(output, "w");
+  FILE *tmp=fopen(".tmp","w"); /* Stockage de l'affichage */
   size_t len=0;
   char *ligne=NULL;
   /* Représentation binaire de l'instruction */
@@ -520,16 +521,18 @@ void parseFichier(char *input, char* output) {
   /* Représentation hexadécimale de l'instruction */
   char hex[TAILLE_HEX_OPERATION];
   char *ligneOut=NULL;
-  int programCounter=0;
+  int programCounter=0,lignes=1;
   /* Fichiers pour remplir les mémoires (opérandes et registres) */
   char *listeope="src/listeOpe.txt";
   char *listereg="src/listeReg.txt";
+  char c;
   /* Tableaux de mémoire des opérandes et des registres remplit à l'aide des fichiers de stockage */
   instruction *instructions[NB_OPERATIONS+1];
   registre* registres[NB_REGISTRE];
   /* On remplit les structures de stockage à partir des fichiers */
   remplissageStructInstruction(instructions,listeope);
   remplissageStructRegistre(registres,listereg);
+  programCounter=INIT_PC;
   if (fin==NULL) {
     printf("Erreur lors de l'ouverture du fichier '%s'\n",input);
     exit(-1);
@@ -537,6 +540,10 @@ void parseFichier(char *input, char* output) {
   /* Initialisation du fichier (suppression du contenu ou création) */
   if (fout==NULL) {
     printf("Erreur lors de l'ouverture du fichier '%s'\n",output);
+    exit(-1);
+  }
+  if (tmp==NULL) {
+    printf("Erreur lors de l'ouverture du fichier '.tmp'\n");
     exit(-1);
   }
   fclose(fout); /* On referme le fichier */
@@ -547,31 +554,73 @@ void parseFichier(char *input, char* output) {
       uniformisationInstruction(ligne,ligneOut);
       if(ligneOut[0]!='\0') { /* Si la ligne uniformisé n'est pas vide */
          /* On a quelque chose */
-         #ifdef VERBEUX
-         printf("\n----Instruction----\n%s\n",ligneOut);
-         #endif
-         /* Retourne 1 si on a trouvé quelque chose */
-         if (parseLigne(ligneOut,bin,instructions,registres)) {
-           /* On parse la ligne */
-          #ifdef VERBEUX
-          printf("------Binaire------\n");
-          afficheBin(bin,TAILLE_BIT_OPERATION);
-          #endif
-          binaryToHex(bin,hex,TAILLE_BIT_OPERATION); /* On transforme en hexadécimal */
-          #ifdef VERBEUX
-          printf("----Hexadécimal----\n");
-          afficheHex(hex);
-          #endif
-          ecrireHex(hex,output); /* On écrit la valeur hexadécimale */
-          /* On affiche le tout dans le terminal pour l'utilisateur */
-          printf("%08d ", programCounter);
-          afficheHexNoEnter(hex);
-          printf("    %s\n", ligneOut);
-          programCounter+=4;
+         if (mode) {
+           if (parseLigne(ligneOut,bin,instructions,registres)) {
+             /* On parse la ligne */
+            binaryToHex(bin,hex,TAILLE_BIT_OPERATION); /* On transforme en hexadécimal */
+            ecrireHex(hex,output); /* On écrit la valeur hexadécimale */
+            fprintf(tmp,"%08d 0x%s   %s\n",programCounter,hex,ligneOut);
+            programCounter+=4;
+          }
+           else if (mode==0) {
+             printf("Erreur ligne %d, on passe à la suivante (opération non reconnue)\n",lignes);
+           }
          }
+         if (!mode) {
+           if (parseLigne(ligneOut,bin,instructions,registres)) {
+            binaryToHex(bin,hex,TAILLE_BIT_OPERATION); /* On transforme en hexadécimal */
+            printf("Instruction assembleur ligne %d : \n%s\n\n",lignes,ligneOut);
+            printf("Expression hexadécimale : \n%s\n\n", hex);
+            printf("passer l'instruction: [p], instruction suivante: [enter], saut de la lecture: [s]\n");
+            while((((c=getchar())!='\n') && c!='s' && c!='p') && c!= EOF);
+            if (c=='\n') {
+              ecrireHex(hex,output); /* On écrit la valeur hexadécimale */
+              fprintf(tmp,"%08d 0x%s   %s\n",programCounter,hex,ligneOut);
+              programCounter+=4;
+            }
+            else {
+              getchar();
+              if (c=='p') {
+
+              }
+              else if (c=='s') {
+                ecrireHex(hex,output);
+                mode=1;
+                fprintf(tmp,"%08d 0x%s   %s\n",programCounter,hex,ligneOut);
+                programCounter+=4;
+              }
+            }
+          }
+           else {
+             printf("Erreur ligne %d, on passe à la suivante (opération non reconnue)\n\n",lignes);
+           }
+         }
+       }
+       else if (mode==0) {
+         printf("Erreur ligne %d, on passe à la suivante (ligne vide)\n\n",lignes);
        }
       free(ligneOut); /* On libère la ligne uniformisé */
     }
+    else if (mode==0) {
+      printf("Erreur ligne %d, on passe à la suivante (ligne vide)\n\n",lignes);
+    }
+    if (!mode) {
+      lignes++;
+    }
   }
+  fclose(tmp);
+  /* Affichage final */
+
+  char buf[1000];
+  tmp=fopen(".tmp","r");
+  if (tmp) {
+    while (fgets(buf,1000,tmp)!=NULL) {
+      printf("%s",buf);
+    }
+  }
+  else {
+    printf("Pas d'affichage\n");
+  }
+  fclose(tmp);
   fclose(fin); /* On ferme le fichier d'entrée */
 }

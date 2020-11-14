@@ -8,6 +8,7 @@
 #define TAILLE_OPCODE 7
 #define TAILLE_REG 5
 #define TAILLE_IMM 16
+#define INIT_PC 0xDDE0;
 
 #define NB_OPERATIONS 26
 
@@ -48,6 +49,6 @@ void traduitOperandes(registre* registres[], char* operandes[], int nbOperande);
 char** parseOperandes(char *ligne, char* operandes[], int* offset);
 void parseOperation(char *ligne, char* operation, int* offset);
 int parseLigne(char *ligne, int* bin, instruction* instructions[], registre* registres[]);
-void parseFichier(char *input, char* output);
+void parseFichier(char *input, char* output, int mode);
 
 #endif
