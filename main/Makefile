@@ -10,7 +10,7 @@ test: test.o tools.o hexDebug.o registres.o memoire.o calcul.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 #Cible principale
-$(EXEC): $(EXEC).o hex.o tools.o registres.o memoire.o
+$(EXEC): $(EXEC).o hex.o tools.o registres.o memoire.o calcul.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 #Fichiers objets
@@ -36,6 +36,9 @@ tools.o: module_tools/tools.c module_tools/tools.h
 #Version debug de hex
 hexDebug.o: module_hex/hex.c module_hex/hex.h
 	$(CC) -c -D DEBUG -D VERBEUX $< $(CFLAGS) -o $@
+
+calculDebug.o: module_calcul/calcul.c module_calcul/calcul.h
+	$(CC) -c -D DEBUG $< $(CFLAGS) -o $@
 
 test.o: test.c
 	$(CC) -c $< $(CFLAGS) -o $@
