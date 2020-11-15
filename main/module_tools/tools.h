@@ -7,8 +7,8 @@
 /* OUTILS GENERAUX */
 void clean_stdin();
 int complementInt(int value, int bits);
-int decValue(int* binTab, int size);
-unsigned numDigits(int n);
+long int decValue(int* binTab, int size);
+unsigned numDigits(long int n);
 int puissance(int d, int n);
 void inverseTab(int *tab, int n);
 int valeurDecimale(char* m);
@@ -20,11 +20,11 @@ void inverseBin(int* binS, int* binO, int size);
 void addBin(int* binA, int* binB, int* binR, int size);
 void complementADeux(int* binI, int* binO, int size);
 int binToDec(int *bin, int size);
-int* decToBin(int dec, int binSize);
+int* decToBin(long int dec, int binSize);
 
 /* MANIPULATION HEXADECIMALE */
-int hexToDec(char* hex);
-char* decToHex(int dec);
+long int hexToDec(char* hex);
+char* decToHex(long int dec);
 void operandesHextoDec(char* hex);
 void hexToBin(char* hex, int* bin);
 

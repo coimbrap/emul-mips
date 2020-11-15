@@ -20,7 +20,7 @@ int complementInt(int value, int bits) {
 }
 
 /* Fonctionne uniquement avec des tableaux de 32 cases */
-int decValue(int* binTab, int size) {
+long int decValue(int* binTab, int size) {
   int tailleHex=size/4;
   char *hexTab=NULL;
   hexTab=calloc(tailleHex+1,sizeof(char));
@@ -28,7 +28,7 @@ int decValue(int* binTab, int size) {
   return hexToDec(hexTab);
 }
 
-unsigned numDigits(int n) {
+unsigned numDigits(long int n) {
   if (n < 10) return 1;
   return 1 + numDigits(n / 10);
 }
@@ -181,10 +181,10 @@ void complementADeux(int* binI, int* binO, int size) {
 
 /* Prend en entrée la valeur hexadécimal dans un tableau de char */
 /* Retourne la valeur décimale associé sous forme d'un entier */
-int hexToDec(char* hex) {
+long int hexToDec(char* hex) {
   int i=0;
-  int dec=0,base=1;
-  int len=strlen(hex);
+  long int dec=0,base=1;
+  int len=strlen(hex)-1;
   if (len<=8) {
     for(i=len-1;i>=0;i--){
       if (hex[i]>='0' && hex[i]<='9') {
@@ -213,8 +213,9 @@ int hexToDec(char* hex) {
   return dec;
 }
 
-char* decToHex(int dec) {
-  int i=0,j=0,tmp=0,k=0;
+char* decToHex(long int dec) {
+  int i=0,j=0,k=0;
+  long int tmp=0;
   char *hex=NULL;
   char *ret=NULL;
   if((hex=malloc(numDigits(dec)*sizeof(char)))==NULL){exit(1);};
@@ -230,6 +231,12 @@ char* decToHex(int dec) {
       i++;
     }
     dec/=16;
+  }
+  /* On a pas une longeur multiple de 4 */
+  if ((i)%4!=0) {
+    for (j=((i-1)+(4-i%4));j>i-1;j--) {
+      ret[k++]='0'; /* On rajoute des zéros en tête */
+    }
   }
   for(j=i-1;j>=0;j--) {
     ret[k++]=hex[j];
@@ -263,7 +270,7 @@ int binToDec(int *bin, int size) {
   return dec;
 }
 
-int* decToBin(int dec, int binSize) {
+int* decToBin(long int dec, int binSize) {
   int *bin=NULL,*binTmp=NULL;
   int i=0,neg=0;
   bin=calloc(binSize,sizeof(int));
@@ -289,7 +296,8 @@ int* decToBin(int dec, int binSize) {
 /* Prend en entrée la valeur hexadécimal dans un tableau de char */
 /* Ecrit la valeur décimale dans ce même tableau (pas de problème de taille pour un usage normal) */
 void operandesHextoDec(char* hex) {
-  int i=0,dec=0,inv=0;
+  int i=0,inv=0;
+  long int dec=0;
   dec=hexToDec(hex);
   /* On inverse l'ordre du nombre */
   while (dec!=0) {
