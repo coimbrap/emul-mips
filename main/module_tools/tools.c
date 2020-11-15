@@ -5,6 +5,13 @@
 
 /* OUTILS GENERAUX */
 
+void clean_stdin() {
+  int c;
+  do {
+    c=getchar();
+  } while (c!='\n' && c!=EOF);
+}
+
 int complementInt(int value, int bits) {
   if ((value & (1 << (bits-1))) !=0) {
     value=value-(1 << bits);

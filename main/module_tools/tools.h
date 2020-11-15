@@ -5,6 +5,7 @@
 #include "../module_hex/hex.h"
 
 /* OUTILS GENERAUX */
+void clean_stdin();
 int complementInt(int value, int bits);
 int decValue(int* binTab, int size);
 unsigned numDigits(int n);

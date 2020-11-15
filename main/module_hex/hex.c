@@ -338,7 +338,6 @@ int parseLigne(char *ligne, int* bin, instruction* instructions[], registre* reg
   found=trouveOperation(instructions,operation);
 
   /* Si l'opération à été trouvé dans la structure mémoire on continu */
-  printf("VS  %d|%d\n",nombreOperande(ligne),found->nbOperande );
   if (found!=NULL && nombreOperande(ligne)==found->nbOperande) {
     ret=1; /* On a une expression valide */
     /* Si ce n'est pas NOP on parse les operandes */
@@ -527,6 +526,7 @@ void parseFichier(char *input, char* output, int mode) {
   char *listeope="src/listeOpe.txt";
   char *listereg="src/listeReg.txt";
   char c;
+  int inW=1;
   /* Tableaux de mémoire des opérandes et des registres remplit à l'aide des fichiers de stockage */
   instruction *instructions[NB_OPERATIONS+1];
   registre* registres[NB_REGISTRE];
@@ -563,9 +563,7 @@ void parseFichier(char *input, char* output, int mode) {
             fprintf(tmp,"%08d 0x%s   %s\n",programCounter,hex,ligneOut);
             programCounter+=4;
           }
-           else if (mode==0) {
-             printf("Erreur ligne %d, on passe à la suivante (opération non reconnue)\n",lignes);
-           }
+           else if (mode==0) {printf("Erreur ligne %d, on passe à la suivante (opération non reconnue)\n",lignes);}
          }
          if (!mode) {
            if (parseLigne(ligneOut,bin,instructions,registres)) {
@@ -574,48 +572,37 @@ void parseFichier(char *input, char* output, int mode) {
             printf("Instruction assembleur ligne %d : \n%s\n\n",lignes,ligneOut);
             printf("Expression hexadécimale : \n%s\n\n", hex);
             printf("passer l'instruction: [p], instruction suivante: [enter], saut de la lecture: [s]\n");
-            while(((c=getchar())!='\n') && c!='s' && c!='p' && c!= EOF);
-            if (c=='\n') {
-              ecrireHex(hex,output); /* On écrit la valeur hexadécimale */
-              fprintf(tmp,"%08d 0x%s   %s\n",programCounter,hex,ligneOut);
-              programCounter+=4;
-            }
-            else {
-              getchar();
-              if (c=='p') {
-
-              }
-              else if (c=='s') {
+            do {
+              c=getchar();
+              inW=1;
+              if (c=='s' || c=='\n') {
                 ecrireHex(hex,output);
-                mode=1;
                 fprintf(tmp,"%08d 0x%s   %s\n",programCounter,hex,ligneOut);
                 programCounter+=4;
+                inW=0;
+                if (c=='s') {mode=1;}
               }
-             }
-            }
-           else {
-             printf("Erreur ligne %d, on passe à la suivante (opération non reconnue)\n\n",lignes);
+              else {clean_stdin();}
+              if (c=='p') {inW=0;}
+            } while(inW);
            }
+           else {printf("Erreur ligne %d, on passe à la suivante (opération non reconnue)\n\n",lignes);}
          }
        }
-       else if (mode==0) {
-         printf("Erreur ligne %d, on passe à la suivante (ligne vide)\n\n",lignes);
-       }
+       else if (mode==0) {printf("Erreur ligne %d, on passe à la suivante (ligne vide)\n\n",lignes);}
       free(ligneOut); /* On libère la ligne uniformisé */
     }
-    else if (mode==0) {
-      printf("Erreur ligne %d, on passe à la suivante (ligne vide)\n\n",lignes);
-    }
-    if (!mode) {
-      lignes++;
-    }
+    else if (mode==0) {printf("Erreur ligne %d, on passe à la suivante (ligne vide)\n\n",lignes);}
+    if (!mode) {lignes++;}
   }
+  fprintf(tmp, "------------------ Fin -------------------\n");
   fclose(tmp);
   /* Affichage final */
 
   char buf[1000];
   tmp=fopen(".tmp","r");
   if (tmp) {
+    printf("\n---- Assembleur ----\n\nPC       Hex          Instruction\n------------------------------------------\n");
     while (fgets(buf,1000,tmp)!=NULL) {
       printf("%s",buf);
     }
@@ -626,5 +613,4 @@ void parseFichier(char *input, char* output, int mode) {
   fclose(tmp);
   remove(".tmp");
   fclose(fin); /* On ferme le fichier d'entrée */
-  printf("C'est fini\n");
 }
