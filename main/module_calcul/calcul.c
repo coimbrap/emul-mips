@@ -49,8 +49,6 @@ void traduitHex(char* hex, registre** registres, instruction** instructions, mem
 
   if (len<=8 && validHex(hex)) {
     hexToBin(hex,bin);
-    afficheBin(bin,TAILLE_BIT_OPERATION);
-    /* PAS OPTI DUTOUT */
     if (strcmp(hex,"00000000")==0) {
       #ifdef DEBUG
       printf("NOPP\n");
@@ -183,8 +181,6 @@ void traduitHex(char* hex, registre** registres, instruction** instructions, mem
               value=rt->valeur;
               value=value>>opeHex[4];
               tmp=(1<<(NB_BIT_REGISTRE-opeHex[4]))+-1;
-              printf("ROTR : %ld|%ld\n", value,tmp);
-
               value=value&tmp;
               rd->valeur=value;
               #ifdef DEBUG
@@ -392,7 +388,6 @@ int chargeProgramme(memoire *mem, const char* progHex) {
   while (getline(&instruction,&len,prog)!=-1) {
     insertion(pc,hexToDec(instruction),mem);
     pc+=4;
-    printf("Insert %ld|%d\n",hexToDec(instruction),pc);
   }
   free(instruction);
   fclose(prog);
@@ -406,7 +401,6 @@ void execProgramme(memoire *mem, registre** registres, instruction** instruction
   pcMax=chargeProgramme(mem,prog);
   while(pc<=pcMax) {
     instruction=valeurMemoire(pc,mem);
-    printf("A : %ld|%s\n", instruction,decToHex(instruction));
     traduitHex(decToHex(instruction),registres,instructions,mem,&pc); /* S'occupe d'incrémenter le PC */
     PC->valeur=pc;
   }
