@@ -30,19 +30,17 @@ void afficherMemoire(memoire slot) {
     printf("No record\n");
   }
   else {
-    binaryToHex(slot->valeur,hex,NB_BIT_MEMOIRE);
-    decReg=hexToDec(hex);
-    printf("0x%04x      %-10d   0x%08x   ",slot->adresse,decReg,decReg);
-    afficheBin(slot->valeur,NB_BIT_MEMOIRE);
+    printf("0x%04x      %-10ld   0x%08lx   ",slot->adresse,slot->valeur,slot->valeur);
+    afficheBin(decToBin(slot->valeur,NB_BIT_MEMOIRE),NB_BIT_MEMOIRE);
   }
 }
 
-int* valeurMemoire(int adresse, memoire *m) {
+long int valeurMemoire(int adresse, memoire *m) {
   memoire increment=NULL;
-  int* binMem=NULL;
+  long int binMem=0;
   if (estDivisiblePar4(adresse)) {
   	if (*m==NULL) {
-  		printf("Affichage : mémoire vide\n");
+  		printf("Valeur : mémoire vide\n");
   	}
   	/* Il reste un unique élément dans la mémoire est c'est celui à supprimer */
   	else if(((*m)->suivant==NULL) && ((*m)->adresse)==adresse) {
@@ -60,21 +58,19 @@ int* valeurMemoire(int adresse, memoire *m) {
   	}
   }
   else {
-    printf("Vous essayez d'afficher au millieu d'un mot 0x%04x\n",adresse);
+    printf("Vous essayez de lire au millieu d'un mot 0x%04x\n",adresse);
   }
   return binMem;
 }
 
-void insertion(int adresse, int mot[NB_BIT_MEMOIRE], memoire *m) {
+void insertion(int adresse, long int mot, memoire *m) {
 	element *elem=malloc(sizeof(element));
 	memoire increment=*m;
   int i=0;
   /* On vérifie que l'on soit bien en tête de mot */
   if (estDivisiblePar4(adresse)) {
   	elem->adresse=adresse;
-    for (i=0;i<NB_BIT_MEMOIRE;i++) {
-      elem->valeur[i]=mot[i];
-    }
+    elem->valeur=mot;
   	/* Cas d'une mémoire vide */
   	if(increment==NULL) {
   		elem->suivant=*m;
@@ -92,16 +88,12 @@ void insertion(int adresse, int mot[NB_BIT_MEMOIRE], memoire *m) {
   		/* On rechaîne en faisant attention au doublon, en cas de doubons on écrase */
       if (increment->adresse==adresse) { /* Pour le premier élément */
         free(elem);
-        for (i=0;i<NB_BIT_MEMOIRE;i++) {
-          increment->valeur[i]=mot[i];
-        }
+        increment->valeur=mot;
       }
       else if (increment->suivant!=NULL && (increment->suivant)->adresse==adresse) { /* Pour tout les autres */
         increment=increment->suivant;
         free(elem);
-        for (i=0;i<NB_BIT_MEMOIRE;i++) {
-          increment->valeur[i]=mot[i];
-        }
+        increment->valeur=mot;
       }
       else { /* Si nouvel élément */
         elem->suivant=increment->suivant;

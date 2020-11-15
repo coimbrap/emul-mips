@@ -7,18 +7,18 @@
 
 typedef struct element {
   int adresse;
-  int valeur[NB_BIT_MEMOIRE];
+  long int valeur;
   struct element* suivant;
 } element;
 
 typedef element* memoire;
 
 int estDivisiblePar4(int n);
-void insertion(int adresse, int mot[NB_BIT_MEMOIRE], memoire *m);
+void insertion(int adresse, long int mot, memoire *m);
 void suppression(int adresse, memoire *m);
 void afficherMemoires(memoire *m);
 void afficherMemoire(memoire slot);
 void liberation(memoire *m);
-int* valeurMemoire(int adresse, memoire *m);
+long int valeurMemoire(int adresse, memoire *m);
 
 #endif
