@@ -8,7 +8,7 @@
 void remplissageStructRegistre(registre *registres[], const char* fichier) {
   FILE *freg=fopen(fichier,"r");
   registre *tmp=NULL;
-  int i=0,j=0;
+  int i=0;
   if(freg==NULL) {
     printf("Erreur lors de l'ouverture du fichier");
     exit(-1);

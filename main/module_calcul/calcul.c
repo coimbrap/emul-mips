@@ -7,7 +7,6 @@
 
 int validHex(char* hex) {
   int len=strlen(hex);
-  printf("Valid : %d\n", len);
   int valid=0,i=0,ret=-1;
   for (i=0;i<len;i++) {
     if ((hex[i]>='0' && hex[i]<='9') || (hex[i]>='a' && hex[i]<='f') || (hex[i]>='A' && hex[i]<='F'))  {
@@ -237,21 +236,14 @@ void traduitHex(char* hex, registre** registres, instruction** instructions, mem
             if (found->styleRemplissage==1) {
               /* MULT */
               if (intOpcode==11000) {
-                printf("Multiplication YOUU\n");
-                int a,b;
-                a=rs->valeur;
-                b=rt->valeur;
-
-                long l = rs->valeur*rt->valeur;
-
-                hi->valeur=((l & 0xffffffff00000000)>>32);
-                lo->valeur=(l & 0xffffffff);
+                value=rs->valeur*rt->valeur;
+                hi->valeur=((value&0xffffffff00000000)>>32);
+                lo->valeur=(value&0xffffffff);
                 #ifdef DEBUG
                 afficheRegistre(rs);
                 afficheRegistre(rt);
                 afficheRegistre(hi);
                 afficheRegistre(lo);
-
                 #endif
               }
               /* SUB */
@@ -389,7 +381,6 @@ void traduitHex(char* hex, registre** registres, instruction** instructions, mem
 int chargeProgramme(memoire *mem, const char* progHex) {
   FILE *prog=NULL;
   char* instruction=NULL;
-  int i=0;
   size_t len=0;
   int pc=INIT_PC;
 
@@ -409,10 +400,9 @@ int chargeProgramme(memoire *mem, const char* progHex) {
 }
 
 void execProgramme(memoire *mem, registre** registres, instruction** instructions, char* prog) {
-  char hex[TAILLE_HEX_OPERATION];
   long int instruction=0;
-  int pcMax=0,pc=INIT_PC;
   registre *PC=trouveRegistre(registres,"PC");
+  int pcMax=0,pc=INIT_PC;
   pcMax=chargeProgramme(mem,prog);
   while(pc<=pcMax) {
     instruction=valeurMemoire(pc,mem);

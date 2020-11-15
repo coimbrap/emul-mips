@@ -515,6 +515,7 @@ void parseFichier(char *input, char* output, int mode) {
   FILE *fout=fopen(output, "w");
   FILE *tmp=fopen(".tmp","w"); /* Stockage de l'affichage */
   size_t len=0;
+  char* buf=NULL;
   char *ligne=NULL;
   /* Représentation binaire de l'instruction */
   int bin[TAILLE_BIT_OPERATION];
@@ -599,17 +600,19 @@ void parseFichier(char *input, char* output, int mode) {
   fclose(tmp);
   /* Affichage final */
 
-  char buf[1000];
+
+
   tmp=fopen(".tmp","r");
   if (tmp) {
     printf("\n---- Assembleur ----\n\nPC       Hex          Instruction\n------------------------------------------\n");
-    while (fgets(buf,1000,tmp)!=NULL) {
+    while (getline(&buf,&len,tmp)!=-1) {
       printf("%s",buf);
     }
   }
   else {
     printf("Pas d'affichage\n");
   }
+  free(buf);
   fclose(tmp);
   remove(".tmp");
   fclose(fin); /* On ferme le fichier d'entrée */

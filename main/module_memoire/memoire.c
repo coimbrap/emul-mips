@@ -8,8 +8,6 @@ int estDivisiblePar4(int n) {
 
 void afficherMemoires(memoire *m) {
 	memoire increment=*m;
-  int decReg=0;
-  char hex[8]; /* Buffer */
   printf("\nAdresse     Décimal      Hex          Binaire\n--------------------------------------------------------------------------\n");
   if(increment==NULL) {
     printf("No record\n");
@@ -24,8 +22,6 @@ void afficherMemoires(memoire *m) {
 }
 
 void afficherMemoire(memoire slot) {
-  int decReg=0;
-  char hex[8]; /* Buffer */
   if(slot==NULL) {
     printf("No record\n");
   }
@@ -66,7 +62,6 @@ long int valeurMemoire(int adresse, memoire *m) {
 void insertion(int adresse, long int mot, memoire *m) {
 	element *elem=malloc(sizeof(element));
 	memoire increment=*m;
-  int i=0;
   /* On vérifie que l'on soit bien en tête de mot */
   if (estDivisiblePar4(adresse)) {
   	elem->adresse=adresse;

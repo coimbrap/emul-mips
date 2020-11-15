@@ -2,7 +2,7 @@
 #include "module_calcul/calcul.h"
 #include "module_registres/registres.h"
 #include "module_memoire/memoire.h"
-
+#include <string.h>
 #include <stdio.h>
 
 int main(int argc, char *argv[]) {
@@ -12,9 +12,10 @@ int main(int argc, char *argv[]) {
   registre* registres[NB_REGISTRE];
   memoire mem=NULL;
   char *listereg="src/listeReg.txt";
+  int in=1,out=2,mode=1;
+
   remplissageStructRegistre(registres,listereg);
   remplissageStructInstruction(instructions,listeope);
-  int in=1,out=2,mode=1;
   printf("---------- MIPS Emulator ----------\n  Pierre Coimbra & Thibaut Barnel\n\n");
   if(argc<3) {
     printf("Mauvaise utilisation : ./emul-mips asm.txt hex.txt\n./emul-mips -pas hex.txt\n");

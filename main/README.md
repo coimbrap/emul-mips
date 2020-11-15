@@ -351,3 +351,17 @@ En résumé un maillon contiendra un mot et sera désigné par l'adresse de la c
 - *https://www-soc.lip6.fr/trac/sesi-almo/chrome/site/docs/ALMO-mips32-archi-asm.pdf*
 - *https://tdinfo.phelma.grenoble-inp.fr/2Aproj/ressources/PHELMA_ProjetInformatique2A_2019-20.pdf*
 - *http://www-id.imag.fr/~briat/perso.html/NACHOS/NACHOS_DOC/CA225b.html*
+
+
+Notes :
+- L'opérateur SRL est faux sur l'exemple en effet :
+```
+ADDI $8,$0,4095
+ROTR $9,$8,6
+SRL $10,$9,6
+```
+Doit donner :
+```
+9 : 0b11111100000000000000000000111111
+10 : 0b00000011111100000000000000000000
+```

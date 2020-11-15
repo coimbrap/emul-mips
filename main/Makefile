@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -ansi -pedantic
+CFLAGS = -Wall -pedantic
 EXEC = emul-mips
 LDFLAGS =
 
