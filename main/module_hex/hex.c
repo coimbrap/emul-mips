@@ -75,7 +75,7 @@ instruction* trouveOpcode(instruction* instructions[], int* bin, char type) {
 
 /* Retourne la chaine d'entrée uniformisé */
 void uniformisationInstruction(char *s, char *out) {
-  int i=0,incremOut=0,writeSpace=-1,commence=0;
+  int i=0,incremOut=0,writeSpace=-1,commence=0,ope=0;
   while(s[i]!='\0' && s[i]!='\n' && s[i]!='#') {
     /* La ligne commence lorsque l'on rencontre le premier caractère */
     if(isalpha(s[i]) && !commence) {
@@ -90,10 +90,12 @@ void uniformisationInstruction(char *s, char *out) {
     /* Sinon si on à pas un espace et que l'instruction à commencé on recopie dans la chaine uniformisé */
     else if (s[i]!=' ' && commence) {
       out[incremOut++]=s[i];
+      ope=incremOut;
     }
     i++;
   }
-  out[incremOut]='\0'; /*On marque la fin de la chaîne */
+  /*On marque la fin de la chaîne */
+  out[ope]='\0';
 }
 
 /* PARTIE BINAIRE */
@@ -238,13 +240,14 @@ void ecrireHex(char* hex, char *fichier){
 
 /* Retourne le nombre d'opérande dans un opération passée en entrée */
 int nombreOperande(char *s) {
-  int ret=0,i=0,commence=0;
+  int ret=0,i=0,commence=0,space=0;
   while(s[i]!='\0') {
     if(isalpha(s[i]) && !commence) {commence=1;}
-    if (commence && (s[i]==',' || s[i]=='(' || s[i]=='\n')) {ret++;}
+    if(isspace(s[i]) && commence && !space) {space=1;}
+    if (commence && space && (s[i]==',' || s[i]=='(' || s[i]=='\n')) {ret++;}
     i++;
   }
-  if (ret!=0) {ret++;}
+  if (ret!=0 || space) {ret++;}
   return ret;
 }
 
@@ -335,6 +338,7 @@ int parseLigne(char *ligne, int* bin, instruction* instructions[], registre* reg
   found=trouveOperation(instructions,operation);
 
   /* Si l'opération à été trouvé dans la structure mémoire on continu */
+  printf("VS  %d|%d\n",nombreOperande(ligne),found->nbOperande );
   if (found!=NULL && nombreOperande(ligne)==found->nbOperande) {
     ret=1; /* On a une expression valide */
     /* Si ce n'est pas NOP on parse les operandes */
@@ -565,6 +569,7 @@ void parseFichier(char *input, char* output, int mode) {
          }
          if (!mode) {
            if (parseLigne(ligneOut,bin,instructions,registres)) {
+            printf("%s\n", ligneOut);
             binaryToHex(bin,hex,TAILLE_BIT_OPERATION); /* On transforme en hexadécimal */
             printf("Instruction assembleur ligne %d : \n%s\n\n",lignes,ligneOut);
             printf("Expression hexadécimale : \n%s\n\n", hex);
@@ -586,8 +591,8 @@ void parseFichier(char *input, char* output, int mode) {
                 fprintf(tmp,"%08d 0x%s   %s\n",programCounter,hex,ligneOut);
                 programCounter+=4;
               }
+             }
             }
-          }
            else {
              printf("Erreur ligne %d, on passe à la suivante (opération non reconnue)\n\n",lignes);
            }
