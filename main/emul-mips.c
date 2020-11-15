@@ -14,25 +14,32 @@ int main(int argc, char *argv[]) {
   char *listereg="src/listeReg.txt";
   remplissageStructRegistre(registres,listereg);
   remplissageStructInstruction(instructions,listeope);
-
+  int in=1,out=2,mode=1;
   printf("---------- MIPS Emulator ----------\n  Pierre Coimbra & Thibaut Barnel\n\n");
-  if(argc!=3) {
+  if(argc<3) {
     printf("Mauvaise utilisation : ./emul-mips asm.txt hex.txt\n./emul-mips -pas hex.txt\n");
     printf("Autre option possible : \nTest parseur : make test\n");
   }
-  else if ((file=fopen(argv[1], "r"))) {
+  /* Mode pas à pas */
+  if (strcmp(argv[1],"-pas")==0) {
+    in=2;
+    out=3;
+    mode=0;
+    printf("Mode pas à pas\n\n");
+  }
+  if ((file=fopen(argv[in], "r"))) {
     fclose(file);
-    printf("Lecture du ficher : %s\n\n", argv[1]);
-    parseFichier(argv[1],argv[2],0);
-    execProgramme(&mem,registres,instructions,argv[2]);
-    printf("\nFormes hexadécimale écrites dans '%s'\n", argv[2]);
+    printf("Lecture du ficher : %s\n\n", argv[in]);
+    parseFichier(argv[in],argv[out],mode);
+    printf("\nFormes hexadécimale écrites dans '%s'\n", argv[out]);
+    /*  execProgramme(&mem,registres,instructions,argv[2]); */
     printf("\n------ Registres ------\n");
     afficheRegistres(registres);
     printf("\n------- Mémoire -------\n");
     afficherMemoires(&mem);
   }
   else {
-    printf("Le fichier d'entrée '%s' est introuvable\n\n",argv[1]);
+    printf("Erreur sur le fichier d'entrée '%s'\n\n",argv[in]);
   }
   return 0;
 }
