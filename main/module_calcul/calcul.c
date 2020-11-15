@@ -58,7 +58,7 @@ void traduitHex(char* hex, registre** registres, instruction** instructions, mem
       #ifdef DEBUG
       printf("NOPP\n");
       #endif
-
+      *pc+=4;
     }
     else if (checkBinVal(bin,0,"000000")) {
       #ifdef DEBUG

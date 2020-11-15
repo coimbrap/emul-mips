@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
     printf("Lecture du ficher : %s\n\n", argv[in]);
     parseFichier(argv[in],argv[out],mode);
     printf("\nFormes hexadécimale écrites dans '%s'\n", argv[out]);
-    /*  execProgramme(&mem,registres,instructions,argv[2]); */
+    execProgramme(&mem,registres,instructions,argv[2]);
     printf("\n------ Registres ------\n");
     afficheRegistres(registres);
     printf("\n------- Mémoire -------\n");
