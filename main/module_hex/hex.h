@@ -22,34 +22,24 @@
 
 typedef struct instruction {
   char nom[TAILLE_MAX_OPERATEUR]; /* En ascii */
-  char opcode[TAILLE_OPCODE+1]; /* ecrit sous forme binaire dans un char pour les 0 | Pas int* pour fscanf */
+  unsigned int opcode; /* sous forme hexadécimale */
   char typeInstruction; /* 'R' || 'I' || 'J' */
   int ordreBits; /* Cas en fonction du type */
   int styleRemplissage; /* SG en fonction du type */
-  int nbOperande;
+  int nbOperande; /* Nombre d'opérandes requis pour fonctionner */
 } instruction;
 
 /* MEMOIRE INSTRUCTIONS */
 void remplissageStructInstruction(instruction *instructions[], const char* fichier);
 instruction* trouveOperation(instruction* instructions[], char* nom);
-instruction* trouveOpcode(instruction* instructions[], int* bin, char type);
-
-/* UNIFORMISATION DE L'INSTRUCTION */
-void uniformisationInstruction(char *s, char *out);
-
-/* PARTIE BINAIRE */
-void decToBinary(int n, int* offset, int* bin);
-void decToBinaryImm(int n, int* offset, int* bin);
-void rempliBinTabBin(char* cBin, int* offset, int* bin);
-void binaryToHex(int* bin, char* hex, int size);
-void ecrireHex(char* hex, char *fichier);
+instruction* trouveOpcode(instruction* instructions[], int opcode, char type);
 
 /* PARSSAGE DE L'INSTRUCTION */
 int nombreOperande(char *s);
-void traduitOperandes(registre* registres[], char* operandes[], int nbOperande);
-char** parseOperandes(char *ligne, char* operandes[], int* offset);
+void uniformisationInstruction(char *s, char *out);
+int* parseOperandes(char *ligne, int* offset, registre** registres);
 void parseOperation(char *ligne, char* operation, int* offset);
-int parseLigne(char *ligne, int* bin, instruction* instructions[], registre* registres[]);
+int parseLigne(char *ligne, long int* hex, instruction* instructions[], registre* registres[]);
 void parseFichier(char *input, char* output, int mode);
 
 #endif
