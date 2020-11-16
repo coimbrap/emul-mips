@@ -2,29 +2,65 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int estDivisiblePar4(int n) {
-  return !(n&3);
-}
-
-void afficherMemoire(memoire *m) {
+void afficherMemoires(memoire *m) {
 	memoire increment=*m;
+  printf("\nAdresse     Décimal      Hex          Binaire\n--------------------------------------------------------------------------\n");
   if(increment==NULL) {
-    printf("Affichage : mémoire vide\n");
+    printf("No record\n");
   }
   else {
     while(increment!=NULL) {
-      printf("0x%04x|%d ",increment->adresse,increment->valeur);
+      afficherMemoire(increment);
       increment=increment->suivant;
     }
 		printf("\n");
   }
 }
 
-void insertion(int adresse, int mot, memoire *m) {
+void afficherMemoire(memoire slot) {
+  if(slot==NULL) {
+    printf("No record\n");
+  }
+  else {
+    printf("0x%04x      %-10ld   0x%08lx   ",slot->adresse,slot->valeur,slot->valeur);
+    decToBin(slot->valeur);
+  }
+}
+
+long int valeurMemoire(int adresse, memoire *m) {
+  memoire increment=NULL;
+  long int binMem=0;
+  /* Si l'adresse est divisible par 4 */
+  if (!(adresse&3)) {
+  	if (*m==NULL) {
+  		printf("Valeur : mémoire vide\n");
+  	}
+  	/* Il reste un unique élément dans la mémoire est c'est celui à supprimer */
+  	else if(((*m)->suivant==NULL) && ((*m)->adresse)==adresse) {
+  		binMem=(*m)->valeur;
+  	}
+  	else {
+  		increment=*m; /* On utilise un incrément pour ne pas modifier *m */
+  		/* On parcourt la mémoire tant quelle n'est pas fini et que l'indice n'est pas atteint */
+  		while (increment->suivant!=NULL && ((increment)->adresse)<(adresse)) {
+  			increment=increment->suivant; /* On avance d'un élément */
+  		}
+      if (increment->adresse==adresse) {
+        binMem=increment->valeur;
+      }
+  	}
+  }
+  else {
+    printf("Vous essayez de lire au millieu d'un mot 0x%04x\n",adresse);
+  }
+  return binMem;
+}
+
+void insertion(int adresse, long int mot, memoire *m) {
 	element *elem=malloc(sizeof(element));
 	memoire increment=*m;
   /* On vérifie que l'on soit bien en tête de mot */
-  if (estDivisiblePar4(adresse)) {
+  if (!(adresse&3)) {
   	elem->adresse=adresse;
     elem->valeur=mot;
   	/* Cas d'une mémoire vide */
@@ -65,7 +101,7 @@ void insertion(int adresse, int mot, memoire *m) {
 void suppression(int adresse, memoire *m) {
 	memoire increment=NULL;
 	element *precedent=NULL;
-  if (estDivisiblePar4(adresse)) {
+  if (!(adresse&3)) {
   	if (*m==NULL) {
   		printf("Suppression : mémoire vide\n");
   	}

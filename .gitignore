@@ -6,5 +6,6 @@
 hex.txt
 *.tar.xz
 *.tar
+*.tmp
 *.~[0-9]~
 *.swp

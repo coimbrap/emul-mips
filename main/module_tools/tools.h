@@ -5,25 +5,15 @@
 #include "../module_hex/hex.h"
 
 /* OUTILS GENERAUX */
-int puissance(int d, int n);
-void inverseTab(int *tab, int n);
-int valeurDecimale(char* m);
+void clean_stdin();
+int complementInt(int value, int bits);
+int valeurDecimale(char *s);
 char* intVersChaine(int num);
-
-/* MANIPILATION BINAIRE */
-void inverseBin(int* binS, int* binO, int size);
-void addBin(int* binA, int* binB, int* binR, int size);
-void complementADeux(int* binI, int* binO, int size);
-
-/* MANIPULATION HEXADECIMALE */
-int hexToDec(char* hex);
-void operandesHextoDec(char* hex);
+long int hexToDec(char* hex);
 
 /* AFFICHAGE */
+void decToBin(long int dec);
 void afficheInstruction(instruction *instruction);
 void afficheStructInstruction(instruction *instructions[]);
-void afficheBin(int* bin, int size);
-void afficheHex(char* hex);
-void afficheHexNoEnter(char* hex);
 
 #endif

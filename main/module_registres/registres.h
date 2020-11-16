@@ -9,14 +9,14 @@
 typedef struct registre {
   int numero;
   char nom[TAILLE_MAX_MNEMO];
-  int valeur[NB_BIT_REGISTRE];
+  long int valeur;
 } registre;
 
-
+/* Fonctions principale */
 void remplissageStructRegistre(registre *registre[], const char* fichier);
 registre* trouveRegistre(registre* registres[], char* nom);
+long int valeurRegistre(registre* registres[], char* nom);
 char* traduitRegistre(registre* registres[], char* registre);
-void changeRegistre(registre* registre, int valeur[NB_BIT_REGISTRE]);
 
 /* Affichage */
 void afficheRegistre(registre *registre);

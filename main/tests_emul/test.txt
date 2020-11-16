@@ -24,5 +24,9 @@ ADDI $10,$0,0xffff
 12034°2
 
      ADDI               $34,$3,13         #ld
-
+J test
+JR $ra
 SYSCALL
+
+SRL $9,$8,9
+ROTR $9,$8,9

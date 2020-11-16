@@ -8,7 +8,7 @@
 void remplissageStructRegistre(registre *registres[], const char* fichier) {
   FILE *freg=fopen(fichier,"r");
   registre *tmp=NULL;
-  int i=0,j=0;
+  int i=0;
   if(freg==NULL) {
     printf("Erreur lors de l'ouverture du fichier");
     exit(-1);
@@ -18,9 +18,7 @@ void remplissageStructRegistre(registre *registres[], const char* fichier) {
     registres[i]=malloc(sizeof(registre));
     tmp=registres[i];
     fscanf(freg,"%d,%[^\n]",&tmp->numero,tmp->nom);
-    for(j=0;j<NB_BIT_REGISTRE;j++) {
-      tmp->valeur[j]=INIT_VALUE;
-    }
+    tmp->valeur=INIT_VALUE;
     fgetc(freg); /* Enlève \n */
   }
   fclose(freg);
@@ -30,6 +28,7 @@ void remplissageStructRegistre(registre *registres[], const char* fichier) {
 registre* trouveRegistre(registre* registres[], char* nom) {
   int i=0, nonTrouvee=1, special=1,find=-2;
   registre *ret=NULL;
+
   if (valeurDecimale(nom)!=-1) {
     special=0;
     find=valeurDecimale(nom);
@@ -46,6 +45,30 @@ registre* trouveRegistre(registre* registres[], char* nom) {
     i++;
   }
   return ret;
+}
+
+/* Retourne un pointeur vers la structure contenant toutes les informations d'une opération */
+long int valeurRegistre(registre* registres[], char* nom) {
+  int i=0, nonTrouvee=1, special=1,find=-2;
+  registre *ret=NULL;
+  nom=traduitRegistre(registres,nom);
+
+  if (valeurDecimale(nom)!=-1) {
+    special=0;
+    find=valeurDecimale(nom);
+  }
+  while (nonTrouvee && i<NB_REGISTRE) {
+    if (special && strcmp(registres[i]->nom,nom)==0) {
+      ret=registres[i];
+      nonTrouvee=0;
+    }
+    else if (!special && find==registres[i]->numero) {
+      ret=registres[i];
+      nonTrouvee=0;
+    }
+    i++;
+  }
+  return ret->valeur;
 }
 
 char* traduitRegistre(registre* registres[], char* nom) {
@@ -66,27 +89,31 @@ char* traduitRegistre(registre* registres[], char* nom) {
   return ret;
 }
 
-void changeRegistre(registre* registre, int valeur[NB_BIT_REGISTRE]) {
-  int i=0;
-  for (i=0;i<NB_BIT_REGISTRE;i++) {
-    registre->valeur[i]=valeur[i];
-  }
-}
-
 /* AFFICHAGE */
 
 /* Affiche les informations contenu dans une structure de stockage */
 void afficheRegistre(registre *registre) {
-  printf("Numéro : %d\n", registre->numero);
-  printf("Nom : %s\n", registre->nom);
-  afficheBin(registre->valeur,NB_BIT_REGISTRE);
+  if (strcmp(registre->nom,"zero")==0) {
+    printf("$%d ($%s)  %-11ld   0x%08lx   ",registre->numero,registre->nom,registre->valeur,registre->valeur);
+  }
+  else if (registre->numero==-1) {
+    printf("$%s         %-11ld   0x%08lx   ",registre->nom,registre->valeur,registre->valeur);
+
+  }
+  else if (registre->numero<10) {
+    printf("$%d ($%s)    %-11ld   0x%08lx   ",registre->numero,registre->nom,registre->valeur,registre->valeur);
+  }
+  else {
+    printf("$%d ($%s)   %-11ld   0x%08lx   ",registre->numero,registre->nom,registre->valeur,registre->valeur);
+  }
+  decToBin(registre->valeur);
 }
 
 /* Affiche toutes les structures du tableau de stockage */
 void afficheRegistres(registre *registres[]) {
   int i=0;
+  printf("\nRegistre    Décimal      Hex          Binaire\n--------------------------------------------------------------------------\n");
   for(i=0;i<NB_REGISTRE;i++) {
-    printf("--%d--\n", i);
     afficheRegistre(registres[i]);
   }
 }

@@ -41,12 +41,17 @@ Toutes les informations sur les 28 opérateurs seront stocké dans un tableau re
        |                    |
        +--------------------+
 ```
+- Nom ASCII est un tableau de char
+- opcode est la valeur hexadécimale de l'opcode
+- Le type d'instruction est un char, 'R', 'I' ou 'J'
+- L'ordre des bits et le remplissage type sont décrit ci-dessous
+
 
 Fonctionnement général :
 
 - On lit le nom de l'opération
 - On cherche la structure correspondant à cette opération
-- On traduit en hexadécimal selon le type d'instruction
+- On traduit en hexadécimal selon le type d'instruction en utilisant les opérateurs binaire
 
 Les instructions sont séparées en 3 familles que nous avons recoupé en groupes et sous-groupes comme décrit ci-dessous.
 
@@ -136,7 +141,7 @@ Différents cas en fonction du type de type R
 ```
                 Cas 5 - Type R
 
- 31      26 25   21 20    11 10    6 5        0
+ 31      26 25   16 15    11 10    6 5        0
 +----------+-------+--------+-------+----------+
 |          |       |        |       |          |
 |  000000  |   0   |   rd   |   0   |   func   |  SG 1
@@ -160,6 +165,17 @@ Différents cas en fonction du type de type R
 ```
 ##### SG 1 : (0/code/func)
 - SYSCALL : 001100 (25/6 5/0)
+
+
+En résumé on peut dire que toutes ces opérations on la structure suivante en mémoire :
+```
+31       26 25    21 20    16 15    11 10     6 5        0
++----------+--------+--------+--------+--------+----------+
+|          |        |        |        |        |          |
+|  000000  |   rs   |   rt   |   rd   |   sa   |  opcode  |
+|          |        |        |        |        |          |
++----------+--------+--------+--------+--------+----------+
+```
 
 
 ### Instruction de type I
@@ -198,6 +214,17 @@ Différents cas en fonction du type de type R
 - SW : 101011 (25/21 20/16 15/0)
 
 
+En résumé on peut dire que toutes ces opérations on la structure suivante en mémoire :
+```
+ 31      26 25    21 20    16 15            0
++----------+--------+--------+---------------+
+|          |        |        |               |
+|  opcode  |   rs   |   rt   |   immediate   |
+|          |        |        |               |
++----------+--------+--------+---------------+
+```
+
+
 ### Instruction de type J
 #### Cas 1
 ```
@@ -233,15 +260,21 @@ Une instruction désigne par exemple : "ADD $20,$20,$3"
 
 **On décompose l'opération comme ci-dessous :**
 
+Lecture des instructions assembleur une par une dans le fichier source et exécution des opérations suivantes pour chaque
 - Remplissage de la mémoire des instructions (structure décrite plus haut) à l'aide d'un fichier
 - Uniformisation de l'instruction (enlève les espaces en trop et les commentaires)
 - Récupération de l'opération (ADD/NOP/SLL...)
-- Recherche dans la mémoire de la structure mémoire correspondant à l'opération
+- Récupération des opérandes et passage des valeurs immédiate hexadécimale en décimal
 - Traduction des registres mnémonique
-- Écriture de l'opcode dans le tableau de la représentation binaire de l'opération
-- Recherche de toutes les opérandes et écriture dans le tableau de la représentation binaire en fonction du sous-type d'instruction
-- Transformation du tableau binaire en un tableau hexadécimal
+- Vérification du nombre d'opérandes
+- Recherche dans la mémoire de la structure mémoire correspondant à l'opération
+- En fonction du type d'instruction on associe une valeur aux registres et aux valeurs immédiate ou sa
+  - Pour une type R on doit remplir les valeurs de : rs,rt,rd,sa,opcode
+  - Pour une type I on doit remplir les valeurs de : opcode,rs,rt,imm
+- Fabrication de la valeur hexadécimale à l'aide de décalages binaire et de masque
 - Écriture de la valeur hexadécimale de l'opération dans un fichier
+
+A la fin de la lecture, affichage des traductions du code assembleur
 
 Pour chaque tiret il y a au moins une fonction. Le fonctionnement de nos fonctions est décrit dans les commentaires du code.
 
@@ -249,7 +282,7 @@ Pour chaque tiret il y a au moins une fonction. Le fonctionnement de nos fonctio
 
 Nous avons divisé le code est 3 modules,
 - Le module hex qui regroupe l'essentiel du code
-- Le module tools qui regroupe des fonctions qui nous servirons tout au long du projet (traductions binaire, affichage de tableaux...)
+- Le module tools qui regroupe des fonctions qui nous servirons tout au long du projet (intVersChaine, valeurDecimale, affichage de tableaux...)
 - Le module registres qui permet de traduire les noms mnémonique en valeur chiffrée. Ce module est la version 0 du module que nous utiliserons dans la deuxième partie. Nous avons choisi d'en faire un module pour plus de simplicité.
 
 # Modules
@@ -310,26 +343,33 @@ Vu que pour notre implémentation nous n'utilisons pas les directives et que les
 ```
 0xFFFF +------------------------+
        |                        |
+       |       Programme        |
+       |                        |
+0xDDDD +------------------------+
+       |                        |
        |          Pile          |
        |                        |
-0x2000 +------------------------+
+0xAAAA +------------------------+
        |                        |
        |        Mémoire         |
        |                        |
 0x0000 +------------------------+
 ```
 
-La mémoire accessible avec les instructions *LW* et *SW* se trouvera donc entre les adresses 0x0000 et 0x2000 et sera remplit des adresses bases aux adresses hautes.
+La mémoire est accessible avec les instructions *LW* et *SW* se trouvera donc entre les adresses 0x0000 et 0x2000 et sera remplit des adresses bases aux adresses hautes.
 
-Pour la pile elle se remplit par le bas donc elle se trouvera entre 0xFFFF et 0x2000.
+Pour la pile elle se remplit par le bas donc elle se trouvera entre 0xDDDD et 0xAAAA. Cela nous laisse de la place si on veut par la suite ajouter des parties à notre map mémoire.
 
 Vu que la mémoire ne sera pas trop utilisé nous allons utilisé une listes chaînée dynamiquement alloué pour utiliser le moins de mémoire possible.
 
 On aura donc la map mémoire qui contiendra :
 - Une liste pour la mémoire
+- Une liste pour le programme
 - Une pile descendante
 
-L'utilisation de la pile est géré par le registre *sp* qui pointe vers l'adresse du haut de la pile, on peut donc utiliser la même implématation pour le pile et pour la mémoire seule l'utilisation varie.
+L'utilisation de la pile est géré par le registre *sp* qui pointe vers l'adresse du haut de la pile, on peut donc utiliser la même implémentation pour le pile et pour la mémoire seule l'utilisation varie.
+
+De même pour le programme, l'instruction en cours sera pointé par le registre *PC*. A noté que avant d'incrémenter le PC il faudra vérifié que l'on est bien une case après.
 
 Pour l'implémentation nous avons retenu celle d'une liste chaîné. Chaque maillon de la liste sera composé comme décrit ci-dessous :
 - L'adresse de la case mémoire du premier octet du mot (un multiple de 4)
@@ -341,8 +381,29 @@ Pour une question des questions de simplicité on veillera à ce que les adresse
 En résumé un maillon contiendra un mot et sera désigné par l'adresse de la case mémoire du premier octet du mot.
 
 *Recherche documentaire sur les liens suivant :*
-*https://www-soc.lip6.fr/trac/sesi-almo/chrome/site/docs/ALMO-mips32-archi-asm.pdf*
+- *https://www-soc.lip6.fr/trac/sesi-almo/chrome/site/docs/ALMO-mips32-archi-asm.pdf*
+- *https://tdinfo.phelma.grenoble-inp.fr/2Aproj/ressources/PHELMA_ProjetInformatique2A_2019-20.pdf*
+- *http://www-id.imag.fr/~briat/perso.html/NACHOS/NACHOS_DOC/CA225b.html*
 
-*https://tdinfo.phelma.grenoble-inp.fr/2Aproj/ressources/PHELMA_ProjetInformatique2A_2019-20.pdf*
 
-*http://www-id.imag.fr/~briat/perso.html/NACHOS/NACHOS_DOC/CA225b.html*
+Notes :
+- L'opérateur SRL est faux sur l'exemple en effet :
+```
+ADDI $8,$0,4095
+ROTR $9,$8,6
+SRL $10,$9,6
+```
+Doit donner :
+```
+9 : 0b11111100000000000000000000111111
+10 : 0b00000011111100000000000000000000
+```
+
+- L'opérateur BGTZ est faux sur l'exemple en effet :
+```
+BGTZ $23, -4
+```
+Doit donner le code hexadécimal suivant :
+```
+1ee0fffc
+```
