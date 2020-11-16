@@ -139,7 +139,6 @@ int* parseOperandes(char *ligne, int* offset, registre** registres) {
     numOpe++; /* On avance d'un opérateur */
     *offset=i;
   }
-  /* On libère le tableau temporaire */
   return operandes;
 }
 
