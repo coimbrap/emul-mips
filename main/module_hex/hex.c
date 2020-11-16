@@ -113,7 +113,7 @@ int* parseOperandes(char *ligne, int* offset, registre** registres) {
   /* On compte les opérandes */
   nbOperande=nombreOperande(ligne);
   /* Tableau temporaire */
-  char* tmp=malloc(sizeof(char)*16);
+  char tmp[16];
   if((operandes=calloc(nbOperande,sizeof(int)))==NULL){exit(1);};
   for(j=0;j<nbOperande;j++) {
     k=0;
@@ -132,7 +132,7 @@ int* parseOperandes(char *ligne, int* offset, registre** registres) {
     /* Si on à une valeur immédiate en hexadécimal on la traduit en décimal */
     if (hexa) {operandes[numOpe]=hexToDec(tmp);}
     else {
-      tmp=traduitRegistre(registres,tmp);
+      traduitRegistre(registres,tmp);
       operandes[numOpe]=valeurDecimale(tmp);
     }
     i++; /* On passe au caractère suivant */
@@ -140,7 +140,6 @@ int* parseOperandes(char *ligne, int* offset, registre** registres) {
     *offset=i;
   }
   /* On libère le tableau temporaire */
-  free(tmp);
   return operandes;
 }
 
@@ -326,8 +325,6 @@ void parseFichier(char *input, char* output, int mode) {
   registre* registres[NB_REGISTRE];
 
   int programCounter=0,lignes=1;
-  char c;
-  int inW=1;
 
   /* On remplit les structures de stockage à partir des fichiers */
   remplissageStructInstruction(instructions,listeope);
@@ -355,39 +352,13 @@ void parseFichier(char *input, char* output, int mode) {
       uniformisationInstruction(ligne,ligneOut);
       if(ligneOut[0]!='\0') { /* Si la ligne uniformisé n'est pas vide */
          /* On a quelque chose */
-         /* Mode automatique */
-         if (mode) {
-           if (parseLigne(ligneOut,&instructionHex,instructions,registres)) {
-             /* On parse la ligne */
-            fprintf(fout,"%08lx\n",instructionHex);
-            fprintf(tmp,"%08d 0x%08lx   %s\n",programCounter,instructionHex,ligneOut);
-            programCounter+=4;
-          }
-           else if (mode==0) {printf("Erreur ligne %d, on passe à la suivante (opération non reconnue)\n",lignes);}
-         }
-         /* Mode pas à pas */
-         else if (!mode) {
-           if (parseLigne(ligneOut,&instructionHex,instructions,registres)) {
-            printf("%s\n", ligneOut);
-            printf("Instruction assembleur ligne %d : \n%s\n\n",lignes,ligneOut);
-            printf("Expression hexadécimale : \n0x%08lx\n\n", instructionHex);
-            printf("passer l'instruction: [p], instruction suivante: [enter], saut de la lecture: [s]\n");
-            do {
-              c=getchar();
-              inW=1;
-              if (c=='s' || c=='\n') {
-                fprintf(fout,"%08lx\n",instructionHex);
-                fprintf(tmp,"%08d 0x%08lx   %s\n",programCounter,instructionHex,ligneOut);
-                programCounter+=4;
-                inW=0;
-                if (c=='s') {mode=1;}
-              }
-              else {clean_stdin();}
-              if (c=='p') {inW=0;}
-            } while(inW);
-           }
-           else {printf("Erreur ligne %d, on passe à la suivante (opération non reconnue)\n\n",lignes);}
-         }
+         if (parseLigne(ligneOut,&instructionHex,instructions,registres)) {
+           /* On parse la ligne */
+          fprintf(fout,"%08lx\n",instructionHex);
+          fprintf(tmp,"%08d 0x%08lx   %s\n",programCounter,instructionHex,ligneOut);
+          programCounter+=4;
+        }
+         else if (mode==0) {printf("Erreur ligne %d, on passe à la suivante (opération non reconnue)\n",lignes);}
        }
        else if (mode==0) {printf("Erreur ligne %d, on passe à la suivante (ligne vide)\n\n",lignes);}
       free(ligneOut); /* On libère la ligne uniformisé */

@@ -9,16 +9,11 @@
 typedef struct registre {
   int numero;
   char nom[TAILLE_MAX_MNEMO];
-  long int valeur;
 } registre;
 
 /* Fonctions principale */
 void remplissageStructRegistre(registre *registre[], const char* fichier);
 registre* trouveRegistre(registre* registres[], char* nom);
-long int valeurRegistre(registre* registres[], char* nom);
-char* traduitRegistre(registre* registres[], char* registre);
+void traduitRegistre(registre* registres[], char* registre);
 
-/* Affichage */
-void afficheRegistre(registre *registre);
-void afficheRegistres(registre *registres[]);
 #endif
