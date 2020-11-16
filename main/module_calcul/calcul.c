@@ -29,7 +29,6 @@ int checkBinVal(int* bin, int offset, char* valeur) {
 
 /* Prend en entrée une instruction hexadécimale (demandé dans les specifications) */
 void traduitHex(long int hex, registre** registres, instruction** instructions, memoire *mem, int* pc) {
-  int* opeHex=NULL;
   instruction *found=NULL;
   int imm=0;
   registre *rs=NULL;
@@ -37,14 +36,10 @@ void traduitHex(long int hex, registre** registres, instruction** instructions, 
   registre *rd=NULL;
   registre *hi=NULL;
   registre *lo=NULL;
-
   int rsI=0,rtI=0,rdI=0,sa=0;
-
   int opcode=0;
   long int value=0;
   long int tmp=0;
-
-
   if (hex<=0xFFFFFFFF) {
     /* NOP */
     if (hex==0) {
@@ -65,11 +60,11 @@ void traduitHex(long int hex, registre** registres, instruction** instructions, 
         rdI=((hex>>11) & 0x1F);
         sa=((hex>>6) & 0x1F);
         if (found->typeInstruction=='R') {
+          value=0;
+          rs=trouveRegistre(registres,intVersChaine(rsI));
+          rt=trouveRegistre(registres,intVersChaine(rtI));
+          rd=trouveRegistre(registres,intVersChaine(rdI));
           if (found->ordreBits==1) {
-            value=0;
-            rs=trouveRegistre(registres,intVersChaine(rsI));
-            rt=trouveRegistre(registres,intVersChaine(rtI));
-            rd=trouveRegistre(registres,intVersChaine(rdI));
             /* ADD/AND/XOR/OR/SLT/SUB */
             if (found->styleRemplissage==1) {
               if (rs!=NULL && rt!=NULL && rd!=NULL) {
@@ -122,18 +117,20 @@ void traduitHex(long int hex, registre** registres, instruction** instructions, 
                 found=trouveOperation(instructions,"ROTR");
                 value=rt->valeur;
                 tmp=value;
-                value=value>>opeHex[4];
-                tmp=tmp<<((NB_BIT_REGISTRE)-opeHex[4]);
+                value=value>>sa;
+                tmp=tmp<<((NB_BIT_REGISTRE)-sa);
                 rd->valeur=(value|tmp);
               }
               /* SRL */
               else {
                 found=trouveOperation(instructions,"SRL");
                 value=rt->valeur;
-                value=value>>opeHex[4];
-                tmp=(1<<(NB_BIT_REGISTRE-opeHex[4]))+-1;
+                value=value>>sa;
+                tmp=(1<<(NB_BIT_REGISTRE-sa))+-1;
                 rd->valeur=(value&tmp);
               }
+              printf("ROTR 0x%lx\n",rd->valeur);
+
             }
           }
           else if (found->ordreBits==3) {
@@ -143,8 +140,8 @@ void traduitHex(long int hex, registre** registres, instruction** instructions, 
               /* MULT */
               if (opcode==0x18) {
                 value=(rs->valeur*rt->valeur);
-                hi->valeur=((value&0xffffffff00000000)>>32);
-                lo->valeur=(value&0xffffffff);
+                hi->valeur=(((value&0xffffffff00000000)>>32)&MASQUE_MAX);
+                lo->valeur=((value&0xffffffff)&MASQUE_MAX);
               }
               /* DIV */
               else if (opcode==0x1A) {
@@ -164,6 +161,8 @@ void traduitHex(long int hex, registre** registres, instruction** instructions, 
           }
           *pc+=4;
         }
+        if (rd!=NULL) {rd->valeur&=MASQUE_MAX;}
+
         #ifdef DEBUG
         printf("Traduction %s\n", found->nom);
         #endif
@@ -174,7 +173,7 @@ void traduitHex(long int hex, registre** registres, instruction** instructions, 
 
       if ((found=trouveOpcode(instructions,opcode,'I'))!=NULL) {
         printf("Type I %x\n",opcode);
-        
+
         /* Instruction de type I */
         /* On trouve les valeurs de registres, c'est commun à tous */
         rsI=((hex>>21) & 0x1F);
@@ -243,7 +242,6 @@ void execProgramme(memoire *mem, registre** registres, instruction** instruction
   while(pc<=pcMax) {
     instruction=valeurMemoire(pc,mem);
     printf("0x%lx\n", instruction);
-    pc+=4;
     traduitHex(instruction,registres,instructions,mem,&pc); /* S'occupe d'incrémenter le PC */
     PC->valeur=pc;
   }

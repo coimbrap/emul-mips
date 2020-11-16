@@ -76,12 +76,10 @@ char* traduitRegistre(registre* registres[], char* nom) {
   registre *found=NULL;
   if (valeurDecimale(nom)!=-1) {
     ret=nom;
-    printf("On quite\n");
   }
   else {
     found=trouveRegistre(registres,nom);
     if (found!=NULL) {
-      printf("Trouvé\n");
       ret=intVersChaine(found->numero);
     }
   }

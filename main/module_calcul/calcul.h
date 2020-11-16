@@ -5,6 +5,7 @@
 #include "../module_memoire/memoire.h"
 #include "../module_registres/registres.h"
 
+#define MASQUE_MAX 0xffffffff
 
 int validHex(char* hex);
 int checkBinVal(int* bin, int offset, char* valeur);
