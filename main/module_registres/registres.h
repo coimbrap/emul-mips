@@ -16,7 +16,7 @@ typedef struct registre {
 void remplissageStructRegistre(registre *registre[], const char* fichier);
 registre* trouveRegistre(registre* registres[], char* nom);
 long int valeurRegistre(registre* registres[], char* nom);
-char* traduitRegistre(registre* registres[], char* registre);
+void traduitRegistre(registre* registres[], char* registre);
 
 /* Affichage */
 void afficheRegistre(registre *registre);

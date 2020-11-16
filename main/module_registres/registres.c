@@ -51,8 +51,7 @@ registre* trouveRegistre(registre* registres[], char* nom) {
 long int valeurRegistre(registre* registres[], char* nom) {
   int i=0, nonTrouvee=1, special=1,find=-2;
   registre *ret=NULL;
-  nom=traduitRegistre(registres,nom);
-
+  traduitRegistre(registres,nom);
   if (valeurDecimale(nom)!=-1) {
     special=0;
     find=valeurDecimale(nom);
@@ -71,7 +70,7 @@ long int valeurRegistre(registre* registres[], char* nom) {
   return ret->valeur;
 }
 
-char* traduitRegistre(registre* registres[], char* nom) {
+void traduitRegistre(registre* registres[], char* nom) {
   char *ret=NULL;
   registre *found=NULL;
   if (valeurDecimale(nom)!=-1) {
@@ -86,7 +85,7 @@ char* traduitRegistre(registre* registres[], char* nom) {
   if (valeurDecimale(ret)==-1) {
     ret=nom;
   }
-  return ret;
+  strcpy(nom,ret);
 }
 
 /* AFFICHAGE */

@@ -113,7 +113,7 @@ int* parseOperandes(char *ligne, int* offset, registre** registres) {
   /* On compte les opérandes */
   nbOperande=nombreOperande(ligne);
   /* Tableau temporaire */
-  char* tmp=malloc(sizeof(char)*16);
+  char tmp[16];
   if((operandes=calloc(nbOperande,sizeof(int)))==NULL){exit(1);};
   for(j=0;j<nbOperande;j++) {
     k=0;
@@ -132,15 +132,13 @@ int* parseOperandes(char *ligne, int* offset, registre** registres) {
     /* Si on à une valeur immédiate en hexadécimal on la traduit en décimal */
     if (hexa) {operandes[numOpe]=hexToDec(tmp);}
     else {
-      tmp=traduitRegistre(registres,tmp);
+      traduitRegistre(registres,tmp);
       operandes[numOpe]=valeurDecimale(tmp);
     }
     i++; /* On passe au caractère suivant */
     numOpe++; /* On avance d'un opérateur */
     *offset=i;
   }
-  /* On libère le tableau temporaire */
-  free(tmp);
   return operandes;
 }
 
