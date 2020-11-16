@@ -24,6 +24,7 @@ int* decToBin(long int dec, int binSize);
 
 /* MANIPULATION HEXADECIMALE */
 long int hexToDec(char* hex);
+void binaryToHex(int* bin, char* hex, int size);
 char* decToHex(long int dec);
 void operandesHextoDec(char* hex);
 void hexToBin(char* hex, int* bin);
