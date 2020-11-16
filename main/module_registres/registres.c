@@ -106,7 +106,7 @@ void afficheRegistre(registre *registre) {
   else {
     printf("$%d ($%s)   %-11ld   0x%08lx   ",registre->numero,registre->nom,registre->valeur,registre->valeur);
   }
-  afficheBin(decToBin(registre->valeur,NB_BIT_REGISTRE),NB_BIT_REGISTRE);
+  decToBin(registre->valeur);
 }
 
 /* Affiche toutes les structures du tableau de stockage */

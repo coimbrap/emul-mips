@@ -13,12 +13,14 @@ typedef struct element {
 
 typedef element* memoire;
 
-int estDivisiblePar4(int n);
+/* Fonctions principale */
 void insertion(int adresse, long int mot, memoire *m);
 void suppression(int adresse, memoire *m);
+long int valeurMemoire(int adresse, memoire *m);
+void liberation(memoire *m);
+
+/* Affichage */
 void afficherMemoires(memoire *m);
 void afficherMemoire(memoire slot);
-void liberation(memoire *m);
-long int valeurMemoire(int adresse, memoire *m);
 
 #endif

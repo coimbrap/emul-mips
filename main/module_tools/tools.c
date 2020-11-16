@@ -4,7 +4,6 @@
 #include <string.h>
 
 /* OUTILS GENERAUX */
-
 void clean_stdin() {
   int c;
   do {
@@ -12,31 +11,13 @@ void clean_stdin() {
   } while (c!='\n' && c!=EOF);
 }
 
+/* Retourne le complément à deux de value */
+/* Prend en entrée un entier et le nombre de bits */
 int complementInt(int value, int bits) {
-  if ((value & (1 << (bits-1))) !=0) {
-    value=value-(1 << bits);
+  if ((value & (1<<(bits-1)))!=0) {
+    value=value-(1<<bits);
   }
   return value;
-}
-
-/* Calcul de la puissance */
-int puissance(int d, int n){
-  int i=0;
-  int mul=1;
-  for(i=0;i<n;i++){
-    mul*=d;
-  }
-  return mul;
-}
-
-/* Change le sens d'un tableau */
-void inverseTab(int *tab, int n) {
-  int i=0,j=n-1,tmp=0;
-  while(i<j) {
-    tmp=tab[i];
-    tab[i++]=tab[j];
-    tab[j--]=tmp;
-  }
 }
 
 /* Retourne un entier signé correspondant à un entier stocké dans un string */
@@ -86,86 +67,6 @@ char* intVersChaine(int num) {
   return s;
 }
 
-/* MANIPILATION BINAIRE */
-
-/* Prend en entrée un tableau d'entier représentant un nombre binaire ainsi que ça taille */
-/* Inverse la valeur (en binaire) de chaque case du tableau passé en entrée dans le tableau binO */
-void inverseBin(int* binS, int* binO, int size) {
-  int i=0;
-  for (i=0;i<size;i++) {
-    if (binS[i]) {
-      binO[i]=0;
-    }
-    else {
-      binO[i]=1;
-    }
-  }
-}
-
-/* Prend en entrée deux tableaux d'entier représentant deux nombre binaire et leur taille (la même) size */
-/* Place la somme de ces deux nombres binaire dans le tableau binR passé en argument */
-void addBin(int* binA, int* binB, int* binR, int size) {
-  int i=0,ret=0;
-  /* On renverse les tableaux pour la retenue */
-  inverseTab(binA,size);
-  inverseTab(binB,size);
-  for (i=size-1;i>=0;i--) {
-    /* Si on a les deux à 1 on met la retenu dans le tableau résultat et la retenue à 1 */
-    if (binA[i] && binB[i]) {
-      binR[i]=ret;
-      ret=1;
-    }
-    /* Si les deux sont à 0 en met la retenu dans le tableau résultat et la retenue à 0 */
-    else if (!binA[i] && !binB[i]){
-      binR[i]=ret;
-      ret=0;
-    }
-    /* Sinon un des deux vaut 1 */
-    else {
-      /* Si la retenu est à 1 on met 0 dans le tableau résultat et la retenue à 1 */
-      if(ret==1) {
-        binR[i]=0;
-        ret=1;
-      }
-      /* Sinon on met 1 dans le tableau résulat et la retenu à 0 */
-      else {
-        binR[i]=1;
-        ret=0;
-      }
-    }
-  }
-  /* On remet dans le bon sens */
-  inverseTab(binR,size);
-  inverseTab(binA,size);
-  inverseTab(binB,size);
-}
-
-/* Prend en entrée un tableau d'entier représentant un nombre binaire ainsi que ça taille */
-/* Ecrit le complément à deux dans le tableau binO aussi passé en entréé */
-void complementADeux(int* binI, int* binO, int size) {
-  int *binTmp=NULL;
-  int *binOne=NULL;
-  int i=0;
-  /* Allocation dynamique des tableaux temporaire */
-  if((binTmp=malloc(sizeof(int)*size))==NULL){exit(1);};
-  if((binOne=malloc(sizeof(int)*size))==NULL){exit(1);};
-  /* Initialisation du tableau contenant 1 */
-  binOne[0]=1;
-  for (i=1;i<size;i++) {
-    binOne[i]=0;
-  }
-  /* On inverse le tableau les 0 deviennent 1 et inversement */
-  inverseBin(binI,binTmp,size);
-  /* On ajoute un (def du complément à deux) */
-  addBin(binTmp,binOne,binO,size);
-  /* On libère les tableaux temporaire */
-  free(binTmp);
-  free(binOne);
-}
-
-/* MANIPULATION HEXADECIMALE */
-
-/* GARDE */
 /* Prend en entrée la valeur hexadécimal dans un tableau de char */
 /* Retourne la valeur décimale associé sous forme d'un entier */
 long int hexToDec(char* hex) {
@@ -201,31 +102,21 @@ long int hexToDec(char* hex) {
 }
 
 
-/* GARDE */
-int* decToBin(long int dec, int binSize) {
-  int *bin=NULL,*binTmp=NULL;
-  int i=0,neg=0;
-  bin=calloc(binSize,sizeof(int));
-  binTmp=calloc(binSize,sizeof(int));
-  if (dec<0) {
-    neg=1;
-    dec=-dec;
-  }
-  while (dec>0) {
-    bin[i]=dec%2;
-    dec/=2;
-    i++;
-  }
-  if (neg) {
-    complementADeux(bin,binTmp,binSize);
-    bin=binTmp;
-  }
-  inverseTab(bin,binSize);
-  return bin;
-}
-
 
 /* AFFICHAGE */
+
+/* Affiche la valeur binaire d'un nombre decimal */
+void decToBin(long int dec) {
+  int p=0,b=0;
+  for (p=31;p>=0;p--) {
+    b=dec>>p;
+    if (b&1)
+      printf("1");
+    else
+      printf("0");
+  }
+  printf("\n");
+}
 
 /* Affiche les informations contenu dans une structure de stockage */
 void afficheInstruction(instruction *instruction) {
@@ -244,13 +135,4 @@ void afficheStructInstruction(instruction *instructions[]) {
     printf("--%d--\n", i);
     afficheInstruction(instructions[i]);
   }
-}
-
-/* Affiche le tableau binaire de l'instruction */
-void afficheBin(int* bin, int size) {
-  int i=0;
-  for (i=0;i<size;i++) {
-    printf("%d",bin[i]);
-  }
-  printf("\n");
 }

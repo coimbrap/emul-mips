@@ -2,10 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int estDivisiblePar4(int n) {
-  return !(n&3);
-}
-
 void afficherMemoires(memoire *m) {
 	memoire increment=*m;
   printf("\nAdresse     Décimal      Hex          Binaire\n--------------------------------------------------------------------------\n");
@@ -27,14 +23,15 @@ void afficherMemoire(memoire slot) {
   }
   else {
     printf("0x%04x      %-10ld   0x%08lx   ",slot->adresse,slot->valeur,slot->valeur);
-    afficheBin(decToBin(slot->valeur,NB_BIT_MEMOIRE),NB_BIT_MEMOIRE);
+    decToBin(slot->valeur);
   }
 }
 
 long int valeurMemoire(int adresse, memoire *m) {
   memoire increment=NULL;
   long int binMem=0;
-  if (estDivisiblePar4(adresse)) {
+  /* Si l'adresse est divisible par 4 */
+  if (!(adresse&3)) {
   	if (*m==NULL) {
   		printf("Valeur : mémoire vide\n");
   	}
@@ -63,7 +60,7 @@ void insertion(int adresse, long int mot, memoire *m) {
 	element *elem=malloc(sizeof(element));
 	memoire increment=*m;
   /* On vérifie que l'on soit bien en tête de mot */
-  if (estDivisiblePar4(adresse)) {
+  if (!(adresse&3)) {
   	elem->adresse=adresse;
     elem->valeur=mot;
   	/* Cas d'une mémoire vide */
@@ -104,7 +101,7 @@ void insertion(int adresse, long int mot, memoire *m) {
 void suppression(int adresse, memoire *m) {
 	memoire increment=NULL;
 	element *precedent=NULL;
-  if (estDivisiblePar4(adresse)) {
+  if (!(adresse&3)) {
   	if (*m==NULL) {
   		printf("Suppression : mémoire vide\n");
   	}

@@ -12,7 +12,7 @@ typedef struct registre {
   long int valeur;
 } registre;
 
-
+/* Fonctions principale */
 void remplissageStructRegistre(registre *registre[], const char* fichier);
 registre* trouveRegistre(registre* registres[], char* nom);
 long int valeurRegistre(registre* registres[], char* nom);

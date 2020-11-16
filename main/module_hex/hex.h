@@ -2,19 +2,8 @@
 #define _HEX_H_
 
 #define TAILLE_MAX_OPERATEUR 9 /* SYSCALL est le plus long */
-#define TAILLE_MAX_REGISTE 2
-#define TAILLE_BIT_OPERATION 32
-#define TAILLE_HEX_OPERATION 8
-#define TAILLE_OPCODE 7
-#define TAILLE_REG 5
-#define TAILLE_IMM 16
-#define INIT_PC 0xDDE0;
-
+#define INIT_PC 0xDDE0
 #define NB_OPERATIONS 26
-
-#define NB_REGISTRE 35
-#define TAILLE_MAX_MNEMO 5
-#define NB_BIT_REGISTRE 32
 
 /* Module registres */
 /* Ce module permet la traduction des mnémonique */

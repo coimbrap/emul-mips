@@ -7,34 +7,13 @@
 /* OUTILS GENERAUX */
 void clean_stdin();
 int complementInt(int value, int bits);
-long int decValue(int* binTab, int size);
-unsigned numDigits(long int n);
-int puissance(int d, int n);
-void inverseTab(int *tab, int n);
-int valeurDecimale(char* m);
+int valeurDecimale(char *s);
 char* intVersChaine(int num);
-long tabToInt(int* tab,int size);
-
-/* MANIPILATION BINAIRE */
-void inverseBin(int* binS, int* binO, int size);
-void addBin(int* binA, int* binB, int* binR, int size);
-void complementADeux(int* binI, int* binO, int size);
-int binToDec(int *bin, int size);
-int* decToBin(long int dec, int binSize);
-
-/* MANIPULATION HEXADECIMALE */
 long int hexToDec(char* hex);
-void binaryToHex(int* bin, char* hex, int size);
-char* decToHex(long int dec);
-void operandesHextoDec(char* hex);
-void hexToBin(char* hex, int* bin);
 
 /* AFFICHAGE */
+void decToBin(long int dec);
 void afficheInstruction(instruction *instruction);
 void afficheStructInstruction(instruction *instructions[]);
-void afficheBin(int* bin, int size);
-void afficheBinNoEnter(int* bin, int size);
-void afficheHex(char* hex);
-void afficheHexNoEnter(char* hex);
 
 #endif

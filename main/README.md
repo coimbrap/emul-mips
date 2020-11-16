@@ -41,12 +41,17 @@ Toutes les informations sur les 28 opérateurs seront stocké dans un tableau re
        |                    |
        +--------------------+
 ```
+- Nom ASCII est un tableau de char
+- opcode est la valeur hexadécimale de l'opcode
+- Le type d'instruction est un char, 'R', 'I' ou 'J'
+- L'ordre des bits et le remplissage type sont décrit ci-dessous
+
 
 Fonctionnement général :
 
 - On lit le nom de l'opération
 - On cherche la structure correspondant à cette opération
-- On traduit en hexadécimal selon le type d'instruction
+- On traduit en hexadécimal selon le type d'instruction en utilisant les opérateurs binaire
 
 Les instructions sont séparées en 3 familles que nous avons recoupé en groupes et sous-groupes comme décrit ci-dessous.
 
@@ -162,6 +167,17 @@ Différents cas en fonction du type de type R
 - SYSCALL : 001100 (25/6 5/0)
 
 
+En résumé on peut dire que toutes ces opérations on la structure suivante en mémoire :
+```
+31       26 25    21 20    16 15    11 10     6 5        0
++----------+--------+--------+--------+--------+----------+
+|          |        |        |        |        |          |
+|  000000  |   rs   |   rt   |   rd   |   sa   |  opcode  |
+|          |        |        |        |        |          |
++----------+--------+--------+--------+--------+----------+
+```
+
+
 ### Instruction de type I
 #### Cas 1
 ```
@@ -196,6 +212,17 @@ Différents cas en fonction du type de type R
 ##### SG 4 : (opcode/base/rt/offset)
 - LW : 100011 (25/21 20/16 15/0)
 - SW : 101011 (25/21 20/16 15/0)
+
+
+En résumé on peut dire que toutes ces opérations on la structure suivante en mémoire :
+```
+ 31      26 25    21 20    16 15            0
++----------+--------+--------+---------------+
+|          |        |        |               |
+|  opcode  |   rs   |   rt   |   immediate   |
+|          |        |        |               |
++----------+--------+--------+---------------+
+```
 
 
 ### Instruction de type J
@@ -233,15 +260,21 @@ Une instruction désigne par exemple : "ADD $20,$20,$3"
 
 **On décompose l'opération comme ci-dessous :**
 
+Lecture des instructions assembleur une par une dans le fichier source et exécution des opérations suivantes pour chaque
 - Remplissage de la mémoire des instructions (structure décrite plus haut) à l'aide d'un fichier
 - Uniformisation de l'instruction (enlève les espaces en trop et les commentaires)
 - Récupération de l'opération (ADD/NOP/SLL...)
-- Recherche dans la mémoire de la structure mémoire correspondant à l'opération
+- Récupération des opérandes et passage des valeurs immédiate hexadécimale en décimal
 - Traduction des registres mnémonique
-- Écriture de l'opcode dans le tableau de la représentation binaire de l'opération
-- Recherche de toutes les opérandes et écriture dans le tableau de la représentation binaire en fonction du sous-type d'instruction
-- Transformation du tableau binaire en un tableau hexadécimal
+- Vérification du nombre d'opérandes
+- Recherche dans la mémoire de la structure mémoire correspondant à l'opération
+- En fonction du type d'instruction on associe une valeur aux registres et aux valeurs immédiate ou sa
+  - Pour une type R on doit remplir les valeurs de : rs,rt,rd,sa,opcode
+  - Pour une type I on doit remplir les valeurs de : opcode,rs,rt,imm
+- Fabrication de la valeur hexadécimale à l'aide de décalages binaire et de masque
 - Écriture de la valeur hexadécimale de l'opération dans un fichier
+
+A la fin de la lecture, affichage des traductions du code assembleur
 
 Pour chaque tiret il y a au moins une fonction. Le fonctionnement de nos fonctions est décrit dans les commentaires du code.
 
@@ -249,7 +282,7 @@ Pour chaque tiret il y a au moins une fonction. Le fonctionnement de nos fonctio
 
 Nous avons divisé le code est 3 modules,
 - Le module hex qui regroupe l'essentiel du code
-- Le module tools qui regroupe des fonctions qui nous servirons tout au long du projet (traductions binaire, affichage de tableaux...)
+- Le module tools qui regroupe des fonctions qui nous servirons tout au long du projet (intVersChaine, valeurDecimale, affichage de tableaux...)
 - Le module registres qui permet de traduire les noms mnémonique en valeur chiffrée. Ce module est la version 0 du module que nous utiliserons dans la deuxième partie. Nous avons choisi d'en faire un module pour plus de simplicité.
 
 # Modules
@@ -364,4 +397,13 @@ Doit donner :
 ```
 9 : 0b11111100000000000000000000111111
 10 : 0b00000011111100000000000000000000
+```
+
+- L'opérateur BGTZ est faux sur l'exemple en effet :
+```
+BGTZ $23, -4
+```
+Doit donner le code hexadécimal suivant :
+```
+1ee0fffc
 ```
