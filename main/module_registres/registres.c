@@ -93,17 +93,17 @@ void traduitRegistre(registre* registres[], char* nom) {
 /* Affiche les informations contenu dans une structure de stockage */
 void afficheRegistre(registre *registre) {
   if (strcmp(registre->nom,"zero")==0) {
-    printf("$%d ($%s)  %-11ld   0x%08lx   ",registre->numero,registre->nom,registre->valeur,registre->valeur);
+    printf("$%d ($%s)  %-11d   0x%08x   ",registre->numero,registre->nom,(int)registre->valeur,(int)registre->valeur);
   }
   else if (registre->numero==-1) {
-    printf("$%s         %-11ld   0x%08lx   ",registre->nom,registre->valeur,registre->valeur);
+    printf("$%s         %-11d   0x%08x   ",registre->nom,(int)registre->valeur,(int)registre->valeur);
 
   }
   else if (registre->numero<10) {
-    printf("$%d ($%s)    %-11ld   0x%08lx   ",registre->numero,registre->nom,registre->valeur,registre->valeur);
+    printf("$%d ($%s)    %-11d   0x%08x   ",registre->numero,registre->nom,(int)registre->valeur,(int)registre->valeur);
   }
   else {
-    printf("$%d ($%s)   %-11ld   0x%08lx   ",registre->numero,registre->nom,registre->valeur,registre->valeur);
+    printf("$%d ($%s)   %-11d   0x%08x   ",registre->numero,registre->nom,(int)registre->valeur,(int)registre->valeur);
   }
   decToBin(registre->valeur);
 }

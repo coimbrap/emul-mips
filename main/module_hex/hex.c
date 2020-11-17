@@ -106,8 +106,8 @@ void uniformisationInstruction(char *s, char *out) {
 /* Retourne 1 si le numéro est valide, exit sinon */
 void check(int num, int min, int max) {
   if (num<min || num>max) {
-    printf("%d n'est pas une valeur reconnu\ Vous devez choisir une valeur entre [%d,%d]\n",num,min,max);
-    exit(20);
+    printf("ERREUR : %d n'est pas une valeur valide\n-> Vous devez choisir une valeur incluse dans [%d,%d]\n",num,min,max);
+    exit(0x20);
   }
 }
 
@@ -255,9 +255,8 @@ int parseLigne(char *ligne, long int* instructionHex, instruction* instructions[
       check(rs,0,31);
       check(rt,0,31);
       check(rd,0,31);
-      check(sa,-16,15);/* Valeur sa € [-16,15] */
+      check(sa,0,31);/* Valeur sa € [0,31] */
       hex=0;
-      sa&=0x1F; /* Efface un éventuel overflow */
       hex|=(rs&0x1f)<<21;
       hex|=(rt&0x1f)<<16;
       hex|=(rd&0x1f)<<11;
@@ -282,7 +281,6 @@ int parseLigne(char *ligne, long int* instructionHex, instruction* instructions[
             rt=operandes[1];
           }
           imm=operandes[2];
-
         }
         /* BGTZ/BLEZ */
         else if (found->styleRemplissage==2) {
@@ -306,7 +304,6 @@ int parseLigne(char *ligne, long int* instructionHex, instruction* instructions[
         check(rs,0,31);
         check(rt,0,31);
         /* On obtient la valeur hexadécimale avec des décalages binaires et des masques */
-        imm&=0xffff;/* On efface un éventuel overflow */
         hex|=(rs&0x1f)<<21;
         hex|=(rt&0x1f)<<16;
         hex|=(imm&0xffff);
