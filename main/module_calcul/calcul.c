@@ -155,13 +155,14 @@ void traduitHex(long int hex, registre** registres, instruction** instructions, 
           else if (found->ordreBits==4) {
             if (rs!=NULL && pc!=NULL) {
               if (opcode==0x08) {
+                rs->valeur+=INIT_PC; /* On se place au bon endroit */
                 if (rs->valeur>=INIT_PC) {
                   pc->valeur=rs->valeur;
                 }
                 else {
                   printf("Erreur - JR : Valeur du PC trop faible\n");
-                  pc->valeur+=4;
                 }
+                pc->valeur+=4;
               }
             }
           }
@@ -170,7 +171,7 @@ void traduitHex(long int hex, registre** registres, instruction** instructions, 
             lo=trouveRegistre(registres,"LO");
             if (rd!=NULL && hi!=NULL && lo!=NULL) {
               /* MFHI */
-              if (opcode==0x8) {
+              if (opcode==0x10) {
                 rd->valeur=hi->valeur;
               }
               /* MFLO */
@@ -226,9 +227,7 @@ void traduitHex(long int hex, registre** registres, instruction** instructions, 
                 /* BNE */
                 if (opcode==0x5) {
                   if (rs->valeur!=rt->valeur) {
-                    printf("Valeur imm%d old pc %ld\n",imm,pc->valeur );
                     pc->valeur+=(imm<<2);
-                    printf("Valeur imm%d new pc %ld\n",imm,pc->valeur );
                   }
                   pc->valeur+=4;
                 }
@@ -263,14 +262,13 @@ void traduitHex(long int hex, registre** registres, instruction** instructions, 
             }
             if (found->styleRemplissage==4) {
               if (rs!=NULL && rt!=NULL) {
-                /* On fait le complément à deux de la valeur immédiate pour retomber sur la valeur signé */
                 /* LW */
                 if (opcode==0x23) {
-                  rt->valeur=valeurMemoire(((rs->valeur+complementInt(imm,16))&0xffff),mem);
+                  rt->valeur=valeurMemoire((rs->valeur+imm),mem);
                 }
                 /* SW */
                 if (opcode==0x2b) {
-                  insertion(((rs->valeur+complementInt(imm,16))&0xffff),rt->valeur,mem);
+                  insertion((rs->valeur+imm),rt->valeur,mem);
                 }
               }
               pc->valeur+=4;
@@ -316,8 +314,6 @@ void execProgramme(memoire *mem, registre** registres, instruction** instruction
   pcMax=chargeProgramme(mem,prog);
   while((pc->valeur)<=pcMax) {
     instruction=valeurMemoire(pc->valeur,mem);
-    printf("0x%lx\n", instruction);
-    printf("PC : %ld\n", pc->valeur);
     traduitHex(instruction,registres,instructions,mem); /* S'occupe d'incrémenter le PC */
   }
 }
