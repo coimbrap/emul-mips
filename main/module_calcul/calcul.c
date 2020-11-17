@@ -93,7 +93,7 @@ void traduitHex(long int hex, registre** registres, instruction** instructions, 
                 }
                 /* SLT */
                 else if (opcode==0x2A) {
-                  if ((value=rs->valeur<rt->valeur)) {rd->valeur=1;}
+                  if ((value=(int)rs->valeur<(int)rt->valeur)) {rd->valeur=1;}
                   else {rd->valeur=0;}
                 }
                 /* SUB */
@@ -127,10 +127,7 @@ void traduitHex(long int hex, registre** registres, instruction** instructions, 
               /* SRL */
               else {
                 found=trouveOperation(instructions,"SRL");
-                value=rt->valeur;
-                value=value>>sa;
-                tmp=(1<<(NB_BIT_REGISTRE-sa))+-1;
-                rd->valeur=(value&tmp);
+                rd->valeur=((rt->valeur)>>sa);
               }
             }
             pc->valeur+=4;
