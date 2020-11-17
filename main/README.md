@@ -407,3 +407,14 @@ Doit donner le code hexadécimal suivant :
 ```
 1ee0fffc
 ```
+
+Modification:
+- Ajout d'une vérification des valeurs numérique passé en argument que ce soit un registre ou une valeur immédiate pour éviter les bugs.
+
+Branchement pc+offset puis pc+4 (dans tout les cas)
+
+
+Questions :
+- Doit on faire comme vous pour les adresse mémoire (argument*4 pour trouver le début du mot) n'est il pas plus logique de prendre directement l'adresse de début du mot ?
+
+A la différence de l'exemple pour les LW et les SW on ne fait pas adresse*4 pour trouver la place en mémoire, l'utilisateur doit directement passer l'adresse du début du mot (un multiple de 4) qui est la méthode à favoriser vu que l'on peut aussi écrire des bits (pas dans notre cas).

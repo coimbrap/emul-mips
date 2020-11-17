@@ -1,8 +1,9 @@
 ADDI $2,$0,5
    ADDI $3,$0,7
 
+#Pour arriver au début de Prog
 # some comment
-SW $3,10($0)
+SW $3,14($0) #10 ->14 
 
 LW $4,10($0) # some other comment
 
