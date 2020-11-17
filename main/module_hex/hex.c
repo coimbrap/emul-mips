@@ -103,6 +103,14 @@ void uniformisationInstruction(char *s, char *out) {
   out[ope]='\0';
 }
 
+/* Retourne 1 si le numéro est valide, exit sinon */
+void check(int num, int min, int max) {
+  if (num<min || num>max) {
+    printf("%d n'est pas une valeur reconnu\ Vous devez choisir une valeur entre [%d,%d]\n",num,min,max);
+    exit(20);
+  }
+}
+
 /* Retourne un tableau d'int contenant la valeur de toutes les operandes */
 /* Si l'opérande est passé en hexadécimal elle est traduite en décimal */
 /* Offset représente l'avancement dans le tableau de char ligne */
@@ -244,12 +252,16 @@ int parseLigne(char *ligne, long int* instructionHex, instruction* instructions[
         }
       }
       /* On obtient la valeur hexadécimale avec des décalages binaires et des masques */
+      check(rs,0,31);
+      check(rt,0,31);
+      check(rd,0,31);
+      check(sa,-16,15);/* Valeur sa € [-16,15] */
       hex=0;
       sa&=0x1F; /* Efface un éventuel overflow */
-      hex|=rs<<21;
-      hex|=rt<<16;
-      hex|=rd<<11;
-      hex|=sa<<6;
+      hex|=(rs&0x1f)<<21;
+      hex|=(rt&0x1f)<<16;
+      hex|=(rd&0x1f)<<11;
+      hex|=(sa&0x1f)<<6;
       hex|=(found->opcode);
     }
     /* Instruction de type I */
@@ -290,11 +302,14 @@ int parseLigne(char *ligne, long int* instructionHex, instruction* instructions[
           rt=operandes[0];
           imm=operandes[1];
         }
+        check(imm,-32768,32767);/* Valeur immédiate € [-32768,32767] */
+        check(rs,0,31);
+        check(rt,0,31);
         /* On obtient la valeur hexadécimale avec des décalages binaires et des masques */
         imm&=0xffff;/* On efface un éventuel overflow */
-        hex|=rs<<21;
-        hex|=rt<<16;
-        hex|=imm;
+        hex|=(rs&0x1f)<<21;
+        hex|=(rt&0x1f)<<16;
+        hex|=(imm&0xffff);
         hex&=0xffffffff; /* sécurite, normalement inutile */
       }
     }

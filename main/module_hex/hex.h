@@ -24,6 +24,7 @@ instruction* trouveOperation(instruction* instructions[], char* nom);
 instruction* trouveOpcode(instruction* instructions[], int opcode, char type);
 
 /* PARSSAGE DE L'INSTRUCTION */
+void check(int num, int min, int max);
 int nombreOperande(char *s);
 void uniformisationInstruction(char *s, char *out);
 int* parseOperandes(char *ligne, int* offset, registre** registres);
