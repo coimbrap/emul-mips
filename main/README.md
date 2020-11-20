@@ -418,3 +418,21 @@ Questions :
 - Doit on faire comme vous pour les adresse mémoire (argument*4 pour trouver le début du mot) n'est il pas plus logique de prendre directement l'adresse de début du mot ?
 
 A la différence de l'exemple pour les LW et les SW on ne fait pas adresse*4 pour trouver la place en mémoire, l'utilisateur doit directement passer l'adresse du début du mot (un multiple de 4) qui est la méthode à favoriser vu que l'on peut aussi écrire des bits (pas dans notre cas).
+
+
+Nous avons prêté attention aux fuites mémoires ainsi qu'aux variables non initialisé comme les malloc non modifié que l'on à remplacé par des calloc. Pour les fuites mémoires nous avons pris soins de vérifier que même en cas d'interruption d'une fonction (ex. instruction détectée comme invalide) il n'y ai pas de fuites mémoire.
+
+Nous avons utilisé valgrind : `valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./emul-mips tests_emul/test.txt /tmp/test`
+
+Rapport de valgrind dans un des pires cas (lignes invalides et tout type d'usage des instructions avec malloc/calloc)
+```
+==25263==
+==25263== HEAP SUMMARY:
+==25263==     in use at exit: 0 bytes in 0 blocks
+==25263==   total heap usage: 214 allocs, 214 frees, 37,441 bytes allocated
+==25263==
+==25263== All heap blocks were freed -- no leaks are possible
+==25263==
+==25263== For lists of detected and suppressed errors, rerun with: -s
+==25263== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+```
