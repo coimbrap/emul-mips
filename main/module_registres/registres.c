@@ -15,7 +15,7 @@ void remplissageStructRegistre(registre *registres[], const char* fichier) {
   }
   fseek(freg,0,SEEK_SET);
   for(i=0;i<NB_REGISTRE;i++) {
-    registres[i]=malloc(sizeof(registre));
+    if((registres[i]=malloc(sizeof(registre)))==NULL){exit(1);};
     tmp=registres[i];
     fscanf(freg,"%d,%[^\n]",&tmp->numero,tmp->nom);
     tmp->valeur=INIT_VALUE;
@@ -72,20 +72,29 @@ long int valeurRegistre(registre* registres[], char* nom) {
 
 void traduitRegistre(registre* registres[], char* nom) {
   char *ret=NULL;
+  if((ret=(char *)calloc(TAILLE_MAX_INT,sizeof(char)))==NULL){exit(1);};
   registre *found=NULL;
   if (valeurDecimale(nom)!=-1) {
-    ret=nom;
+    strcpy(ret,nom);
   }
   else {
     found=trouveRegistre(registres,nom);
     if (found!=NULL) {
-      ret=intVersChaine(found->numero);
+      intVersChaine(found->numero,ret);
     }
   }
   if (valeurDecimale(ret)==-1) {
-    ret=nom;
+    strcpy(ret,nom);
   }
   strcpy(nom,ret);
+  free(ret);
+}
+
+void liberationRegistres(registre** registres) {
+  int i=0;
+  for (i=0;i<NB_REGISTRE;i++) {
+    free(registres[i]);
+  }
 }
 
 /* AFFICHAGE */
