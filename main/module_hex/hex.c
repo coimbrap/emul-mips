@@ -20,13 +20,20 @@ void remplissageStructInstruction(instruction *instructions[], const char* fichi
   }
   fseek(fs,0,SEEK_SET);
   for(i=0;i<NB_OPERATIONS;i++) {
-    instructions[i]=malloc(sizeof(instruction));
+    if((instructions[i]=malloc(sizeof(instruction)))==NULL){exit(1);};
     tmp=instructions[i];
     /* La ligne dans le fichier est de la forme : ADD,0x20,R,1,1,3 */
     fscanf(fs,"%[^,],%x,%c,%d,%d,%d*",tmp->nom,&tmp->opcode,&tmp->typeInstruction,&tmp->ordreBits,&tmp->styleRemplissage,&tmp->nbOperande);
     fgetc(fs); /* Enlève \n */
   }
   fclose(fs);
+}
+
+void liberationInstruction(instruction** instructions) {
+  int i=0;
+  for (i=0;i<NB_OPERATIONS;i++) {
+    free(instructions[i]);
+  }
 }
 
 /* Retourne un pointeur vers la structure contenant toutes les informations d'une opération */
@@ -104,11 +111,16 @@ void uniformisationInstruction(char *s, char *out) {
 }
 
 /* Retourne 1 si le numéro est valide, exit sinon */
-void check(int num, int min, int max) {
+/* On passe instructions et registres pour pouvoir les free en cas d'exit */
+/* La mémoire n'est pas encore initialisé donc pas de free */
+/* Malgrès ça on aura quand même des fuites mémoire mais on les limite */
+int check(int num, int min, int max) {
+  int ret=1;
   if (num<min || num>max) {
     printf("ERREUR : %d n'est pas une valeur valide\n-> Vous devez choisir une valeur incluse dans [%d,%d]\n",num,min,max);
-    exit(0x20);
+    ret=0;
   }
+  return ret;
 }
 
 /* Retourne un tableau d'int contenant la valeur de toutes les operandes */
@@ -121,7 +133,7 @@ int* parseOperandes(char *ligne, int* offset, registre** registres) {
   /* On compte les opérandes */
   nbOperande=nombreOperande(ligne);
   /* Tableau temporaire */
-  char tmp[16];
+  char tmp[16]="";
   if((operandes=calloc(nbOperande,sizeof(int)))==NULL){exit(1);};
   for(j=0;j<nbOperande;j++) {
     k=0;
@@ -170,7 +182,7 @@ int parseLigne(char *ligne, long int* instructionHex, instruction* instructions[
   long int hex=0;
   instruction *found=NULL;
   int rs=0,rt=0,imm=0,rd=0,sa=0;
-  char operation[TAILLE_MAX_OPERATEUR];
+  char operation[TAILLE_MAX_OPERATEUR]="";
   int *operandes=NULL;
 
   /* On récupère l'opération */
@@ -252,10 +264,11 @@ int parseLigne(char *ligne, long int* instructionHex, instruction* instructions[
         }
       }
       /* On obtient la valeur hexadécimale avec des décalages binaires et des masques */
-      check(rs,0,31);
-      check(rt,0,31);
-      check(rd,0,31);
-      check(sa,0,31);/* Valeur sa € [0,31] */
+      /* Valeur sa € [0,31] */
+      if (!(check(rs,0,31) && check(rt,0,31) && check(rd,0,31) && check(sa,0,31))) {
+        free(operandes); /* On libère le tableau opérandes */
+        return 0; /* On saute la ligne */
+      }
       hex=0;
       hex|=(rs&0x1f)<<21;
       hex|=(rt&0x1f)<<16;
@@ -300,9 +313,11 @@ int parseLigne(char *ligne, long int* instructionHex, instruction* instructions[
           rt=operandes[0];
           imm=operandes[1];
         }
-        check(imm,-32768,32767);/* Valeur immédiate € [-32768,32767] */
-        check(rs,0,31);
-        check(rt,0,31);
+        /* Valeur immédiate € [-32768,32767] */
+        if (!(check(imm,-32768,32767) && check(rs,0,31) && check(rt,0,31))) {
+          free(operandes); /* On libère le tableau opérandes */
+          return 0; /* On saute la ligne */
+        }
         /* On obtient la valeur hexadécimale avec des décalages binaires et des masques */
         hex|=(rs&0x1f)<<21;
         hex|=(rt&0x1f)<<16;
@@ -313,35 +328,28 @@ int parseLigne(char *ligne, long int* instructionHex, instruction* instructions[
   }
   /* On met la valeur hexadécimale dans l'argument passé par adresse */
   *instructionHex=hex;
-  return ret; /* 1 si valide 0 sinon (Pour les fausses opération et mauvais nombre d'opérandes)*/
+  free(operandes);
+  return ret; /* 1 si valide 0 sinon (Pour les fausses opération et mauvais nombre d'opérandes et mauvaise valeurs)*/
 }
 
 /* Lit le fichier d'instruction assembleur ligne par ligne */
 /* Parse l'expression et appele la fonction de traduction hexadécimale */
-void parseFichier(char *input, char* output, int mode) {
+void parseFichier(char *input, char* output, int mode, instruction **instructions, registre** registres) {
   /* Fichiers d'entrée, de sortie du programme et d'affichage */
   FILE *fin=fopen(input, "r");
   FILE *fout=fopen(output, "w");
   FILE *tmp=fopen(".tmp","w"); /* Stockage de l'affichage */
   /* Fichiers pour remplir les mémoires (opérandes et registres) */
-  char *listeope="src/listeOpe.txt";
-  char *listereg="src/listeReg.txt";
   size_t len=0;
   char *ligne=NULL; /* Ligne brute */
   char *ligneOut=NULL; /* Ligne uniformisée */
   long int instructionHex=0; /* Valeur hexadécimale de l'instruction */
   char* buf=NULL; /* Lecture du fichier d'affichage */
   /* Tableaux de mémoire des opérandes et des registres remplit à l'aide des fichiers de stockage */
-  instruction *instructions[NB_OPERATIONS+1];
-  registre* registres[NB_REGISTRE];
 
   int programCounter=0,lignes=1;
-  char c;
+  char c='0';
   int inW=1;
-
-  /* On remplit les structures de stockage à partir des fichiers */
-  remplissageStructInstruction(instructions,listeope);
-  remplissageStructRegistre(registres,listereg);
 
   programCounter=INIT_PC;
   if (fin==NULL) {
@@ -361,7 +369,7 @@ void parseFichier(char *input, char* output, int mode) {
   while(getline(&ligne,&len,fin)!=-1) { /* Tant qu'on est pas à la fin du fichier */
     if(ligne[0]!='\n' && ligne[0]!='\0') { /* Si on n'à pas une ligne vide */
       /* On uniforise la ligne */
-      ligneOut=(char *)malloc(strlen(ligne)*sizeof(char));
+      if((ligneOut=(char *)calloc(strlen(ligne),sizeof(char)))==NULL){exit(1);};
       uniformisationInstruction(ligne,ligneOut);
       if(ligneOut[0]!='\0') { /* Si la ligne uniformisé n'est pas vide */
          /* On a quelque chose */
@@ -372,7 +380,7 @@ void parseFichier(char *input, char* output, int mode) {
             fprintf(fout,"%08lx\n",instructionHex);
             fprintf(tmp,"%08d 0x%08lx   %s\n",programCounter,instructionHex,ligneOut);
             programCounter+=4;
-          }
+           }
            else if (mode==0) {printf("Erreur ligne %d, on passe à la suivante (opération non reconnue)\n",lignes);}
          }
          /* Mode pas à pas */
@@ -405,6 +413,7 @@ void parseFichier(char *input, char* output, int mode) {
     else if (mode==0) {printf("Erreur ligne %d, on passe à la suivante (ligne vide)\n\n",lignes);}
     if (!mode) {lignes++;}
   }
+  free(ligne);
   fprintf(tmp, "------------------ Fin -------------------\n");
   fclose(tmp);
   fclose(fout);

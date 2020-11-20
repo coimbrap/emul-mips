@@ -20,16 +20,17 @@ typedef struct instruction {
 
 /* MEMOIRE INSTRUCTIONS */
 void remplissageStructInstruction(instruction *instructions[], const char* fichier);
+void liberationInstruction(instruction** instructions);
 instruction* trouveOperation(instruction* instructions[], char* nom);
 instruction* trouveOpcode(instruction* instructions[], int opcode, char type);
 
 /* PARSSAGE DE L'INSTRUCTION */
-void check(int num, int min, int max);
+int check(int num, int min, int max);
 int nombreOperande(char *s);
 void uniformisationInstruction(char *s, char *out);
 int* parseOperandes(char *ligne, int* offset, registre** registres);
 void parseOperation(char *ligne, char* operation, int* offset);
 int parseLigne(char *ligne, long int* hex, instruction* instructions[], registre* registres[]);
-void parseFichier(char *input, char* output, int mode);
+void parseFichier(char *input, char* output, int mode, instruction **instructions, registre** registres) ;
 
 #endif
