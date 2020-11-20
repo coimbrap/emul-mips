@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
   if ((file=fopen(argv[in], "r"))) {
     fclose(file);
     printf("Lecture du ficher : %s\n\n", argv[in]);
-    parseFichier(argv[in],argv[out],mode);
+    parseFichier(argv[in],argv[out],mode,instructions,registres);
     printf("\nFormes hexadécimale écrites dans '%s'\n", argv[out]);
     execProgramme(&mem,registres,instructions,argv[2]);
     printf("\n------ Registres ------\n");
@@ -42,5 +42,8 @@ int main(int argc, char *argv[]) {
   else {
     printf("Erreur sur le fichier d'entrée '%s'\n\n",argv[in]);
   }
+  liberationRegistres(registres);
+  liberationInstruction(instructions);
+  liberation(&mem);
   return 0;
 }

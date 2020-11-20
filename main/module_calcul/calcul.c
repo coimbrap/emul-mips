@@ -38,6 +38,8 @@ void traduitHex(long int hex, registre** registres, instruction** instructions, 
   registre *pc=NULL;
   int rsI=0,rtI=0,rdI=0,sa=0,imm=0,opcode=0;
   long int value=0;
+  char *buff=NULL;
+  if((buff=(char *)calloc(TAILLE_MAX_INT,sizeof(char)))==NULL){exit(1);};
   long int tmp=0;
   if (hex<=0xFFFFFFFF) {
     pc=trouveRegistre(registres,"PC");
@@ -47,12 +49,8 @@ void traduitHex(long int hex, registre** registres, instruction** instructions, 
     }
     /* Si les 6 premiers zéro sont nul */
     else if ((hex&(0xfc000000))==0) { /* Masque : 1111110...0 */
-      printf("R\n");
-
       opcode=hex&0x3f;
       if ((found=trouveOpcode(instructions,opcode,'R'))!=NULL) {
-        printf("On vérifie R : %d|%d|%d|%d\n", found->ordreBits,found->styleRemplissage,found->opcode,opcode);
-
         /* Instruction de type R */
         /* On trouve les valeurs de registres, c'est commun à tous */
         rsI=((hex>>21) & 0x1F); /* Valeur décimale des 21 à 26 bits */
@@ -61,9 +59,9 @@ void traduitHex(long int hex, registre** registres, instruction** instructions, 
         sa=((hex>>6) & 0x1F);
         if (found->typeInstruction=='R') {
           value=0;
-          rs=trouveRegistre(registres,intVersChaine(rsI));
-          rt=trouveRegistre(registres,intVersChaine(rtI));
-          rd=trouveRegistre(registres,intVersChaine(rdI));
+          rs=trouveRegistre(registres,intVersChaine(rsI,buff));
+          rt=trouveRegistre(registres,intVersChaine(rtI,buff));
+          rd=trouveRegistre(registres,intVersChaine(rdI,buff));
           if (found->ordreBits==1) {
             /* ADD/AND/XOR/OR/SLT/SUB */
             if (found->styleRemplissage==1) {
@@ -72,7 +70,6 @@ void traduitHex(long int hex, registre** registres, instruction** instructions, 
                 if (opcode==0x20) {
                   value=rs->valeur+rt->valeur;
                   if (value<=0xffffffff) {
-                    printf("ADD %d|%d %d|%d %d|%d \n",rdI,rd->valeur,rtI,rt->valeur,rsI,rs->valeur);
                     rd->valeur=value;
                   }
                   else {
@@ -198,8 +195,8 @@ void traduitHex(long int hex, registre** registres, instruction** instructions, 
         imm=complementInt(imm,16); /* Valeur immédiate € [-32768,32767] */
         if (found->typeInstruction=='I') {
           value=0;
-          rs=trouveRegistre(registres,intVersChaine(rsI));
-          rt=trouveRegistre(registres,intVersChaine(rtI));
+          rs=trouveRegistre(registres,intVersChaine(rsI,buff));
+          rt=trouveRegistre(registres,intVersChaine(rtI,buff));
           if (found->ordreBits==1) {
             if (found->styleRemplissage==1) {
               if (rs!=NULL && rt!=NULL) {
@@ -278,6 +275,7 @@ void traduitHex(long int hex, registre** registres, instruction** instructions, 
   else {
     printf("Format de l'instruction incorrect 0x%lx\n", hex);
   }
+  free(buff);
 }
 
 

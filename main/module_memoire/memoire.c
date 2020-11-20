@@ -57,10 +57,11 @@ long int valeurMemoire(int adresse, memoire *m) {
 }
 
 void insertion(int adresse, long int mot, memoire *m) {
-	element *elem=malloc(sizeof(element));
+	element *elem=NULL;
 	memoire increment=*m;
   /* On vérifie que l'on soit bien en tête de mot */
   if (!(adresse&3)) {
+		if((elem=(element *)malloc(sizeof(element)))==NULL){exit(1);};
   	elem->adresse=adresse;
     elem->valeur=mot;
   	/* Cas d'une mémoire vide */
