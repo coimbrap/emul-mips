@@ -4,6 +4,11 @@
 #include <string.h>
 
 /* OUTILS GENERAUX */
+unsigned numDigits(int n) {
+  if (n < 10) return 1;
+  return 1 + numDigits(n / 10);
+}
+
 void clean_stdin() {
   int c;
   do {
@@ -43,28 +48,12 @@ int valeurDecimale(char *s) {
 }
 
 /* Int vers string de l'int */
-char* intVersChaine(int num) {
-  int tmp=0,sign=0;
-  char *s=NULL;
-  if((s=malloc(sizeof(int)*sizeof(char)))==NULL){exit(1);};
-  *s='\0';
-  --s;
-  if (num==0) {
-    *s='0';
+char* intVersChaine(int num, char* s) {
+  /* Si la chaine est allouée */
+  if (s!=NULL) {
+    sprintf(s,"%d",num); /* On stocke la chaine num formaté en entier dans s */
   }
-  if (num<0) {
-    sign=1;
-    num*=-1;
-  }
-  for (tmp=num;tmp>0;tmp/=10) {
-    --s;
-    *s=tmp%10+'0';
-  }
-  if (sign) {
-    s--;
-    *s='-';
-  }
-  return s;
+  return s; /* On retourne la "nouvelle" valeur du pointeur */
 }
 
 /* Prend en entrée la valeur hexadécimal dans un tableau de char */
