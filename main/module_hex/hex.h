@@ -2,7 +2,7 @@
 #define _HEX_H_
 
 #define TAILLE_MAX_OPERATEUR 9 /* SYSCALL est le plus long */
-#define INIT_PC 0xDDE0
+#define DEBUT_PROG 0xDDDC
 #define NB_OPERATIONS 26
 
 /* Module registres */

@@ -350,7 +350,7 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
   int programCounter=0,lignes=1;
   char c='0';
   int inW=1;
-  programCounter=INIT_PC; /* Initialisation du PC local */
+  programCounter=DEBUT_PROG; /* Initialisation du PC local */
   if (fin==NULL) {
     printf("Erreur lors de l'ouverture du fichier '%s'\n",input);
     exit(-1);

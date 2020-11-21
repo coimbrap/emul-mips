@@ -12,7 +12,7 @@ int chargeProgramme(memoire *mem, const char* progHex) {
   FILE *prog=NULL;
   char* instruction=NULL;
   size_t len=0;
-  int pc=INIT_PC; /* On met le PC à l'init */
+  int pc=DEBUT_PROG; /* On met le PC à l'init */
   prog=fopen(progHex,"r"); /* On ouvre le programme */
   if(NULL==prog){
     printf("Erreur d'ouverture du fichier\n");
@@ -150,8 +150,8 @@ void execInstruction(long int hex, registre** registres, instruction** instructi
           else if (found->ordreBits==4) {
             if (rs!=NULL && pc!=NULL) {
               if (opcode==0x08) {
-                rs->valeur+=INIT_PC; /* On se place au bon endroit */
-                if (rs->valeur>=INIT_PC) {
+                rs->valeur+=DEBUT_PROG; /* On se place au bon endroit */
+                if (rs->valeur>=DEBUT_PROG) {
                   pc->valeur=rs->valeur;
                 }
                 else {
@@ -290,7 +290,7 @@ void execProgramme(memoire *mem, registre** registres, instruction** instruction
   int pcMax=0;
   /* Init du registre PC */
   pc=trouveRegistre(registres,"PC");
-  (pc->valeur)=INIT_PC;
+  (pc->valeur)=DEBUT_PROG;
   /* Chargement du programme et détermination du pc max */
   pcMax=chargeProgramme(mem,prog); /* On mémorise le pcMAx */
   /* Tant qu'on à pas atteint la dernière instruction */

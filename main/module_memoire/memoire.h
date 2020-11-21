@@ -26,9 +26,9 @@
 /* structure de type liste chainée contenant une valeur de type unsigned long int */
 /* cette implémentation à l'avantage de supporté l'adressage à l'octet et l'adressage au mot */
 typedef struct element {
-  int adresse;
-  long int valeur;
-  struct element* suivant;
+  int adresse; /* Adresse entre 0x0000 et 0xFFFF */
+  long int valeur; /* Valeur contenu dans la case mémoire */
+  struct element* suivant; /* Adresse de l'élément suivant NULL si dernier */
 } element;
 
 typedef element* memoire;

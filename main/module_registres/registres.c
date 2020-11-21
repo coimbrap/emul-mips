@@ -4,8 +4,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* Remplit la structure des registres à l'aide d'un fichier */
-void remplissageStructRegistre(registre *registres[], const char* fichier) {
+/* MEMOIRE REGISTRES */
+
+/* prend en entrée tableau de pointeur vers la structure registre et le nom du fichier source de remplissage */
+/* remplit le tableau à l'aide du fichier source de remplissage */
+/* on part du principe que le fichier source est correctement renseigné */
+void remplissageStructRegistre(registre **registres, const char* fichier) {
   FILE *freg=fopen(fichier,"r");
   registre *tmp=NULL;
   int i=0;
@@ -13,31 +17,38 @@ void remplissageStructRegistre(registre *registres[], const char* fichier) {
     printf("Erreur lors de l'ouverture du fichier");
     exit(-1);
   }
-  fseek(freg,0,SEEK_SET);
+  fseek(freg,0,SEEK_SET); /* On se place au début du fichier */
+  /* On parcourt le tableau */
   for(i=0;i<NB_REGISTRE;i++) {
+    /* On malloc la structure de mémoire d'un registre et on la met dans le tableau */
     if((registres[i]=malloc(sizeof(registre)))==NULL){exit(1);};
     tmp=registres[i];
+    /* On remplit la mémoire du registre à partir du fichier */
     fscanf(freg,"%d,%[^\n]",&tmp->numero,tmp->nom);
-    tmp->valeur=INIT_VALUE;
+    tmp->valeur=INIT_VALUE; /* On initialise la valeur du registre */
     fgetc(freg); /* Enlève \n */
   }
   fclose(freg);
 }
 
-/* Retourne un pointeur vers la structure contenant toutes les informations d'une opération */
-registre* trouveRegistre(registre* registres[], char* nom) {
+/* prend en entrée tableau de pointeur vers la structure registre et une chaine représentant le nom du registre */
+/* retourne un pointeur vers la structure contenant toutes les informations du registre en question */
+registre* trouveRegistre(registre **registres, char* nom) {
   int i=0, nonTrouvee=1, special=1,find=-2;
   registre *ret=NULL;
-
+  /* Si le registre n'est pas un registre spécial (PC,HI,LO ayant comme valeur -1) */
   if (valeurDecimale(nom)!=-1) {
     special=0;
-    find=valeurDecimale(nom);
+    find=valeurDecimale(nom); /* on stocke la valeur décimal de la chaine dans find */
   }
+  /* Tant que l'on n'a pas trouvé et que l'on est pas à la fin du tableau */
   while (nonTrouvee && i<NB_REGISTRE) {
+    /* Si c'est un registre spécial (PC,HI,LO) on compare le nom avec la chaine */
     if (special && strcmp(registres[i]->nom,nom)==0) {
       ret=registres[i];
       nonTrouvee=0;
     }
+    /* Sinon on compare le numéro du registre avec le numéro contenu dans la chaine */
     else if (!special && find==registres[i]->numero) {
       ret=registres[i];
       nonTrouvee=0;
@@ -47,20 +58,25 @@ registre* trouveRegistre(registre* registres[], char* nom) {
   return ret;
 }
 
-/* Retourne un pointeur vers la structure contenant toutes les informations d'une opération */
-long int valeurRegistre(registre* registres[], char* nom) {
+/* prend en entrée tableau de pointeur vers la structure registre et une chaine représentant le nom du registre */
+/* retourne la valeur de la case mémoire sous forme de long int */
+long int valeurRegistre(registre **registres, char* nom) {
   int i=0, nonTrouvee=1, special=1,find=-2;
   registre *ret=NULL;
-  traduitRegistre(registres,nom);
+  traduitRegistre(registres,nom); /* traduit le registre */
+  /* Si le registre n'est pas un registre spécial (PC,HI,LO ayant comme valeur -1) */
   if (valeurDecimale(nom)!=-1) {
     special=0;
     find=valeurDecimale(nom);
   }
+  /* Tant que l'on n'a pas trouvé et que l'on est pas à la fin du tableau */
   while (nonTrouvee && i<NB_REGISTRE) {
+    /* Si c'est un registre spécial (PC,HI,LO) on compare le nom avec la chaine */
     if (special && strcmp(registres[i]->nom,nom)==0) {
       ret=registres[i];
       nonTrouvee=0;
     }
+    /* Sinon on compare le numéro du registre avec le numéro contenu dans la chaine */
     else if (!special && find==registres[i]->numero) {
       ret=registres[i];
       nonTrouvee=0;
@@ -70,20 +86,25 @@ long int valeurRegistre(registre* registres[], char* nom) {
   return ret->valeur;
 }
 
-void traduitRegistre(registre* registres[], char* nom) {
+/* prend en entrée tableau de pointeur vers la structure registre et une chaine représentant le nom du registre */
+/* si il y a lieu remplace le mnémonique du registre par sa valeur entière dans nom */
+void traduitRegistre(registre **registres, char* nom) {
   char *ret=NULL;
   registre *found=NULL;
-  /* Allocation de la chaine pour la représentation de l'int */
+  /* Si on a une registre non traduit */
   if (valeurDecimale(nom)==-1) {
+    /* Allocation de la chaine pour la représentation de l'int */
     if((ret=(char *)calloc(TAILLE_MAX_INT,sizeof(char)))==NULL){exit(1);};
     found=trouveRegistre(registres,nom);
+    /* Si on trouve le registre on met dans ret la valeur décimale du registre */
     if (found!=NULL) {
       ret=intVersChaine(found->numero,ret);
     }
+    /* Si la valeur décimale dans ret n'est pas -1 on remplace la mnémonique par la valeur entière */
     if (valeurDecimale(ret)!=-1) {
       strcpy(nom,ret);
     }
-    free(ret);
+    free(ret); /* On libère ret */
   }
 }
 
