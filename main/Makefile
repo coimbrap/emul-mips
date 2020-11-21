@@ -1,7 +1,7 @@
 CC = gcc
-CFLAGS = -Wall -pedantic
+CFLAGS = -Wall -pedantic -g -fsanitize=address
 EXEC = emul-mips
-LDFLAGS =
+LDFLAGS = -g -fsanitize=address
 
 all: $(EXEC)
 

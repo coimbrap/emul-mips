@@ -5,52 +5,49 @@
 
 #include "../module_tools/tools.h"
 
-int validHex(char* hex) {
-  int len=strlen(hex);
-  int valid=0,i=0,ret=-1;
-  for (i=0;i<len;i++) {
-    if ((hex[i]>='0' && hex[i]<='9') || (hex[i]>='a' && hex[i]<='f') || (hex[i]>='A' && hex[i]<='F'))  {
-      valid++;
-    }
+/* prend en entrée un pointeur vers la mémoire et le fichier des instructions hex */
+/* remplit la partie segment assembleur de la mémoire à partir des valeurs hex */
+/* retourne la valeur de la dernière case mémoire contenant une instruction (vMax du PC) */
+int chargeProgramme(memoire *mem, const char* progHex) {
+  FILE *prog=NULL;
+  char* instruction=NULL;
+  size_t len=0;
+  int pc=DEBUT_PROG; /* On met le PC à l'init */
+  prog=fopen(progHex,"r"); /* On ouvre le programme */
+  if(NULL==prog){
+    printf("Erreur d'ouverture du fichier\n");
+    exit(-1);
   }
-  if (valid==len) {ret=1;}
-  else {ret=0;}
-  return ret;
-}
-
-int checkBinVal(int* bin, int offset, char* valeur) {
-  int i=offset,ret=1,j=0;
-  while(ret && valeur[j]!='\0') {
-    if ((valeur[j++]-'0')!=bin[i]) {ret=0;}
-    i++;
+  /* On met en mémoire les instructions une à une en incrémentant le PC */
+  while (getline(&instruction,&len,prog)!=-1) {
+    insertion(mem,pc,hexToDec(instruction));
+    pc+=4;
   }
-  return ret;
+  /* On libère le buffer et on ferme le fichier */
+  free(instruction);
+  fclose(prog);
+  return (pc-4);
 }
 
 /* Prend en entrée une instruction hexadécimale (demandé dans les specifications) */
-void traduitHex(long int hex, registre** registres, instruction** instructions, memoire *mem, int* pc) {
+/* Exécute l'instruction, met à jour les registres et la mémoire et change le PC */
+void execInstruction(unsigned long int hex, registre **registres, instruction **instructions, memoire *mem) {
   instruction *found=NULL;
-  int imm=0;
-  registre *rs=NULL;
-  registre *rt=NULL;
-  registre *rd=NULL;
-  registre *hi=NULL;
-  registre *lo=NULL;
-  int rsI=0,rtI=0,rdI=0,sa=0;
-  int opcode=0;
-  long int value=0;
-  long int tmp=0;
+  registre *rs=NULL,*rt=NULL,*rd=NULL,*hi=NULL,*lo=NULL,*pc=NULL;
+  int rsI=0,rtI=0,rdI=0,sa=0,imm=0,opcode=0;
+  unsigned long int value=0,tmp=0;
+  /* Buff est nécessaire au fonctionnement de intVersChaine */
+  char *buff=NULL;
+  if((buff=(char *)calloc(TAILLE_MAX_INT,sizeof(char)))==NULL){exit(1);};
+  /* Si la taille de valeur hexadécimale est inférieure à la taille max */
   if (hex<=0xFFFFFFFF) {
-    /* NOP */
+    pc=trouveRegistre(registres,"PC"); /* On initialise le registre du PC */
+    /* Cas NOP, on avance d'une instruction */
     if (hex==0) {
-      #ifdef DEBUG
-      printf("NOP\n");
-      #endif
-      *pc+=4;
+      pc->valeur+=4;
     }
-    /* Si les 6 premiers zéro sont nul */
+    /* Si les 6 premiers zéro sont nul -> R */
     else if ((hex&(0xfc000000))==0) { /* Masque : 1111110...0 */
-      printf("R\n");
       opcode=hex&0x3f;
       if ((found=trouveOpcode(instructions,opcode,'R'))!=NULL) {
         /* Instruction de type R */
@@ -61,17 +58,18 @@ void traduitHex(long int hex, registre** registres, instruction** instructions, 
         sa=((hex>>6) & 0x1F);
         if (found->typeInstruction=='R') {
           value=0;
-          rs=trouveRegistre(registres,intVersChaine(rsI));
-          rt=trouveRegistre(registres,intVersChaine(rtI));
-          rd=trouveRegistre(registres,intVersChaine(rdI));
+          /* On initialise les registres rs,rt et rd */
+          rs=trouveRegistre(registres,intVersChaine(rsI,buff));
+          rt=trouveRegistre(registres,intVersChaine(rtI,buff));
+          rd=trouveRegistre(registres,intVersChaine(rdI,buff));
           if (found->ordreBits==1) {
             /* ADD/AND/XOR/OR/SLT/SUB */
             if (found->styleRemplissage==1) {
-              if (rs!=NULL && rt!=NULL && rd!=NULL) {
+              if (rs!=NULL && rt!=NULL && rd!=NULL && rdI!=0) {
                 /* ADD */
                 if (opcode==0x20) {
                   value=rs->valeur+rt->valeur;
-                  if (value<=0xffffffff) {
+                  if (((int)value)<=0xffffffff) {
                     rd->valeur=value;
                   }
                   else {
@@ -92,7 +90,7 @@ void traduitHex(long int hex, registre** registres, instruction** instructions, 
                 }
                 /* SLT */
                 else if (opcode==0x2A) {
-                  if ((value=rs->valeur<rt->valeur)) {rd->valeur=1;}
+                  if ((value=(int)rs->valeur<(int)rt->valeur)) {rd->valeur=1;}
                   else {rd->valeur=0;}
                 }
                 /* SUB */
@@ -100,18 +98,20 @@ void traduitHex(long int hex, registre** registres, instruction** instructions, 
                   rd->valeur=(rs->valeur-rt->valeur);
                 }
               }
+              pc->valeur+=4;
             }
             /*NOP déjà fait*/
             /* SLL */
             else if (found->styleRemplissage==3) {
-              if (rt!=NULL && rd!=NULL) {
+              if (rt!=NULL && rd!=NULL && rdI!=0) {
                 rd->valeur=(rt->valeur>>sa);
               }
+              pc->valeur+=4;
             }
           }
           else if (found->ordreBits==2) {
             /* ROTR/SLR */
-            if (rt!=NULL && rd!=NULL) {
+            if (rt!=NULL && rd!=NULL && rdI!=0) {
               /* ROTR */
               if ((hex>>21)&0x1) {
                 found=trouveOperation(instructions,"ROTR");
@@ -124,125 +124,177 @@ void traduitHex(long int hex, registre** registres, instruction** instructions, 
               /* SRL */
               else {
                 found=trouveOperation(instructions,"SRL");
-                value=rt->valeur;
-                value=value>>sa;
-                tmp=(1<<(NB_BIT_REGISTRE-sa))+-1;
-                rd->valeur=(value&tmp);
+                rd->valeur=((rt->valeur)>>sa);
               }
-              printf("ROTR 0x%lx\n",rd->valeur);
-
             }
+            pc->valeur+=4;
           }
           else if (found->ordreBits==3) {
+            /* Initialise les registres HI et LO */
             hi=trouveRegistre(registres,"HI");
             lo=trouveRegistre(registres,"LO");
             if (rs!=NULL && rt!=NULL && hi!=NULL && lo!=NULL) {
               /* MULT */
               if (opcode==0x18) {
                 value=(rs->valeur*rt->valeur);
-                hi->valeur=(((value&0xffffffff00000000)>>32)&MASQUE_MAX);
-                lo->valeur=((value&0xffffffff)&MASQUE_MAX);
               }
               /* DIV */
               else if (opcode==0x1A) {
-                value=rs->valeur/rt->valeur;
-                rd->valeur=value;
+                value=(rs->valeur/rt->valeur);
               }
+              hi->valeur=(((value&0xffffffff00000000)>>32)&MASQUE_MAX);
+              lo->valeur=((value&0xffffffff)&MASQUE_MAX);
             }
+            pc->valeur+=4;
           }
           else if (found->ordreBits==4) {
-
+            if (rs!=NULL && pc!=NULL) {
+              if (opcode==0x08) {
+                rs->valeur+=DEBUT_PROG; /* On se place au bon endroit */
+                if (rs->valeur>=DEBUT_PROG) {
+                  pc->valeur=rs->valeur;
+                }
+                else {
+                  printf("Erreur - JR : Valeur du PC trop faible\n");
+                }
+              }
+            }
+            pc->valeur+=4;
           }
           else if (found->ordreBits==5) {
-
+            /* Initialise les registres HI et LO */
+            hi=trouveRegistre(registres,"HI");
+            lo=trouveRegistre(registres,"LO");
+            if (rd!=NULL && hi!=NULL && lo!=NULL && rdI!=0) {
+              /* MFHI */
+              if (opcode==0x10) {
+                rd->valeur=hi->valeur;
+              }
+              /* MFLO */
+              else if (opcode==0x12) {
+                rd->valeur=lo->valeur;
+              }
+            }
+            pc->valeur+=4;
           }
           else if (found->ordreBits==6) {
-
+            /* Pas utilisé dans notre cas */
+            pc->valeur+=4;
           }
-          *pc+=4;
         }
         if (rd!=NULL) {rd->valeur&=MASQUE_MAX;}
-
-        #ifdef DEBUG
-        printf("Traduction %s\n", found->nom);
-        #endif
       }
     }
+    /* Sinon c'est une instruction I ou J */
     else {
       opcode=((hex>>26)&0x3f);
-
       if ((found=trouveOpcode(instructions,opcode,'I'))!=NULL) {
-        printf("Type I %x\n",opcode);
-
         /* Instruction de type I */
         /* On trouve les valeurs de registres, c'est commun à tous */
         rsI=((hex>>21) & 0x1F);
         rtI=((hex>>16) & 0x1F);
         imm=(hex & 0xFFFF);
+        /* On prend le complément à 2 d'un 16 bits car signé */
+        imm=complementADeux(imm,16); /* Valeur immédiate € [-32768,32767] */
         if (found->typeInstruction=='I') {
           value=0;
-          rs=trouveRegistre(registres,intVersChaine(rsI));
-          rt=trouveRegistre(registres,intVersChaine(rtI));
+          /* Initialise les registres rs et rt */
+          rs=trouveRegistre(registres,intVersChaine(rsI,buff));
+          rt=trouveRegistre(registres,intVersChaine(rtI,buff));
           if (found->ordreBits==1) {
             if (found->styleRemplissage==1) {
               if (rs!=NULL && rt!=NULL) {
                 /* ADDI */
-                if (opcode==0x8) {
+                if (opcode==0x8 && rtI!=0) {
                   value=rs->valeur+imm;
-                  if (value<=0xFFFFFFFF) {
+                  if (((int)value)<=0xFFFFFFFF) {
                     rt->valeur=value;
                   }
                   else {
                     printf("Exception : Overflow\nNo changes\n");
                   }
-                  *pc+=4;
+                }
+                /* BEQ */
+                if (opcode==0x4) {
+                  if (rs->valeur==rt->valeur) {
+                    pc->valeur+=(imm<<2);
+                  }
+                }
+                /* BNE */
+                if (opcode==0x5) {
+                  if (rs->valeur!=rt->valeur) {
+                    pc->valeur+=(imm<<2);
+                  }
                 }
               }
+              pc->valeur+=4;
+            }
+            if (found->styleRemplissage==2) {
+              if (rs!=NULL) {
+                /* BGTZ */
+                if (opcode==0x7) {
+                  if (rs->valeur>0) {
+                    pc->valeur+=(imm<<2);
+                  }
+                }
+                /* BLEZ */
+                if (opcode==0x6) {
+                  if (rs->valeur<=0) {
+                    pc->valeur+=(imm<<2);
+                  }
+                }
+              }
+              pc->valeur+=4;
+            }
+            if (found->styleRemplissage==3) {
+              if (rt!=NULL) {
+                /* LUI */
+                if (opcode==0xf && rtI!=0) {
+                  rt->valeur=(imm<<16);
+                }
+              }
+              pc->valeur+=4;
+            }
+            if (found->styleRemplissage==4) {
+              if (rs!=NULL && rt!=NULL) {
+                /* LW */
+                if (opcode==0x23 && rtI!=0) {
+                  rt->valeur=valeurMemoire(mem,(rs->valeur+imm));
+                }
+                /* SW */
+                if (opcode==0x2b) {
+                  insertion(mem,(rs->valeur+imm),rt->valeur);
+                }
+              }
+              pc->valeur+=4;
             }
           }
         }
-        /* Opération trouvé */
-        #ifdef DEBUG
-        printf("Traduction %s\n", found->nom);
-        #endif
       }
     }
   }
   else {
     printf("Format de l'instruction incorrect 0x%lx\n", hex);
   }
+  free(buff); /* On libère le buffer de intVersChaine */
 }
 
-
-int chargeProgramme(memoire *mem, const char* progHex) {
-  FILE *prog=NULL;
-  char* instruction=NULL;
-  size_t len=0;
-  int pc=INIT_PC;
-
-  prog=fopen(progHex,"r");
-  if(NULL==prog){
-    printf("Erreur d'ouverture du fichier\n");
-    exit(-1);
-  }
-  while (getline(&instruction,&len,prog)!=-1) {
-    insertion(pc,hexToDec(instruction),mem);
-    pc+=4;
-  }
-  free(instruction);
-  fclose(prog);
-  return (pc-4);
-}
-
+/* prend en entrée un pointeur vers : la mémoire,les registres et les instructions et le fichier des segments asm */
+/* exécute le programme en faisant appel aux sous fonctions */
 void execProgramme(memoire *mem, registre** registres, instruction** instructions, char* prog) {
-  long int instruction=0;
-  registre *PC=trouveRegistre(registres,"PC");
-  int pcMax=0,pc=INIT_PC;
-  pcMax=chargeProgramme(mem,prog);
-  while(pc<=pcMax) {
-    instruction=valeurMemoire(pc,mem);
-    printf("0x%lx\n", instruction);
-    traduitHex(instruction,registres,instructions,mem,&pc); /* S'occupe d'incrémenter le PC */
-    PC->valeur=pc;
+  unsigned long int instruction=0;
+  registre *pc=NULL,*sp=NULL;
+  int pcMax=0;
+  /* Init du registre PC & SP */
+  pc=trouveRegistre(registres,"PC");
+  sp=trouveRegistre(registres,"sp");
+  (pc->valeur)=DEBUT_PROG;
+  (sp->valeur)=DEBUT_PILE;
+  /* Chargement du programme et détermination du pc max */
+  pcMax=chargeProgramme(mem,prog); /* On mémorise le pcMAx */
+  /* Tant qu'on à pas atteint la dernière instruction */
+  while((pc->valeur)<=pcMax) {
+    instruction=valeurMemoire(mem,pc->valeur); /* On récupère la valeur de l'instruction en mémoire */
+    execInstruction(instruction,registres,instructions,mem); /* Exécute l'opération, s'occupe d'incrémenter le PC */
   }
 }
