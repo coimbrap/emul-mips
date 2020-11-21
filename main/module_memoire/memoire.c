@@ -9,7 +9,7 @@
 /* si il y a déjà une valeur on la remplace */
 /* on garde la liste triéée par adresse */
 /* vérifie que l'adresse et bien celle du premier octet d'un mot */
-void insertion(int adresse, long int mot, memoire *m) {
+void insertion(int adresse, unsigned long int mot, memoire *m) {
 	element *elem=NULL;
 	memoire increment=*m;
   /* On vérifie que l'on soit bien en tête de mot */
@@ -91,9 +91,9 @@ void suppression(int adresse, memoire *m) {
 /* va chercher la valeur en mémoire correspondant à cette adresse et la retourne */
 /* si elle n'est pas présente retourne 0 */
 /* vérifie que l'adresse et bien celle du premier octet d'un mot */
-long int valeurMemoire(int adresse, memoire *m) {
+unsigned long int valeurMemoire(int adresse, memoire *m) {
   memoire increment=NULL;
-  long int binMem=0;
+  unsigned long int binMem=0;
   /* Si l'adresse est divisible par 4 */
   if (!(adresse&3)) {
   	if (*m==NULL) {printf("Valeur : mémoire vide\n");}
@@ -164,7 +164,7 @@ void afficherMemoires(memoire *m, int adresseMin, int adresseMax) {
 void afficherMemoire(memoire slot) {
   if(slot==NULL) {printf("No record\n");}
   else {
-    printf("0x%04x      %-10ld   0x%08lx   ",slot->adresse,slot->valeur,slot->valeur);
+    printf("0x%04x      %-11d   0x%08x   ",slot->adresse,(int) slot->valeur,(int) slot->valeur);
     decToBin(slot->valeur);
   }
 }

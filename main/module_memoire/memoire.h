@@ -27,7 +27,7 @@
 /* cette implémentation à l'avantage de supporté l'adressage à l'octet et l'adressage au mot */
 typedef struct element {
   int adresse; /* Adresse entre 0x0000 et 0xFFFF */
-  long int valeur; /* Valeur contenu dans la case mémoire */
+  unsigned long int valeur; /* Valeur contenu dans la case mémoire */
   struct element* suivant; /* Adresse de l'élément suivant NULL si dernier */
 } element;
 
@@ -40,7 +40,7 @@ typedef element* memoire;
 /* si il y a déjà une valeur on la remplace */
 /* on garde la liste triéée par adresse */
 /* vérifie que l'adresse et bien celle du premier octet d'un mot */
-void insertion(int adresse, long int mot, memoire *m);
+void insertion(int adresse, unsigned long int mot, memoire *m);
 
 /* prend en entrée un pointeur vers la mémoire et une adresse */
 /* supprime la case mémoire associé à l'adresse */
@@ -51,7 +51,7 @@ void suppression(int adresse, memoire *m);
 /* va chercher la valeur en mémoire correspondant à cette adresse et la retourne */
 /* si elle n'est pas présente retourne 0 */
 /* vérifie que l'adresse et bien celle du premier octet d'un mot */
-long int valeurMemoire(int adresse, memoire *m);
+unsigned long int valeurMemoire(int adresse, memoire *m);
 
 /* prend en entrée un pointeur vers la mémoire */
 /* libère toute les cases mémoire dans l'ordre de parcourt pour éviter les fuites mémoire */
