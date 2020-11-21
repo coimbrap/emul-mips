@@ -6,7 +6,7 @@
 
 /* MEMOIRE REGISTRES */
 
-/* prend en entrée tableau de pointeur vers la structure registre et le nom du fichier source de remplissage */
+/* prend en entrée un tableau de pointeur vers la structure registre et le nom du fichier source de remplissage */
 /* remplit le tableau à l'aide du fichier source de remplissage */
 /* on part du principe que le fichier source est correctement renseigné */
 void remplissageStructRegistre(registre **registres, const char* fichier) {
@@ -31,7 +31,7 @@ void remplissageStructRegistre(registre **registres, const char* fichier) {
   fclose(freg);
 }
 
-/* prend en entrée tableau de pointeur vers la structure registre et une chaine représentant le nom du registre */
+/* prend en entrée un tableau de pointeur vers la structure registre et une chaine représentant le nom du registre */
 /* retourne un pointeur vers la structure contenant toutes les informations du registre en question */
 registre* trouveRegistre(registre **registres, char* nom) {
   int i=0, nonTrouvee=1, special=1,find=-2;
@@ -58,7 +58,7 @@ registre* trouveRegistre(registre **registres, char* nom) {
   return ret;
 }
 
-/* prend en entrée tableau de pointeur vers la structure registre et une chaine représentant le nom du registre */
+/* prend en entrée un tableau de pointeur vers la structure registre et une chaine représentant le nom du registre */
 /* retourne la valeur de la case mémoire sous forme de long int */
 long int valeurRegistre(registre **registres, char* nom) {
   int i=0, nonTrouvee=1, special=1,find=-2;
@@ -86,7 +86,7 @@ long int valeurRegistre(registre **registres, char* nom) {
   return ret->valeur;
 }
 
-/* prend en entrée tableau de pointeur vers la structure registre et une chaine représentant le nom du registre */
+/* prend en entrée un tableau de pointeur vers la structure registre et une chaine représentant le nom du registre */
 /* si il y a lieu remplace le mnémonique du registre par sa valeur entière dans nom */
 void traduitRegistre(registre **registres, char* nom) {
   char *ret=NULL;
@@ -108,6 +108,8 @@ void traduitRegistre(registre **registres, char* nom) {
   }
 }
 
+/* prend en entrée un tableau de pointeur vers la structure registre */
+/* libère chaque case du tableau pour éviter les fuites en mémoires */
 void liberationRegistres(registre** registres) {
   int i=0;
   for (i=0;i<NB_REGISTRE;i++) {
@@ -117,7 +119,9 @@ void liberationRegistres(registre** registres) {
 
 /* AFFICHAGE */
 
-/* Affiche les informations contenu dans une structure de stockage */
+/* prend en entrée une structure d'un registre */
+/* affiche la valeur décimale (sauf pour les registres spéciaux) ainsi que la mnémonique */
+/* affiche aussi la valeur sous forme décimale signé, hexadécimale et binaire */
 void afficheRegistre(registre *registre) {
   if (strcmp(registre->nom,"zero")==0) {
     printf("$%d ($%s)  %-11d   0x%08x   ",registre->numero,registre->nom,(int)registre->valeur,(int)registre->valeur);
@@ -135,8 +139,9 @@ void afficheRegistre(registre *registre) {
   decToBin(registre->valeur);
 }
 
-/* Affiche toutes les structures du tableau de stockage */
-void afficheRegistres(registre *registres[]) {
+/* prend en entrée un tableau de pointeur vers la structure registre */
+/* affiche toutes les structures du tableau */
+void afficheRegistres(registre **registres) {
   int i=0;
   printf("\nRegistre    Décimal      Hex          Binaire\n--------------------------------------------------------------------------\n");
   for(i=0;i<NB_REGISTRE;i++) {

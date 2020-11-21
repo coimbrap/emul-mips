@@ -33,7 +33,7 @@ typedef struct element {
 
 typedef element* memoire;
 
-/* FONCTIONS PRINCIPALE */
+/* MEMOIRE */
 
 /* prend en entrée un pointeur vers la mémoire, une adresse et un mot à écrire */
 /* écrit dans le mémoire à l'adresse donnée le mot donné en argument */

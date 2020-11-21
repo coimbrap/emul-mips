@@ -157,11 +157,10 @@ void afficherMemoires(memoire *m, int adresseMin, int adresseMax) {
   }
 	if (one) {printf("\n");} /* Si on à écrit quelque chose on ajoute un \n */
 	else {printf("No record\n");} /* Sinon on affiche un avertissement */
-  }
 }
 
 /* prend en entré un slot de la mémoire */
-/* affiche l'adresse en hexa ainsi que les représentation décimal hexadécimale et binaire de la valeur en mémoire */
+/* affiche l'adresse en hexa ainsi que les représentation décimale signé, hexadécimale et binaire de la valeur en mémoire */
 void afficherMemoire(memoire slot) {
   if(slot==NULL) {printf("No record\n");}
   else {
