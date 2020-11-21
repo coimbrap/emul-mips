@@ -72,22 +72,19 @@ long int valeurRegistre(registre* registres[], char* nom) {
 
 void traduitRegistre(registre* registres[], char* nom) {
   char *ret=NULL;
-  if((ret=(char *)calloc(TAILLE_MAX_INT,sizeof(char)))==NULL){exit(1);};
   registre *found=NULL;
-  if (valeurDecimale(nom)!=-1) {
-    strcpy(ret,nom);
-  }
-  else {
+  /* Allocation de la chaine pour la représentation de l'int */
+  if (valeurDecimale(nom)==-1) {
+    if((ret=(char *)calloc(TAILLE_MAX_INT,sizeof(char)))==NULL){exit(1);};
     found=trouveRegistre(registres,nom);
     if (found!=NULL) {
-      intVersChaine(found->numero,ret);
+      ret=intVersChaine(found->numero,ret);
     }
+    if (valeurDecimale(ret)!=-1) {
+      strcpy(nom,ret);
+    }
+    free(ret);
   }
-  if (valeurDecimale(ret)==-1) {
-    strcpy(ret,nom);
-  }
-  strcpy(nom,ret);
-  free(ret);
 }
 
 void liberationRegistres(registre** registres) {
