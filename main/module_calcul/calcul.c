@@ -5,49 +5,47 @@
 
 #include "../module_tools/tools.h"
 
-int validHex(char* hex) {
-  int len=strlen(hex);
-  int valid=0,i=0,ret=-1;
-  for (i=0;i<len;i++) {
-    if ((hex[i]>='0' && hex[i]<='9') || (hex[i]>='a' && hex[i]<='f') || (hex[i]>='A' && hex[i]<='F'))  {
-      valid++;
-    }
+/* prend en entrée un pointeur vers la mémoire et le fichier des instructions hex */
+/* remplit la partie segment assembleur de la mémoire à partir des valeurs hex */
+/* retourne la valeur de la dernière case mémoire contenant une instruction (vMax du PC) */
+int chargeProgramme(memoire *mem, const char* progHex) {
+  FILE *prog=NULL;
+  char* instruction=NULL;
+  size_t len=0;
+  int pc=INIT_PC; /* On met le PC à l'init */
+  prog=fopen(progHex,"r"); /* On ouvre le programme */
+  if(NULL==prog){
+    printf("Erreur d'ouverture du fichier\n");
+    exit(-1);
   }
-  if (valid==len) {ret=1;}
-  else {ret=0;}
-  return ret;
-}
-
-int checkBinVal(int* bin, int offset, char* valeur) {
-  int i=offset,ret=1,j=0;
-  while(ret && valeur[j]!='\0') {
-    if ((valeur[j++]-'0')!=bin[i]) {ret=0;}
-    i++;
+  /* On met en mémoire les instructions une à une en incrémentant le PC */
+  while (getline(&instruction,&len,prog)!=-1) {
+    insertion(pc,hexToDec(instruction),mem);
+    pc+=4;
   }
-  return ret;
+  /* On libère le buffer et on ferme le fichier */
+  free(instruction);
+  fclose(prog);
+  return (pc-4);
 }
 
 /* Prend en entrée une instruction hexadécimale (demandé dans les specifications) */
-void traduitHex(long int hex, registre** registres, instruction** instructions, memoire *mem) {
+void execInstruction(long int hex, registre** registres, instruction** instructions, memoire *mem) {
   instruction *found=NULL;
-  registre *rs=NULL;
-  registre *rt=NULL;
-  registre *rd=NULL;
-  registre *hi=NULL;
-  registre *lo=NULL;
-  registre *pc=NULL;
+  registre *rs=NULL,*rt=NULL,*rd=NULL,*hi=NULL,*lo=NULL,*pc=NULL;
   int rsI=0,rtI=0,rdI=0,sa=0,imm=0,opcode=0;
-  long int value=0;
+  long int value=0,tmp=0;
+  /* Buff est nécessaire au fonctionnement de intVersChaine */
   char *buff=NULL;
   if((buff=(char *)calloc(TAILLE_MAX_INT,sizeof(char)))==NULL){exit(1);};
-  long int tmp=0;
+  /* Si la taille de valeur hexadécimale est inférieure à la taille max */
   if (hex<=0xFFFFFFFF) {
-    pc=trouveRegistre(registres,"PC");
-    /* NOP */
+    pc=trouveRegistre(registres,"PC"); /* On initialise le registre du PC */
+    /* Cas NOP, on avance d'une instruction */
     if (hex==0) {
       pc->valeur+=4;
     }
-    /* Si les 6 premiers zéro sont nul */
+    /* Si les 6 premiers zéro sont nul -> R */
     else if ((hex&(0xfc000000))==0) { /* Masque : 1111110...0 */
       opcode=hex&0x3f;
       if ((found=trouveOpcode(instructions,opcode,'R'))!=NULL) {
@@ -59,6 +57,7 @@ void traduitHex(long int hex, registre** registres, instruction** instructions, 
         sa=((hex>>6) & 0x1F);
         if (found->typeInstruction=='R') {
           value=0;
+          /* On initialise les registres rs,rt et rd */
           rs=trouveRegistre(registres,intVersChaine(rsI,buff));
           rt=trouveRegistre(registres,intVersChaine(rtI,buff));
           rd=trouveRegistre(registres,intVersChaine(rdI,buff));
@@ -130,6 +129,7 @@ void traduitHex(long int hex, registre** registres, instruction** instructions, 
             pc->valeur+=4;
           }
           else if (found->ordreBits==3) {
+            /* Initialise les registres HI et LO */
             hi=trouveRegistre(registres,"HI");
             lo=trouveRegistre(registres,"LO");
             if (rs!=NULL && rt!=NULL && hi!=NULL && lo!=NULL) {
@@ -161,6 +161,7 @@ void traduitHex(long int hex, registre** registres, instruction** instructions, 
             }
           }
           else if (found->ordreBits==5) {
+            /* Initialise les registres HI et LO */
             hi=trouveRegistre(registres,"HI");
             lo=trouveRegistre(registres,"LO");
             if (rd!=NULL && hi!=NULL && lo!=NULL) {
@@ -183,6 +184,7 @@ void traduitHex(long int hex, registre** registres, instruction** instructions, 
         if (rd!=NULL) {rd->valeur&=MASQUE_MAX;}
       }
     }
+    /* Sinon c'est une instruction I ou J */
     else {
       opcode=((hex>>26)&0x3f);
       if ((found=trouveOpcode(instructions,opcode,'I'))!=NULL) {
@@ -195,6 +197,7 @@ void traduitHex(long int hex, registre** registres, instruction** instructions, 
         imm=complementInt(imm,16); /* Valeur immédiate € [-32768,32767] */
         if (found->typeInstruction=='I') {
           value=0;
+          /* Initialise les registres rs et rt */
           rs=trouveRegistre(registres,intVersChaine(rsI,buff));
           rt=trouveRegistre(registres,intVersChaine(rtI,buff));
           if (found->ordreBits==1) {
@@ -275,40 +278,23 @@ void traduitHex(long int hex, registre** registres, instruction** instructions, 
   else {
     printf("Format de l'instruction incorrect 0x%lx\n", hex);
   }
-  free(buff);
+  free(buff); /* On libère le buffer de intVersChaine */
 }
 
-
-int chargeProgramme(memoire *mem, const char* progHex) {
-  FILE *prog=NULL;
-  char* instruction=NULL;
-  size_t len=0;
-  int pc=INIT_PC;
-
-  prog=fopen(progHex,"r");
-  if(NULL==prog){
-    printf("Erreur d'ouverture du fichier\n");
-    exit(-1);
-  }
-  while (getline(&instruction,&len,prog)!=-1) {
-    insertion(pc,hexToDec(instruction),mem);
-    pc+=4;
-  }
-  free(instruction);
-  fclose(prog);
-  return (pc-4);
-}
-
+/* prend en entrée un pointeur vers : la mémoire,les registres et les instructions et le fichier des segments asm */
+/* exécute le programme en faisant appel aux sous fonctions */
 void execProgramme(memoire *mem, registre** registres, instruction** instructions, char* prog) {
   long int instruction=0;
   registre *pc=NULL;
   int pcMax=0;
+  /* Init du registre PC */
   pc=trouveRegistre(registres,"PC");
   (pc->valeur)=INIT_PC;
-
-  pcMax=chargeProgramme(mem,prog);
+  /* Chargement du programme et détermination du pc max */
+  pcMax=chargeProgramme(mem,prog); /* On mémorise le pcMAx */
+  /* Tant qu'on à pas atteint la dernière instruction */
   while((pc->valeur)<=pcMax) {
-    instruction=valeurMemoire(pc->valeur,mem);
-    traduitHex(instruction,registres,instructions,mem); /* S'occupe d'incrémenter le PC */
+    instruction=valeurMemoire(pc->valeur,mem); /* On récupère la valeur de l'instruction en mémoire */
+    execInstruction(instruction,registres,instructions,mem); /* Exécute l'opération, s'occupe d'incrémenter le PC */
   }
 }
