@@ -59,8 +59,8 @@ registre* trouveRegistre(registre **registres, char* nom) {
 }
 
 /* prend en entrée un tableau de pointeur vers la structure registre et une chaine représentant le nom du registre */
-/* retourne la valeur de la case mémoire sous forme de long int */
-long int valeurRegistre(registre **registres, char* nom) {
+/* retourne la valeur de la case mémoire sous forme de unsigned long int */
+unsigned long int valeurRegistre(registre **registres, char* nom) {
   int i=0, nonTrouvee=1, special=1,find=-2;
   registre *ret=NULL;
   traduitRegistre(registres,nom); /* traduit le registre */
