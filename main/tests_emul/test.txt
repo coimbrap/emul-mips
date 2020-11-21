@@ -12,7 +12,7 @@ ADDI $3,$4,-100
 ADDI $4,$0,0x34
 ADDI $4,$0,34
 ADDI $4,$0,52
-
+ADDI $8,$0,254
 ADD $29,$0,$8
 ADD $sp,$zero,$t0
 
