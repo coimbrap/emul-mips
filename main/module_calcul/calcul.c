@@ -30,6 +30,7 @@ int chargeProgramme(memoire *mem, const char* progHex) {
 }
 
 /* Prend en entrée une instruction hexadécimale (demandé dans les specifications) */
+/* Exécute l'instruction, met à jour les registres et la mémoire et change le PC */
 void execInstruction(long int hex, registre** registres, instruction** instructions, memoire *mem) {
   instruction *found=NULL;
   registre *rs=NULL,*rt=NULL,*rd=NULL,*hi=NULL,*lo=NULL,*pc=NULL;
