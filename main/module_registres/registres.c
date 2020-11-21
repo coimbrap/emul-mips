@@ -110,7 +110,7 @@ void traduitRegistre(registre **registres, char* nom) {
 
 /* prend en entrée un tableau de pointeur vers la structure registre */
 /* libère chaque case du tableau pour éviter les fuites en mémoires */
-void liberationRegistres(registre** registres) {
+void liberationRegistres(registre **registres) {
   int i=0;
   for (i=0;i<NB_REGISTRE;i++) {
     free(registres[i]);

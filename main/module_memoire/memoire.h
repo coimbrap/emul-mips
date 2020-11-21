@@ -5,16 +5,17 @@
 0xFFFF +------------------------+
        |                        |
        |       Programme        |
-       |                        |
-0xDDDC +------------------------+
-       |                        |
+0xDDDC |                        |
+       +------------------------+
+0xDDD8 |                        |
        |          Pile          |
-       |                        |
-0xAAAC +------------------------+
-       |                        |
+0xAAAC |                        |
+       +------------------------+
+0xAAA8 |                        |
        |        Mémoire         |
        |                        |
-0x0000 +------------------------+*/
+0x0000 +------------------------+
+*/
 
 #define DEBUT_MEMOIRE 0x0000
 #define DEBUT_PILE 0xAAAC
@@ -40,18 +41,18 @@ typedef element* memoire;
 /* si il y a déjà une valeur on la remplace */
 /* on garde la liste triéée par adresse */
 /* vérifie que l'adresse et bien celle du premier octet d'un mot */
-void insertion(int adresse, unsigned long int mot, memoire *m);
+void insertion(memoire *m, int adresse, unsigned long int mot);
 
 /* prend en entrée un pointeur vers la mémoire et une adresse */
 /* supprime la case mémoire associé à l'adresse */
 /* vérifie que l'adresse et bien celle du premier octet d'un mot */
-void suppression(int adresse, memoire *m);
+void suppression(memoire *m, int adresse);
 
 /* prend en entrée un pointeur vers la mémoire et une adresse */
 /* va chercher la valeur en mémoire correspondant à cette adresse et la retourne */
 /* si elle n'est pas présente retourne 0 */
 /* vérifie que l'adresse et bien celle du premier octet d'un mot */
-unsigned long int valeurMemoire(int adresse, memoire *m);
+unsigned long int valeurMemoire(memoire *m, int adresse);
 
 /* prend en entrée un pointeur vers la mémoire */
 /* libère toute les cases mémoire dans l'ordre de parcourt pour éviter les fuites mémoire */

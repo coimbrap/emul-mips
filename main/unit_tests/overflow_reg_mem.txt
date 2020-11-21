@@ -1,0 +1,25 @@
+ADDI $10,$0,32767
+ADD $10,$10,$10
+ADDI $9,$0,32760
+ADDI $9,$9,9
+MULT $10,$9
+MFLO $11
+ADDI $12,$11,1 #Valeur MAX d'un registre dans $12
+ADDI $13,$12,2 #Si on dépasse on retombe dans la partie négative
+
+#overflow 0xffffffff
+ADD $14,$9,$9
+MULT $10,$14
+MFLO $15
+ADDI $15,$15,3 #On a 0xffffffff
+
+#Ecriture dans $0
+ADDI $0,$0,100
+
+#Tout fonctionne du côté registre
+#Testons la mise en mémoire
+ADDI $22,$0,8
+SW $12,-4($22)
+SW $15,0($0)
+
+LW $0,0($0)

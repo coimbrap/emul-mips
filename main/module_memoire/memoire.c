@@ -9,7 +9,7 @@
 /* si il y a déjà une valeur on la remplace */
 /* on garde la liste triéée par adresse */
 /* vérifie que l'adresse et bien celle du premier octet d'un mot */
-void insertion(int adresse, unsigned long int mot, memoire *m) {
+void insertion(memoire *m, int adresse, unsigned long int mot) {
 	element *elem=NULL;
 	memoire increment=*m;
   /* On vérifie que l'on soit bien en tête de mot */
@@ -52,7 +52,7 @@ void insertion(int adresse, unsigned long int mot, memoire *m) {
 /* prend en entrée un pointeur vers la mémoire et une adresse */
 /* supprime la case mémoire associé à l'adresse */
 /* vérifie que l'adresse et bien celle du premier octet d'un mot */
-void suppression(int adresse, memoire *m) {
+void suppression(memoire *m, int adresse) {
 	memoire increment=NULL;
 	element *precedent=NULL;
   if (!(adresse&3)) {
@@ -91,7 +91,7 @@ void suppression(int adresse, memoire *m) {
 /* va chercher la valeur en mémoire correspondant à cette adresse et la retourne */
 /* si elle n'est pas présente retourne 0 */
 /* vérifie que l'adresse et bien celle du premier octet d'un mot */
-unsigned long int valeurMemoire(int adresse, memoire *m) {
+unsigned long int valeurMemoire(memoire *m, int adresse) {
   memoire increment=NULL;
   unsigned long int binMem=0;
   /* Si l'adresse est divisible par 4 */
@@ -130,10 +130,10 @@ void liberation(memoire *m) {
 			/* On mémorise l'élément actuel, on avance d'un élément et on libère l'élément */
       precedent=increment;
       increment=increment->suivant;
-      suppression(precedent->adresse,m);
+      suppression(m,precedent->adresse);
     }
     /* On supprime le dernier */
-    suppression(increment->adresse,m);
+    suppression(m,increment->adresse);
   }
 }
 

@@ -14,7 +14,7 @@ int chargeProgramme(memoire *mem, const char* progHex);
 
 /* Prend en entrée une instruction hexadécimale (demandé dans les specifications) */
 /* Exécute l'instruction, met à jour les registres et la mémoire et change le PC */
-void execInstruction(long int hex, registre** registres, instruction** instructions, memoire *mem);
+void execInstruction(unsigned long int hex, registre **registres, instruction **instructions, memoire *mem);
 
 /* prend en entrée un pointeur vers : la mémoire,les registres et les instructions et le fichier des segments asm */
 /* exécute le programme en faisant appel aux sous fonctions */

@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -pedantic -g -fsanitize=address 
+CFLAGS = -Wall -pedantic -g -fsanitize=address
 EXEC = emul-mips
 LDFLAGS = -g -fsanitize=address
 

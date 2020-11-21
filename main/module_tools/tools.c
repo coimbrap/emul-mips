@@ -15,7 +15,7 @@ void clean_stdin() {
 
 /* Retourne le complément à deux de value */
 /* Prend en entrée un entier et le nombre de bits */
-int complementInt(int value, int bits) {
+int complementADeux(int value, int bits) {
   if ((value & (1<<(bits-1)))!=0) {
     value=value-(1<<bits);
   }
@@ -24,7 +24,7 @@ int complementInt(int value, int bits) {
 
 /* Prend en entrée une chaine signé */
 /* Retourne un entier signé correspondant à l'entier stocké dans la chaine */
-int valeurDecimale(char *s) {
+int valeurDecimale(char* s) {
   int num=-1,i=0,sign=1;
   if (s!=NULL) {
     /* On détermine le signe */
@@ -57,9 +57,9 @@ char* intVersChaine(int num, char* s) {
 
 /* Prend en entrée la valeur hexadécimal dans un tableau de char */
 /* Retourne la valeur décimale associé sous forme d'un entier */
-long int hexToDec(char* hex) {
+unsigned long int hexToDec(char* hex) {
   int i=0;
-  long int dec=0,base=1;
+  unsigned long int dec=0,base=1;
   int len=strlen(hex)-1;
   if (len<=8) {
     for(i=len;i>=0;i--){
@@ -80,7 +80,7 @@ long int hexToDec(char* hex) {
     }
     /* Gère les valeurs négative pour des nombre de moins de 8octets et donc le nombre d'octet est une mutlitple de 4*/
     if (len!=8 && len%4==0) {
-      dec=complementInt(dec,len*4);
+      dec=complementADeux(dec,len*4);
     }
   }
   else {
@@ -92,7 +92,7 @@ long int hexToDec(char* hex) {
 /* AFFICHAGE */
 
 /* Affiche la valeur binaire d'un nombre decimal */
-void decToBin(long int dec) {
+void decToBin(unsigned long int dec) {
   int p=0,b=0;
   for (p=31;p>=0;p--) {
     b=dec>>p;
@@ -102,23 +102,4 @@ void decToBin(long int dec) {
       printf("0");
   }
   printf("\n");
-}
-
-/* Affiche les informations contenu dans une structure de stockage */
-void afficheInstruction(instruction *instruction) {
-  printf("Nom : %s\n", instruction->nom);
-  printf("opcode : %06d\n", instruction->opcode);
-  printf("Type d'instruction : %c\n", instruction->typeInstruction);
-  printf("Ordre bits : %d\n", instruction->ordreBits);
-  printf("Style de remplissage : %d\n", instruction->styleRemplissage);
-  printf("\n");
-}
-
-/* Affiche toutes les structures du tableau de stockage */
-void afficheStructInstruction(instruction *instructions[]) {
-  int i=0;
-  for(i=0;i<NB_OPERATIONS;i++) {
-    printf("--%d--\n", i);
-    afficheInstruction(instructions[i]);
-  }
 }

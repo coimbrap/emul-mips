@@ -11,7 +11,7 @@
 
 /* Prend en entrée la structure de stockage vide et le fichier de stockage */
 /* Remplit la structure de stockage à l'aide du fichier contenant les opérations */
-void remplissageStructInstruction(instruction *instructions[], const char* fichier) {
+void remplissageStructInstruction(instruction **instructions, const char* fichier) {
   FILE *fs=fopen(fichier,"r");
   instruction *tmp=NULL;
   int i=0;
@@ -28,6 +28,25 @@ void remplissageStructInstruction(instruction *instructions[], const char* fichi
     fgetc(fs); /* Enlève \n */
   }
   fclose(fs);
+}
+
+/* Affiche les informations contenu dans une structure de stockage */
+void afficheInstruction(instruction *instruction) {
+  printf("Nom : %s\n", instruction->nom);
+  printf("opcode : %06d\n", instruction->opcode);
+  printf("Type d'instruction : %c\n", instruction->typeInstruction);
+  printf("Ordre bits : %d\n", instruction->ordreBits);
+  printf("Style de remplissage : %d\n", instruction->styleRemplissage);
+  printf("\n");
+}
+
+/* Affiche toutes les structures du tableau de stockage */
+void afficheStructInstruction(instruction **instructions) {
+  int i=0;
+  for(i=0;i<NB_OPERATIONS;i++) {
+    printf("--%d--\n", i);
+    afficheInstruction(instructions[i]);
+  }
 }
 
 /* Prend en entrée la structure de stockage et la libère */
@@ -179,9 +198,9 @@ void parseOperation(char *ligne, char* operation, int* offset) {
 
 /* Traduit une ligne passé en argument (*ligne) en une valeur hexadécimale stockée dans *instructionHex (passé par adresse) */
 /* Retourne 0 si l'operation n'existe pas, est invalide ou que les valeurs sont out of range 1 sinon */
-int parseLigne(char *ligne, long int* instructionHex, instruction* instructions[], registre* registres[]) {
+int parseLigne(char *ligne, unsigned long int *instructionHex, instruction **instructions, registre **registres) {
   int offset=0,ret=0;
-  long int hex=0;
+  unsigned long int hex=0;
   instruction *found=NULL;
   int rs=0,rt=0,imm=0,rd=0,sa=0;
   char operation[TAILLE_MAX_OPERATEUR]="";
@@ -346,7 +365,7 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
   /* Fichiers pour remplir les mémoires (opérandes et registres) */
   size_t len=0;
   char *ligne=NULL,*ligneOut=NULL,*buf=NULL; /* Ligne brute & uniformisée & buffer de lecture */
-  long int instructionHex=0; /* Valeur hexadécimale de l'instruction */
+  unsigned long int instructionHex=0; /* Valeur hexadécimale de l'instruction */
   int programCounter=0,lignes=1;
   char c='0';
   int inW=1;

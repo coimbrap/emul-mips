@@ -427,19 +427,29 @@ A la différence de l'exemple pour les LW et les SW on ne fait pas adresse*4 pou
 
 Nous avons prêté attention aux fuites mémoires ainsi qu'aux variables non initialisé comme les malloc non modifié que l'on à remplacé par des calloc. Pour les fuites mémoires nous avons pris soins de vérifier que même en cas d'interruption d'une fonction (ex. instruction détectée comme invalide) il n'y ai pas de fuites mémoire.
 
-Nous avons utilisé valgrind : `valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./emul-mips tests_emul/test.txt /tmp/test`
+Nous avons utilisé valgrind : `valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes -s ./emul-mips tests_emul/test.txt /tmp/test`
 
 Rapport de valgrind dans un des pires cas (lignes invalides et tout type d'usage des instructions avec malloc/calloc)
 ```
-==25263==
-==25263== HEAP SUMMARY:
-==25263==     in use at exit: 0 bytes in 0 blocks
-==25263==   total heap usage: 214 allocs, 214 frees, 37,441 bytes allocated
-==25263==
-==25263== All heap blocks were freed -- no leaks are possible
-==25263==
-==25263== For lists of detected and suppressed errors, rerun with: -s
-==25263== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==43032== Memcheck, a memory error detector
+==43032== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==43032== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
+==43032== Command: ./emul-mips tests_emul/test.txt /tmp/test
+==43032==
+==43032==ASan runtime does not come first in initial library list; you should either link runtime to your application or manually preload it with LD_PRELOAD.
+==43032==
+==43032== HEAP SUMMARY:
+==43032==     in use at exit: 0 bytes in 0 blocks
+==43032==   total heap usage: 0 allocs, 0 frees, 0 bytes allocated
+==43032==
+==43032== All heap blocks were freed -- no leaks are possible
+==43032==
+==43032== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+
 ```
 
 De plus nous avons utilisé address sanitizer tout au long de notre développement.
+
+
+
+Valeur sur 32 bits signé [-2147483648,2147483647]
