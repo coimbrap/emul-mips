@@ -4,13 +4,10 @@
 #include <string.h>
 
 /* OUTILS GENERAUX */
-unsigned numDigits(int n) {
-  if (n < 10) return 1;
-  return 1 + numDigits(n / 10);
-}
 
+/* Vide le buffer stdin */
 void clean_stdin() {
-  int c;
+  char c;
   do {
     c=getchar();
   } while (c!='\n' && c!=EOF);
@@ -25,7 +22,8 @@ int complementInt(int value, int bits) {
   return value;
 }
 
-/* Retourne un entier signé correspondant à un entier stocké dans un string */
+/* Prend en entrée une chaine signé */
+/* Retourne un entier signé correspondant à l'entier stocké dans la chaine */
 int valeurDecimale(char *s) {
   int num=-1,i=0,sign=1;
   if (s!=NULL) {
@@ -47,7 +45,8 @@ int valeurDecimale(char *s) {
   return sign*num;
 }
 
-/* Int vers string de l'int */
+/* Prend en entrée un entier signé et une chaine */
+/* transforme l'entier en une chaine de caractère et la retourne */
 char* intVersChaine(int num, char* s) {
   /* Si la chaine est allouée */
   if (s!=NULL) {
@@ -89,8 +88,6 @@ long int hexToDec(char* hex) {
   }
   return dec;
 }
-
-
 
 /* AFFICHAGE */
 
