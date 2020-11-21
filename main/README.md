@@ -326,11 +326,11 @@ Il y a donc 35 registres pour notre implémentation. Nous allons donc utilisé u
 
 Une case mémoire est composée de 32bits.
 
-La mémoire est stocké entre les adresses 0x00000000 et 0xFFFFFFFF.
+La mémoire est stocké entre les adresses 0x0000 et 0xFFFF.
 
 Les instructions pouvant accéder à la mémoire dans notre implémentation sont LW et SW. Elles permettent de faire le lien entre un registre et la mémoire en transférant un mot de 32bits soit 4octets.
 
-Ces 4 octets devront être stocké à la suite dans la mémoire en respectant la norme Big Endian (octet de poids fort à l'adresse la plus basse). De plus l'adresse du premier octet devra être divisible par 4.
+Ces 4 octets devront être stocké à la suite dans la mémoire en respectant la norme Big Endian (octet de poids fort à l'adresse la plus basse). De plus l'adresse du premier octet d'un mot devra être divisible par 4.
 
 En résumé la quantité de mémoire utilisé par un programme n'est pas prédictible.
 
@@ -338,27 +338,31 @@ La première question soulevé est la suivante :
 Une adresse pointe vers une case pouvant stocké un octet (8bits) or dans notre cas nous stockons uniquement des mots soit 4 octets (32 bits).
 Faut-il avoir une mémoire géré par mots (bloc de 4 octets) ou une mémoire géré par octet ?
 
-Vu que pour notre implémentation nous n'utilisons pas les directives et que les deux seules opérations accédant à la mémoire sont LW et SW. Nous allons donc faire une implémentation de la mémoire simplifié, pour cela nous allons utilisé la map mémoire suivante.
+Vu que pour notre implémentation nous n'utilisons pas les directives et que les deux seules opérations accédant à la mémoire sont LW et SW.
+
+Nous avons fait le choix d'une implémentation modulaire sous forme de liste chaînée supportant à la fois l'adressage à l'octet et l'adressage au mot. Dans notre cas nous stockerons que des mots, l'adresse dans la mémoire à laquelle ce mot sera accessible devra donc être l'adresse du premier octet de ce mot (et donc un multiple de 4).
+
+Nous allons utilisé la map mémoire suivante.
 
 ```
 0xFFFF +------------------------+
        |                        |
        |       Programme        |
-       |                        |
-0xDDDD +------------------------+
-       |                        |
+0xDDDC |                        |
+       +------------------------+
+0xDDD8 |                        |
        |          Pile          |
-       |                        |
-0xAAAA +------------------------+
-       |                        |
+0xAAAC |                        |
+       +------------------------+
+0xAAA8 |                        |
        |        Mémoire         |
        |                        |
 0x0000 +------------------------+
 ```
 
-La mémoire est accessible avec les instructions *LW* et *SW* se trouvera donc entre les adresses 0x0000 et 0x2000 et sera remplit des adresses bases aux adresses hautes.
+La mémoire est accessible avec les instructions *LW* et *SW* se trouvera donc entre les adresses 0x0000 et 0xAAAC et sera remplit des adresses bases aux adresses hautes.
 
-Pour la pile elle se remplit par le bas donc elle se trouvera entre 0xDDDD et 0xAAAA. Cela nous laisse de la place si on veut par la suite ajouter des parties à notre map mémoire.
+Pour la pile elle se remplit par le bas donc elle se trouvera entre 0xDDD8 et 0xAAAC. Cela nous laisse de la place si on veut par la suite ajouter des parties à notre map mémoire.
 
 Vu que la mémoire ne sera pas trop utilisé nous allons utilisé une listes chaînée dynamiquement alloué pour utiliser le moins de mémoire possible.
 
@@ -369,9 +373,9 @@ On aura donc la map mémoire qui contiendra :
 
 L'utilisation de la pile est géré par le registre *sp* qui pointe vers l'adresse du haut de la pile, on peut donc utiliser la même implémentation pour le pile et pour la mémoire seule l'utilisation varie.
 
-De même pour le programme, l'instruction en cours sera pointé par le registre *PC*. A noté que avant d'incrémenter le PC il faudra vérifié que l'on est bien une case après.
+De même pour le programme, l'instruction en cours sera pointée par le registre *PC*. A noté qu'avant d'incrémenter le PC il faudra vérifier que l'on est bien une case après.
 
-Pour l'implémentation nous avons retenu celle d'une liste chaîné. Chaque maillon de la liste sera composé comme décrit ci-dessous :
+Pour l'implémentation nous avons retenu celle d'une unique liste chaînée. Chaque maillon de la liste sera composé comme décrit ci-dessous :
 - L'adresse de la case mémoire du premier octet du mot (un multiple de 4)
 - La valeur du mot sous forme de tableau
 - Un pointeur vers l'adresse suivante, si ce pointeur vaut NULL c'est la fin de la mémoire
@@ -379,6 +383,8 @@ Pour l'implémentation nous avons retenu celle d'une liste chaîné. Chaque mail
 Pour une question des questions de simplicité on veillera à ce que les adresses reste dans l'ordre.
 
 En résumé un maillon contiendra un mot et sera désigné par l'adresse de la case mémoire du premier octet du mot.
+
+NB: Si l'on souhaite un jour stocker par octet il suffira de rajouter des fonction d'insertion pour un octet, l'implémentation ne changera pas.
 
 *Recherche documentaire sur les liens suivant :*
 - *https://www-soc.lip6.fr/trac/sesi-almo/chrome/site/docs/ALMO-mips32-archi-asm.pdf*
@@ -419,7 +425,6 @@ Questions :
 
 A la différence de l'exemple pour les LW et les SW on ne fait pas adresse*4 pour trouver la place en mémoire, l'utilisateur doit directement passer l'adresse du début du mot (un multiple de 4) qui est la méthode à favoriser vu que l'on peut aussi écrire des bits (pas dans notre cas).
 
-
 Nous avons prêté attention aux fuites mémoires ainsi qu'aux variables non initialisé comme les malloc non modifié que l'on à remplacé par des calloc. Pour les fuites mémoires nous avons pris soins de vérifier que même en cas d'interruption d'une fonction (ex. instruction détectée comme invalide) il n'y ai pas de fuites mémoire.
 
 Nous avons utilisé valgrind : `valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./emul-mips tests_emul/test.txt /tmp/test`
@@ -436,3 +441,5 @@ Rapport de valgrind dans un des pires cas (lignes invalides et tout type d'usage
 ==25263== For lists of detected and suppressed errors, rerun with: -s
 ==25263== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
 ```
+
+De plus nous avons utilisé address sanitizer tout au long de notre développement.

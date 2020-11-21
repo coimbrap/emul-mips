@@ -36,14 +36,18 @@ int main(int argc, char *argv[]) {
     execProgramme(&mem,registres,instructions,argv[2]);
     printf("\n------ Registres ------\n");
     afficheRegistres(registres);
+    printf("\n------- Pile -------\n");
+    afficherMemoires(&mem,DEBUT_PILE,DEBUT_PROG);
     printf("\n------- Mémoire -------\n");
-    afficherMemoires(&mem);
+    afficherMemoires(&mem,DEBUT_MEMOIRE,DEBUT_PILE);
+    printf("\n------- Programme -------\n");
+    afficherMemoires(&mem,DEBUT_PROG,FIN_MEM);
   }
   else {
     printf("Erreur sur le fichier d'entrée '%s'\n\n",argv[in]);
   }
   liberationRegistres(registres);
   liberationInstruction(instructions);
-  liberation(&mem);
+  liberation(&mem); 
   return 0;
 }
