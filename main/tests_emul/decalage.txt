@@ -1,4 +1,4 @@
-#Teste les décalages binaires SLL/SRL/ROTR 
+#Teste les décalages binaires SLL/SRL/ROTR
 
 ADD $16,$0,$0
 LUI $16,254
@@ -12,11 +12,7 @@ SRL $18,$16,16
 #On testera avec un sa négatif (ne fonctionne pas sur l'exemple)
 SLL $19,$17,-16
 
-# Test ROTR 
+# Test ROTR
 
 ADDI $8,$0,246
 ROTR $9,$8,9 #11110110 -> 11110110 + (32-9 zero)
-
-
-
-
