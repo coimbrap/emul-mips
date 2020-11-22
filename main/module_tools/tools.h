@@ -1,9 +1,6 @@
 #ifndef _TOOLS_H_
 #define _TOOLS_H_
 
-/* Import des entêtes du module hex (define & structure) */
-#include "../module_hex/hex.h"
-
 #define TAILLE_MAX_INT 12 /* Pour la transformation en chaine d'un int, maximum 11 caractères */
 
 /* OUTILS GENERAUX */

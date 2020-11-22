@@ -1,13 +1,12 @@
 #ifndef _HEX_H_
 #define _HEX_H_
 
+#include "../module_tools/tools.h"
+#include "../module_registres/registres.h" /* Ce module permet la traduction des mnémonique */
+
 #define TAILLE_MAX_OPERATEUR 9 /* SYSCALL est le plus long */
 #define DEBUT_PROG 0xDDDC
 #define NB_OPERATIONS 26
-
-/* Module registres */
-/* Ce module permet la traduction des mnémonique */
-#include "../module_registres/registres.h"
 
 typedef struct instruction {
   char nom[TAILLE_MAX_OPERATEUR]; /* En ascii */

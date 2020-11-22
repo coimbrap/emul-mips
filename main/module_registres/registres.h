@@ -1,6 +1,8 @@
 #ifndef _REGISTRES_H_
 #define _REGISTRES_H_
 
+#include "../module_tools/tools.h"
+
 #define INIT_VALUE 0
 #define TAILLE_MAX_MNEMO 5
 #define NB_BIT_REGISTRE 32

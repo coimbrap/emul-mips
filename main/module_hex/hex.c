@@ -1,11 +1,8 @@
+#include "hex.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include "hex.h"
-
-/* Module tools */
-#include "../module_tools/tools.h"
 
 /* MEMOIRE INSTRUCTIONS */
 

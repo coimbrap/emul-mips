@@ -2,6 +2,7 @@
 #define _CALCUL_H_
 
 #include "../module_hex/hex.h"
+#include "../module_tools/tools.h"
 #include "../module_memoire/memoire.h"
 #include "../module_registres/registres.h"
 

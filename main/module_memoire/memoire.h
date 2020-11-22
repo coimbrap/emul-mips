@@ -1,6 +1,8 @@
 #ifndef _MEMOIRE_H_
 #define _MEMOIRE_H_
 
+#include "../module_tools/tools.h"
+
 /* La mémoire est de la forme suivante :
 0xFFFF +------------------------+
        |                        |
@@ -22,7 +24,6 @@
 #define DEBUT_PROG 0xDDDC
 #define FIN_MEM 0xFFFF
 
-#include "../module_tools/tools.h"
 
 /* structure de type liste chainée contenant une valeur de type unsigned long int */
 /* cette implémentation à l'avantage de supporté l'adressage à l'octet et l'adressage au mot */

@@ -10,7 +10,6 @@ $(EXEC): $(EXEC).o hex.o tools.o registres.o memoire.o calcul.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 #Fichiers objets
-
 $(EXEC).o: $(EXEC).c
 	$(CC) -c $< $(CFLAGS) -o $@
 

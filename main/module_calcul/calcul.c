@@ -3,8 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../module_tools/tools.h"
-
 /* prend en entrée un pointeur vers la mémoire et le fichier des instructions hex */
 /* remplit la partie segment assembleur de la mémoire à partir des valeurs hex */
 /* retourne la valeur de la dernière case mémoire contenant une instruction (vMax du PC) */
