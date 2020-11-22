@@ -314,12 +314,12 @@ Un structure représentant un registre organisé de la manière suivante :
 
 Le numéro du registre, le nom mnémonique et la valeur du registre seront initialisé par une fonction à l'aide d'un fichier. Par défaut la valeur du registre sera initialisé à une valeur arbitraire pour éviter des valeurs aléatoire dans l'affichage dû au malloc.
 
-Afin de pouvoir utiliser la même structure pour les 32 registres GPR et pour les registres spécialisés si le numéro du registre vaut -1 on à affaire à un registre spécialisés. Dans ce cas c'est le nom ASCII qui fera aussi d'identifiant pour le registre.
+Afin de pouvoir utiliser la même structure pour les 32 registres GPR et pour les registres spécialisés si le numéro du registre est supérieur à 31 on à affaire à un registre spécialisés. Cela permet de simplifier la recherche de ces registres.
 
-- Le numéro du registre sera un nombre entier entre -1 et 31 on le stockera sous la forme d'un int.
+- Le numéro du registre sera un nombre entier entre 0 et 34 on le stockera sous la forme d'un int.
+  - Les registres spéciaux PC,HI,LO auront comme numéro respectif 32,33,34
 - Le nom mnémonique sera un tableau de 5 char car le plus long est zero.
 - La valeur du registre sera un tableau contenant 32 cases pour les 32 bits de leur valeur en binaire. On le stockera sous la forme d'un tableau d'entier.
-
 Il y a donc 35 registres pour notre implémentation. Nous allons donc utilisé un tableau de 35 cases avec chaque case pointant vers une structure décrite ci-dessus associé à un registre.
 
 ## Module mémoire
@@ -453,3 +453,8 @@ De plus nous avons utilisé address sanitizer tout au long de notre développeme
 
 
 Valeur sur 32 bits signé [-2147483648,2147483647]
+
+
+TDL :
+- Limiter SW/LW dans la mémoire
+- Registres dans un tableau de taille fixe
