@@ -132,13 +132,14 @@ void execInstruction(unsigned long int hex, registre **registres, instruction **
               /* MULT */
               if (opcode==0x18) {
                 value=(rs->valeur*rt->valeur);
+                hi->valeur=(((value&0xffffffff00000000)>>32)&MASQUE_MAX);
+                lo->valeur=((value&0xffffffff)&MASQUE_MAX);
               }
               /* DIV */
               else if (opcode==0x1A) {
-                value=(rs->valeur/rt->valeur);
+                hi->valeur=(rs->valeur%rt->valeur);
+                lo->valeur=(rs->valeur/rt->valeur);
               }
-              hi->valeur=(((value&0xffffffff00000000)>>32)&MASQUE_MAX);
-              lo->valeur=((value&0xffffffff)&MASQUE_MAX);
             }
             pc->valeur+=4;
           }
