@@ -274,23 +274,3 @@ void execInstruction(unsigned long int hex, registre **registres, instruction **
     printf("Format de l'instruction incorrect 0x%lx\n", hex);
   }
 }
-
-/* prend en entrée un pointeur vers : la mémoire,les registres et les instructions et le fichier des segments asm */
-/* exécute le programme en faisant appel aux sous fonctions */
-void execProgramme(memoire *mem, registre** registres, instruction** instructions, char* prog) {
-  unsigned long int instruction=0;
-  registre *pc=NULL,*sp=NULL;
-  int pcMax=0;
-  /* Init du registre PC & SP */
-  pc=registres[32]; /* PC */
-  sp=registres[29];
-  (pc->valeur)=DEBUT_PROG;
-  (sp->valeur)=DEBUT_PILE;
-  /* Chargement du programme et détermination du pc max */
-  pcMax=chargeProgramme(mem,prog); /* On mémorise le pcMAx */
-  /* Tant qu'on à pas atteint la dernière instruction */
-  while((pc->valeur)<=pcMax) {
-    instruction=valeurMemoire(mem,pc->valeur); /* On récupère la valeur de l'instruction en mémoire */
-    execInstruction(instruction,registres,instructions,mem); /* Exécute l'opération, s'occupe d'incrémenter le PC */
-  }
-}
