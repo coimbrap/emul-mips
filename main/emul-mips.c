@@ -1,7 +1,5 @@
-#include "module_hex/hex.h"
-#include "module_calcul/calcul.h"
-#include "module_registres/registres.h"
-#include "module_memoire/memoire.h"
+#include "module_console/console.h"
+
 #include <string.h>
 #include <stdio.h>
 
@@ -25,22 +23,14 @@ int main(int argc, char *argv[]) {
     in=2;
     out=3;
     mode=0;
-    printf("Mode pas à pas\n\n");
+    printf("Mode pas à pas non-intéractif\n\n");
   }
-  if ((file=fopen(argv[in], "r"))) {
+  if(argc==3 && (strcmp(argv[1],"-pas")==0)) {
+    parseFichier("/tmp/void",argv[2],2,instructions,registres,&mem);
+  }
+  else if ((file=fopen(argv[in], "r"))) {
     fclose(file);
-    printf("Lecture du ficher : %s\n\n", argv[in]);
-    parseFichier(argv[in],argv[out],mode,instructions,registres);
-    printf("\nFormes hexadécimale écrites dans '%s'\n", argv[out]);
-    execProgramme(&mem,registres,instructions,argv[2]);
-    printf("\n------ Registres ------\n");
-    afficheRegistres(registres);
-    printf("\n------- Pile -------\n");
-    afficherMemoires(&mem,DEBUT_PILE,DEBUT_PROG);
-    printf("\n------- Mémoire -------\n");
-    afficherMemoires(&mem,DEBUT_MEMOIRE,DEBUT_PILE);
-    /*printf("\n------- Programme -------\n");
-    afficherMemoires(&mem,DEBUT_PROG,FIN_MEM);*/
+    parseFichier(argv[in],argv[out],mode,instructions,registres,&mem);
   }
   else {
     printf("Erreur sur le fichier d'entrée '%s'\n\n",argv[in]);
