@@ -11,6 +11,6 @@ void insererSegment(prog *segments, int programCounter, unsigned long int tradHe
 void afficherSegments(prog *segments, int pc);
 void afficherSegmentPc(prog *segments, int pc);
 void libereSegments(prog *segments);
-void parseFichier(char *input, char* output, int mode, instruction **instructions, registre** registres, memoire *mem);
+void parseFichier(char *input, char* output, int mode, instruction **instructions, registre** registres, memoire *mem, prog *segments);
 
 #endif
