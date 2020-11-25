@@ -10,7 +10,6 @@ int main(int argc, char *argv[]) {
   registre* registres[NB_REGISTRE];
   memoire mem=NULL;
   char *listereg="src/listeReg.txt";
-  int in=1,out=2,mode=1;
   prog segments=NULL;
   remplissageStructRegistre(registres,listereg);
   remplissageStructInstruction(instructions,listeope);
@@ -27,16 +26,17 @@ int main(int argc, char *argv[]) {
     printf("Mode intéractif\n\n");
     parseFichier("/tmp/void",argv[2],2,instructions,registres,&mem,&segments);
   }
-  else if ((file=fopen(argv[in], "r"))) {
+  else if ((file=fopen(argv[1], "r"))) {
     fclose(file);
     printf("Mode automatique non-intéractif\n\n");
-    parseFichier(argv[in],argv[out],1,instructions,registres,&mem,&segments);
+    parseFichier(argv[1],argv[2],1,instructions,registres,&mem,&segments);
   }
   else {
-    printf("Erreur sur le fichier d'entrée '%s'\n\n",argv[in]);
+    printf("Erreur sur le fichier d'entrée\n");
   }
   liberationRegistres(registres);
   liberationInstruction(instructions);
+
   liberation(&mem);
   return 0;
 }

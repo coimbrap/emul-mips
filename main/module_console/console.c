@@ -17,7 +17,6 @@ void insererSegment(prog *segments, int programCounter, unsigned long int tradHe
   elem->asem=instruction;
   elem->suivant=NULL;
   if ((*segments)==NULL) {
-    printf("Devant\n");
     *segments=elem;
     (*segments)->suivant=NULL;
   }
@@ -78,9 +77,10 @@ void libereSegments(prog *segments) {
   }
 }
 
+/* Mode: 0: pàp, 1: auto et 2: intéractif */
 void parseFichier(char *input, char* output, int mode, instruction **instructions, registre** registres, memoire *mem, prog *segments) {
   /* Fichiers d'entrée, de sortie du programme et d'affichage */
-  FILE *fin=fopen(input, "r"),*fout=fopen(output, "w");
+  FILE *fin=NULL,*fout=fopen(output, "w");
   /* Fichiers pour remplir les mémoires (opérandes et registres) */
   size_t len=0;
   char *ligne=NULL,*ligneOut=NULL; /* Ligne brute & uniformisée & buffer de lecture */
@@ -93,10 +93,6 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
   int pcMax=0;
   int tmpMode=mode;
   programCounter=DEBUT_PROG; /* Initialisation du PC local */
-  if (fin==NULL) {
-    printf("Erreur lors de l'ouverture du fichier '%s'\n",input);
-    exit(-1);
-  }
   /* Initialisation du fichier (suppression du contenu ou création) */
   if (fout==NULL) {
     printf("Erreur lors de l'ouverture du fichier '%s'\n",output);
@@ -104,6 +100,11 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
   }
   /* Si lecture de fichier */
   if(tmpMode==1 || tmpMode==0) {
+    fin=fopen(input, "r");
+    if (fin==NULL) {
+      printf("Erreur lors de l'ouverture du fichier '%s'\n",input);
+      exit(-1);
+    }
     printf("Lecture du fichier : %s\n\n", input);
     while(getline(&ligne,&len,fin)!=-1) { /* Tant qu'on est pas à la fin du fichier */
       if(ligne[0]!='\n' && ligne[0]!='\0') { /* Si on n'à pas une ligne vide */
@@ -167,15 +168,13 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
     char *line=NULL;
     programCounter=DEBUT_PROG;
     while(saisie) {
-        getline(&line,&len,stdin);
+        if(getline(&line,&len,stdin)>0) {
         if((ligneOut=(char *)calloc(strlen(line),sizeof(char)))==NULL){exit(1);};
         uniformisationInstruction(line,ligneOut);
         if(ligneOut[0]!='\0') { /* Si la ligne uniformisé n'est pas vide */
           /* On a quelque chose */
           if (parseLigne(ligneOut,&instructionHex,instructions,registres)) {
-            printf("Ligne saisie : %d|%s\n",programCounter,ligneOut);
             insererSegment(segments,programCounter,instructionHex,ligneOut);
-            afficherSegments(segments,-1);
             fprintf(fout,"%08lx\n",instructionHex);
             programCounter+=4;
           }
@@ -185,14 +184,12 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
         if(strcmp(line,"EXIT\n")==0) {
           saisie=0;
         }
-
+      }
     }
     free(line);
-
     /* Une fois la structure remplit on passe à l'éxécution */
   }
   fclose(fout);
-  clean_stdin();
   printf("\nFormes hexadécimale écrites dans '%s'\n", output);
   printf("\n---- Assembleur ----\n\n");
   afficherSegments(segments,-1);
@@ -204,7 +201,6 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
   (sp->valeur)=DEBUT_PILE;
   /* Chargement du programme et détermination du pc max */
   pcMax=chargeProgramme(mem,output); /* On mémorise le pcMAx */
-  printf("pcMax : %d\n", pcMax);
   /* Tant qu'on à pas atteint la dernière instruction */
   while((pc->valeur)<=pcMax) {
     if (mode==1) {
@@ -220,7 +216,6 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
         c=getchar();
         inW=1;
         if (c=='\n') {
-          printf("On exécute\n");
           instruction=valeurMemoire(mem,pc->valeur); /* On récupère la valeur de l'instruction en mémoire */
           printf("Exécution de l'instruction :\n");
           afficherSegmentPc(segments,pc->valeur);
@@ -247,5 +242,4 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
   afficheRegistres(registres);
   printf("\n------- Pile -------\n");
   afficherMemoires(mem,DEBUT_PILE,DEBUT_PROG);
-  libereSegments(segments);
 }
