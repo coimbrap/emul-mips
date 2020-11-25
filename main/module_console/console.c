@@ -57,7 +57,7 @@ void afficherSegmentPc(prog *segments, int pc) {
     printf("Segments vide\n");
   }
   else {
-    while(increment->suivant!=NULL) {
+    while(increment!=NULL) {
       if(increment->pc==pc) {
         printf("%08d 0x%08lx   %s\n",increment->pc,increment->hex,increment->asem);
       }
@@ -85,14 +85,15 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
   size_t len=0;
   char *ligne=NULL,*ligneOut=NULL; /* Ligne brute & uniformisée & buffer de lecture */
   unsigned long int instructionHex=0; /* Valeur hexadécimale de l'instruction */
-  int programCounter=0,lignes=1;
+  int lignes=1;
   char c='0';
   int inW=1;
   unsigned long int instruction=0;
   registre *pc=NULL,*sp=NULL;
   int pcMax=0;
   int tmpMode=mode;
-  programCounter=DEBUT_PROG; /* Initialisation du PC local */
+  pc=registres[32]; /* PC */
+  pc->valeur=DEBUT_PROG; /* Initialisation du PC */
   /* Initialisation du fichier (suppression du contenu ou création) */
   if (fout==NULL) {
     printf("Erreur lors de l'ouverture du fichier '%s'\n",output);
@@ -115,9 +116,10 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
           /* On a quelque chose */
           if (tmpMode) {
             if (parseLigne(ligneOut,&instructionHex,instructions,registres)) {
-              insererSegment(segments,programCounter,instructionHex,ligneOut);
+              insererSegment(segments,pc->valeur,instructionHex,ligneOut);
+              insertion(mem,pc->valeur,instructionHex);
               fprintf(fout,"%08lx\n",instructionHex);
-              programCounter+=4;
+              (pc->valeur)+=4;
             }
             else {
               free(ligneOut);
@@ -134,11 +136,15 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
                 c=getchar();
                 inW=1;
                 if (c=='s' || c=='\n') {
-                  insererSegment(segments,programCounter,instructionHex,ligneOut);
+                  insererSegment(segments,pc->valeur,instructionHex,ligneOut);
+                  insertion(mem,pc->valeur,instructionHex);
                   fprintf(fout,"%08lx\n",instructionHex);
-                  programCounter+=4;
+                  (pc->valeur)+=4;
                   inW=0;
-                  if (c=='s') {tmpMode=1;}
+                  if (c=='s') {
+                    tmpMode=1;
+                /*    clean_stdin(); */
+                  }
                 }
                 else {clean_stdin();}
                 if (c=='p') {
@@ -166,7 +172,6 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
     /* On écrit l'instruction assembleur au clavier jusqu'a EXIT */
     int saisie=1;
     char *line=NULL;
-    programCounter=DEBUT_PROG;
     while(saisie) {
         if(getline(&line,&len,stdin)>0) {
         if((ligneOut=(char *)calloc(strlen(line),sizeof(char)))==NULL){exit(1);};
@@ -174,9 +179,10 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
         if(ligneOut[0]!='\0') { /* Si la ligne uniformisé n'est pas vide */
           /* On a quelque chose */
           if (parseLigne(ligneOut,&instructionHex,instructions,registres)) {
-            insererSegment(segments,programCounter,instructionHex,ligneOut);
+            insererSegment(segments,pc->valeur,instructionHex,ligneOut);
+            insertion(mem,pc->valeur,instructionHex);
             fprintf(fout,"%08lx\n",instructionHex);
-            programCounter+=4;
+            (pc->valeur)+=4;
           }
           else {free(ligneOut);}
         }
@@ -194,15 +200,13 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
   printf("\n---- Assembleur ----\n\n");
   afficherSegments(segments,-1);
   printf("\n----- Exécution du programme -----\n\n");
-  /* Init du registre PC & SP */
-  pc=registres[32]; /* PC */
+  /* Init du registre SP */
   sp=registres[29];
-  (pc->valeur)=DEBUT_PROG;
   (sp->valeur)=DEBUT_PILE;
-  /* Chargement du programme et détermination du pc max */
-  pcMax=chargeProgramme(mem,output); /* On mémorise le pcMAx */
+  pcMax=pc->valeur; /* On mémorise le pcMAx */
+  pc->valeur=DEBUT_PROG;
   /* Tant qu'on à pas atteint la dernière instruction */
-  while((pc->valeur)<=pcMax) {
+  while((pc->valeur)<pcMax) {
     if (mode==1) {
       instruction=valeurMemoire(mem,pc->valeur); /* On récupère la valeur de l'instruction en mémoire */
       printf("Exécution de l'instruction :\n");
@@ -242,4 +246,6 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
   afficheRegistres(registres);
   printf("\n------- Pile -------\n");
   afficherMemoires(mem,DEBUT_PILE,DEBUT_PROG);
+  printf("\n------- Prog -------\n");
+  afficherMemoires(mem,DEBUT_PROG,0xFFFF);
 }

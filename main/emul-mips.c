@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
   }
   else if(argc==3 && (strcmp(argv[1],"-pas")==0)) {
     printf("Mode intéractif\n\n");
-    parseFichier("/tmp/void",argv[2],2,instructions,registres,&mem,&segments);
+    parseFichier("/dev/null",argv[2],2,instructions,registres,&mem,&segments);
   }
   else if ((file=fopen(argv[1], "r"))) {
     fclose(file);

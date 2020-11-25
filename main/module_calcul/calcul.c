@@ -3,30 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* prend en entrée un pointeur vers la mémoire et le fichier des instructions hex */
-/* remplit la partie segment assembleur de la mémoire à partir des valeurs hex */
-/* retourne la valeur de la dernière case mémoire contenant une instruction (vMax du PC) */
-int chargeProgramme(memoire *mem, const char* progHex) {
-  FILE *prog=NULL;
-  char* instruction=NULL;
-  size_t len=0;
-  int pc=DEBUT_PROG; /* On met le PC à l'init */
-  prog=fopen(progHex,"r"); /* On ouvre le programme */
-  if(NULL==prog){
-    printf("Erreur d'ouverture du fichier\n");
-    exit(-1);
-  }
-  /* On met en mémoire les instructions une à une en incrémentant le PC */
-  while (getline(&instruction,&len,prog)!=-1) {
-    insertion(mem,pc,hexToDec(instruction));
-    pc+=4;
-  }
-  /* On libère le buffer et on ferme le fichier */
-  free(instruction);
-  fclose(prog);
-  return (pc-4);
-}
-
 /* Prend en entrée une instruction hexadécimale (demandé dans les specifications) */
 /* Exécute l'instruction, met à jour les registres et la mémoire et change le PC */
 void execInstruction(unsigned long int hex, registre **registres, instruction **instructions, memoire *mem) {
