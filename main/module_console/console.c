@@ -51,15 +51,19 @@ void afficherSegments(prog *segments, int pc) {
   }
 }
 
-void afficherSegmentPc(prog *segments, int pc) {
+/* type=1 : pc,hex,char type=0 : char */
+void afficherSegmentPc(prog *segments, int pc, int type) {
   prog increment=*segments;
+  int c=1;
   if (increment==NULL) {
     printf("Segments vide\n");
   }
   else {
-    while(increment!=NULL) {
+    while(increment!=NULL && c) {
       if(increment->pc==pc) {
-        printf("%08d 0x%08lx   %s\n",increment->pc,increment->hex,increment->asem);
+        if(type) {printf("%08d 0x%08lx   %s\n",increment->pc,increment->hex,increment->asem);}
+        else if(type==0) {printf("%s\n",increment->asem);}
+        c=0;
       }
       increment=increment->suivant;
     }
@@ -206,23 +210,24 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
   pcMax=pc->valeur; /* On mémorise le pcMAx */
   pc->valeur=DEBUT_PROG;
   /* Tant qu'on à pas atteint la dernière instruction */
+  clean_stdin();
   while((pc->valeur)<pcMax) {
     if (mode==1) {
       instruction=valeurMemoire(mem,pc->valeur); /* On récupère la valeur de l'instruction en mémoire */
       printf("Exécution de l'instruction :\n");
-      afficherSegmentPc(segments,pc->valeur);
+      afficherSegmentPc(segments,pc->valeur,1);
       execInstruction(instruction,registres,instructions,mem); /* Exécute l'opération, s'occupe d'incrémenter le PC */
     }
     else if (mode==0 || mode==2) {
-      afficherSegmentPc(segments,pc->valeur);
+      afficherSegmentPc(segments,pc->valeur,1);
       printf("registres: [r], memoire: [m], programme: [p], continuer [enter]\n");
       do {
         c=getchar();
         inW=1;
         if (c=='\n') {
           instruction=valeurMemoire(mem,pc->valeur); /* On récupère la valeur de l'instruction en mémoire */
-          printf("Exécution de l'instruction :\n");
-          afficherSegmentPc(segments,pc->valeur);
+          printf("--> Exécution de l'instruction : ");
+          afficherSegmentPc(segments,pc->valeur,0);
           execInstruction(instruction,registres,instructions,mem); /* Exécute l'opération, s'occupe d'incrémenter le PC */
           inW=0;
         }
