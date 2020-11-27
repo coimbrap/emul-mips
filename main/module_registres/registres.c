@@ -53,8 +53,8 @@ void traduitRegistre(registre **registres, char* nom) {
     if (found!=NULL) {
       ret=intVersChaine(found->numero,ret);
     }
-    /* Si la valeur décimale dans ret n'est pas -1 on remplace la mnémonique par la valeur entière */
-    if (valeurDecimale(ret)!=-1) {
+    /* Si la valeur décimale dans ret est inférieure à 32 (registre spéciaux) et différente à -1 on remplace la mnémonique par la valeur entière */
+    if (valeurDecimale(ret)<32 && valeurDecimale(ret)!=-1) {
       strcpy(nom,ret);
     }
     free(ret); /* On libère ret */
