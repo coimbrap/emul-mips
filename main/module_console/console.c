@@ -96,12 +96,8 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
   registre *pc=NULL,*sp=NULL;
   int pcMax=0;
   int tmpMode=mode;
-
-  int *operandes=NULL;
-  int tailleTab=0;
   int saisie=1;
   char *line=NULL;
-
   pc=registres[32]; /* PC */
   pc->valeur=DEBUT_PROG; /* Initialisation du PC */
   /* Initialisation du fichier (suppression du contenu ou création) */

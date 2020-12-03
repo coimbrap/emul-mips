@@ -200,7 +200,7 @@ int check(int num, int min, int max) {
 /* Traduit une ligne passé en argument (*ligne) en une valeur hexadécimale stockée dans *instructionHex (passé par adresse) */
 /* Retourne 0 si l'operation n'existe pas, est invalide ou que les valeurs sont out of range 1 sinon */
 int parseLigne(char *ligne, char **ligneParse, unsigned long int *instructionHex, instruction **instructions, registre **registres) {
-  int offset=0,ret=0;
+  int ret=0;
   unsigned long int hex=0;
   instruction *found=NULL;
   int rs=0,rt=0,imm=0,rd=0,sa=0;
