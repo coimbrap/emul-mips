@@ -38,11 +38,11 @@ void traduitRegistre(registre **registres, char* nom) {
   int nonTrouvee=1,i=0;
   /* Si on a une registre non traduit */
   if (valeurDecimale(nom)==-1) {
+    if(nom[0]=='$') {nom++;};
     /* Allocation de la chaine pour la représentation de l'int */
     if((ret=(char *)calloc(TAILLE_MAX_INT,sizeof(char)))==NULL){exit(1);};
     /* Tant que l'on n'a pas trouvé et que l'on est pas à la fin du tableau */
     while (nonTrouvee && i<NB_REGISTRE) {
-      printf("Cherche\n");
       if (strcmp(registres[i]->nom,nom)==0) {
         found=registres[i];
         nonTrouvee=0;
