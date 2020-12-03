@@ -79,7 +79,7 @@ void afficheRegistre(registre *registre) {
   if (strcmp(registre->nom,"zero")==0) {
     printf("$%d ($%s)  %-11d   0x%08x   ",registre->numero,registre->nom,(int)registre->valeur,(int)registre->valeur);
   }
-  else if (registre->numero==-1) {
+  else if (registre->numero>31) {
     printf("$%s         %-11d   0x%08x   ",registre->nom,(int)registre->valeur,(int)registre->valeur);
 
   }
