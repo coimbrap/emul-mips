@@ -58,7 +58,7 @@ int compareChecksum(int valeur,int checksum,int type);
 
 /* Prend en entrée un pointeur vers une chaine non uniforisé et une pointeur pour stocké la chaine uniformisé */
 /* S'occupe d'uniformiser la chaine */
-instruction *uniformisationInstruction(instruction **instructions,registre** registres, char *s, char *out, int** operandes, int* tailleTab);
+instruction *parsageInstruction(instruction **instructions,registre** registres, char *s, char *out, int** operandes, int* tailleTab);
 
 /* Retourne 1 si le numéro est valide, 0 sinon */
 /* Vérifie que num appartienne bien à l'intervale [min,max] */

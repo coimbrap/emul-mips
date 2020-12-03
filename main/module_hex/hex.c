@@ -104,7 +104,7 @@ int compareChecksum(int valeur,int checksum,int type) {
   return ret;
 }
 
-instruction *uniformisationInstruction(instruction **instructions,registre** registres, char *s, char *out, int** operandes, int* tailleTab) {
+instruction *parsageInstruction(instruction **instructions,registre** registres, char *s, char *out, int** operandes, int* tailleTab) {
   int i=0,incremOut=0,commence=0,debutOpe=0,nbOpe=0,nbReg=0,nbImm=0,num=0,coeffOpe=0;
   char *p=NULL,*parse=NULL,*tampon=NULL; /* tampon va être la zone de travail de strtok pour pouvoir utiliser strtok dans deux fonctions */
   instruction *ret=NULL;
@@ -209,7 +209,7 @@ int parseLigne(char *ligne, char **ligneParse, unsigned long int *instructionHex
   int tailleTab=0;
   if (ligne!=NULL) {
     if((ligneOut=(char *)calloc(strlen(ligne),sizeof(char)))==NULL){exit(1);};
-    found=uniformisationInstruction(instructions,registres,ligne,ligneOut,&operandes,&tailleTab);
+    found=parsageInstruction(instructions,registres,ligne,ligneOut,&operandes,&tailleTab);
     if (found!=NULL && tailleTab==found->nbOperande) {
       ret=1; /* On a une expression valide */
       /* Instruction de type R */
