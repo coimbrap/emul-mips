@@ -2,7 +2,6 @@
 
 #include <string.h>
 #include <stdio.h>
-
 int main(int argc, char *argv[]) {
   FILE *file;
   instruction* instructions[NB_OPERATIONS+1];
@@ -17,7 +16,6 @@ int main(int argc, char *argv[]) {
   if(argc<3) {
     printf("Mauvaise utilisation : ./emul-mips asm.txt hex.txt\n./emul-mips -pas hex.txt\n");
   }
-  /* Mode pas à pas */
   if (argc==4 && strcmp(argv[1],"-pas")==0) {
     printf("Mode pas à pas non-intéractif\n\n");
     parseFichier(argv[2],argv[3],0,instructions,registres,&mem,&segments);
@@ -36,7 +34,6 @@ int main(int argc, char *argv[]) {
   }
   liberationRegistres(registres);
   liberationInstruction(instructions);
-
   liberation(&mem);
   return 0;
 }
