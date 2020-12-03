@@ -145,7 +145,7 @@ void liberation(memoire *m) {
 void afficherMemoires(memoire *m, int adresseMin, int adresseMax) {
 	memoire increment=*m;
 	int one=0; /* passe à un si on affiche quelque chose */
-  printf("\nAdresse     Décimal      Hex          Binaire\n--------------------------------------------------------------------------\n");
+  printf("\nAdresse     Décimal       Hex          Binaire\n--------------------------------------------------------------------------\n");
 	/* Sinon tant que l'on est pas en fin de liste et que l'adresse est inférieure à l'adresse max */
   while(increment!=NULL && increment->adresse<adresseMax) {
 		/* Si l'adresse et supérieure à l'adresse min on affiche et on passe one à 1 */
