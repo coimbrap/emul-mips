@@ -1,7 +1,5 @@
-#include "module_hex/hex.h"
-#include "module_calcul/calcul.h"
-#include "module_registres/registres.h"
-#include "module_memoire/memoire.h"
+#include "module_console/console.h"
+
 #include <string.h>
 #include <stdio.h>
 
@@ -12,8 +10,7 @@ int main(int argc, char *argv[]) {
   registre* registres[NB_REGISTRE];
   memoire mem=NULL;
   char *listereg="src/listeReg.txt";
-  int in=1,out=2,mode=1;
-
+  prog segments=NULL;
   remplissageStructRegistre(registres,listereg);
   remplissageStructInstruction(instructions,listeope);
   printf("---------- MIPS Emulator ----------\n  Pierre Coimbra & Thibaut Barnel\n\n");
@@ -21,32 +18,25 @@ int main(int argc, char *argv[]) {
     printf("Mauvaise utilisation : ./emul-mips asm.txt hex.txt\n./emul-mips -pas hex.txt\n");
   }
   /* Mode pas à pas */
-  if (strcmp(argv[1],"-pas")==0) {
-    in=2;
-    out=3;
-    mode=0;
-    printf("Mode pas à pas\n\n");
+  if (argc==4 && strcmp(argv[1],"-pas")==0) {
+    printf("Mode pas à pas non-intéractif\n\n");
+    parseFichier(argv[2],argv[3],0,instructions,registres,&mem,&segments);
   }
-  if ((file=fopen(argv[in], "r"))) {
+  else if(argc==3 && (strcmp(argv[1],"-pas")==0)) {
+    printf("Mode intéractif\n\n");
+    parseFichier("/dev/null",argv[2],2,instructions,registres,&mem,&segments);
+  }
+  else if ((file=fopen(argv[1], "r"))) {
     fclose(file);
-    printf("Lecture du ficher : %s\n\n", argv[in]);
-    parseFichier(argv[in],argv[out],mode,instructions,registres);
-    printf("\nFormes hexadécimale écrites dans '%s'\n", argv[out]);
-    execProgramme(&mem,registres,instructions,argv[2]);
-    printf("\n------ Registres ------\n");
-    afficheRegistres(registres);
-    printf("\n------- Pile -------\n");
-    afficherMemoires(&mem,DEBUT_PILE,DEBUT_PROG);
-    printf("\n------- Mémoire -------\n");
-    afficherMemoires(&mem,DEBUT_MEMOIRE,DEBUT_PILE);
-    /*printf("\n------- Programme -------\n");
-    afficherMemoires(&mem,DEBUT_PROG,FIN_MEM);*/
+    printf("Mode automatique non-intéractif\n\n");
+    parseFichier(argv[1],argv[2],1,instructions,registres,&mem,&segments);
   }
   else {
-    printf("Erreur sur le fichier d'entrée '%s'\n\n",argv[in]);
+    printf("Erreur sur le fichier d'entrée\n");
   }
   liberationRegistres(registres);
   liberationInstruction(instructions);
+
   liberation(&mem);
   return 0;
 }

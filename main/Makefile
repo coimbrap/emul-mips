@@ -6,11 +6,10 @@ LDFLAGS = -g -fsanitize=address
 all: $(EXEC)
 
 #Cible principale
-$(EXEC): $(EXEC).o hex.o tools.o registres.o memoire.o calcul.o
+$(EXEC): $(EXEC).o hex.o tools.o registres.o memoire.o calcul.o console.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 #Fichiers objets
-
 $(EXEC).o: $(EXEC).c
 	$(CC) -c $< $(CFLAGS) -o $@
 
@@ -24,6 +23,9 @@ memoire.o: module_memoire/memoire.c module_memoire/memoire.h
 	$(CC) -c $< $(CFLAGS) -o $@
 
 calcul.o: module_calcul/calcul.c module_calcul/calcul.h
+	$(CC) -c $< $(CFLAGS) -o $@
+
+console.o: module_console/console.c module_console/console.h
 	$(CC) -c $< $(CFLAGS) -o $@
 
 tools.o: module_tools/tools.c module_tools/tools.h

@@ -1,6 +1,8 @@
 #ifndef _REGISTRES_H_
 #define _REGISTRES_H_
 
+#include "../module_tools/tools.h"
+
 #define INIT_VALUE 0
 #define TAILLE_MAX_MNEMO 5
 #define NB_BIT_REGISTRE 32
@@ -21,14 +23,6 @@ typedef struct registre {
 void remplissageStructRegistre(registre **registres, const char* fichier);
 
 /* prend en entrée un tableau de pointeur vers la structure registre et une chaine représentant le nom du registre */
-/* retourne un pointeur vers la structure contenant toutes les informations du registre en question */
-registre* trouveRegistre(registre **registres, char* nom);
-
-/* prend en entrée un tableau de pointeur vers la structure registre et une chaine représentant le nom du registre */
-/* retourne la valeur de la case mémoire sous forme de unsigned long int */
-unsigned long int valeurRegistre(registre **registres, char* nom);
-
-/* prend en entrée un tableau de pointeur vers la structure registre et une chaine représentant le nom du registre */
 /* si il y a lieu remplace le mnémonique du registre par sa valeur entière dans nom */
 void traduitRegistre(registre **registres, char* registre);
 
@@ -46,4 +40,5 @@ void afficheRegistre(registre *registre);
 /* prend en entrée un tableau de pointeur vers la structure registre */
 /* affiche toutes les structures du tableau */
 void afficheRegistres(registre **registres);
+
 #endif

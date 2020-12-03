@@ -3,9 +3,9 @@ ADDI $2,$0,5
 
 #Pour arriver au début de Prog
 # some comment
-SW $3,14($0) #10 ->14 
+SW $3,40($0)
 
-LW $4,10($0) # some other comment
+LW $4,40($0) # some other comment
 
 SLL $5,$4,2
 SRL $6,$5,2

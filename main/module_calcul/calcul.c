@@ -3,32 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../module_tools/tools.h"
-
-/* prend en entrée un pointeur vers la mémoire et le fichier des instructions hex */
-/* remplit la partie segment assembleur de la mémoire à partir des valeurs hex */
-/* retourne la valeur de la dernière case mémoire contenant une instruction (vMax du PC) */
-int chargeProgramme(memoire *mem, const char* progHex) {
-  FILE *prog=NULL;
-  char* instruction=NULL;
-  size_t len=0;
-  int pc=DEBUT_PROG; /* On met le PC à l'init */
-  prog=fopen(progHex,"r"); /* On ouvre le programme */
-  if(NULL==prog){
-    printf("Erreur d'ouverture du fichier\n");
-    exit(-1);
-  }
-  /* On met en mémoire les instructions une à une en incrémentant le PC */
-  while (getline(&instruction,&len,prog)!=-1) {
-    insertion(mem,pc,hexToDec(instruction));
-    pc+=4;
-  }
-  /* On libère le buffer et on ferme le fichier */
-  free(instruction);
-  fclose(prog);
-  return (pc-4);
-}
-
 /* Prend en entrée une instruction hexadécimale (demandé dans les specifications) */
 /* Exécute l'instruction, met à jour les registres et la mémoire et change le PC */
 void execInstruction(unsigned long int hex, registre **registres, instruction **instructions, memoire *mem) {
@@ -36,12 +10,9 @@ void execInstruction(unsigned long int hex, registre **registres, instruction **
   registre *rs=NULL,*rt=NULL,*rd=NULL,*hi=NULL,*lo=NULL,*pc=NULL;
   int rsI=0,rtI=0,rdI=0,sa=0,imm=0,opcode=0;
   unsigned long int value=0,tmp=0;
-  /* Buff est nécessaire au fonctionnement de intVersChaine */
-  char *buff=NULL;
-  if((buff=(char *)calloc(TAILLE_MAX_INT,sizeof(char)))==NULL){exit(1);};
   /* Si la taille de valeur hexadécimale est inférieure à la taille max */
   if (hex<=0xFFFFFFFF) {
-    pc=trouveRegistre(registres,"PC"); /* On initialise le registre du PC */
+    pc=registres[32]; /* On initialise le registre du PC */
     /* Cas NOP, on avance d'une instruction */
     if (hex==0) {
       pc->valeur+=4;
@@ -59,9 +30,9 @@ void execInstruction(unsigned long int hex, registre **registres, instruction **
         if (found->typeInstruction=='R') {
           value=0;
           /* On initialise les registres rs,rt et rd */
-          rs=trouveRegistre(registres,intVersChaine(rsI,buff));
-          rt=trouveRegistre(registres,intVersChaine(rtI,buff));
-          rd=trouveRegistre(registres,intVersChaine(rdI,buff));
+          rs=registres[rsI];
+          rt=registres[rtI];
+          rd=registres[rdI];
           if (found->ordreBits==1) {
             /* ADD/AND/XOR/OR/SLT/SUB */
             if (found->styleRemplissage==1) {
@@ -104,7 +75,7 @@ void execInstruction(unsigned long int hex, registre **registres, instruction **
             /* SLL */
             else if (found->styleRemplissage==3) {
               if (rt!=NULL && rd!=NULL && rdI!=0) {
-                rd->valeur=(rt->valeur>>sa);
+                rd->valeur=(rt->valeur<<sa);
               }
               pc->valeur+=4;
             }
@@ -131,24 +102,26 @@ void execInstruction(unsigned long int hex, registre **registres, instruction **
           }
           else if (found->ordreBits==3) {
             /* Initialise les registres HI et LO */
-            hi=trouveRegistre(registres,"HI");
-            lo=trouveRegistre(registres,"LO");
+            hi=registres[33]; /* HI */
+            lo=registres[34]; /* LO */
             if (rs!=NULL && rt!=NULL && hi!=NULL && lo!=NULL) {
               /* MULT */
               if (opcode==0x18) {
                 value=(rs->valeur*rt->valeur);
+                hi->valeur=(((value&0xffffffff00000000)>>32)&MASQUE_MAX);
+                lo->valeur=((value&0xffffffff)&MASQUE_MAX);
               }
               /* DIV */
               else if (opcode==0x1A) {
-                value=(rs->valeur/rt->valeur);
+                hi->valeur=(rs->valeur%rt->valeur);
+                lo->valeur=(rs->valeur/rt->valeur);
               }
-              hi->valeur=(((value&0xffffffff00000000)>>32)&MASQUE_MAX);
-              lo->valeur=((value&0xffffffff)&MASQUE_MAX);
             }
             pc->valeur+=4;
           }
           else if (found->ordreBits==4) {
             if (rs!=NULL && pc!=NULL) {
+              /* JR */
               if (opcode==0x08) {
                 rs->valeur+=DEBUT_PROG; /* On se place au bon endroit */
                 if (rs->valeur>=DEBUT_PROG) {
@@ -163,8 +136,8 @@ void execInstruction(unsigned long int hex, registre **registres, instruction **
           }
           else if (found->ordreBits==5) {
             /* Initialise les registres HI et LO */
-            hi=trouveRegistre(registres,"HI");
-            lo=trouveRegistre(registres,"LO");
+            hi=registres[33]; /* HI */
+            lo=registres[34]; /* LO */
             if (rd!=NULL && hi!=NULL && lo!=NULL && rdI!=0) {
               /* MFHI */
               if (opcode==0x10) {
@@ -199,8 +172,8 @@ void execInstruction(unsigned long int hex, registre **registres, instruction **
         if (found->typeInstruction=='I') {
           value=0;
           /* Initialise les registres rs et rt */
-          rs=trouveRegistre(registres,intVersChaine(rsI,buff));
-          rt=trouveRegistre(registres,intVersChaine(rtI,buff));
+          rs=registres[rsI];
+          rt=registres[rtI];
           if (found->ordreBits==1) {
             if (found->styleRemplissage==1) {
               if (rs!=NULL && rt!=NULL) {
@@ -275,26 +248,5 @@ void execInstruction(unsigned long int hex, registre **registres, instruction **
   }
   else {
     printf("Format de l'instruction incorrect 0x%lx\n", hex);
-  }
-  free(buff); /* On libère le buffer de intVersChaine */
-}
-
-/* prend en entrée un pointeur vers : la mémoire,les registres et les instructions et le fichier des segments asm */
-/* exécute le programme en faisant appel aux sous fonctions */
-void execProgramme(memoire *mem, registre** registres, instruction** instructions, char* prog) {
-  unsigned long int instruction=0;
-  registre *pc=NULL,*sp=NULL;
-  int pcMax=0;
-  /* Init du registre PC & SP */
-  pc=trouveRegistre(registres,"PC");
-  sp=trouveRegistre(registres,"sp");
-  (pc->valeur)=DEBUT_PROG;
-  (sp->valeur)=DEBUT_PILE;
-  /* Chargement du programme et détermination du pc max */
-  pcMax=chargeProgramme(mem,prog); /* On mémorise le pcMAx */
-  /* Tant qu'on à pas atteint la dernière instruction */
-  while((pc->valeur)<=pcMax) {
-    instruction=valeurMemoire(mem,pc->valeur); /* On récupère la valeur de l'instruction en mémoire */
-    execInstruction(instruction,registres,instructions,mem); /* Exécute l'opération, s'occupe d'incrémenter le PC */
   }
 }

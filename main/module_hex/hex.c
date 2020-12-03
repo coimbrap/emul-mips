@@ -1,11 +1,8 @@
+#include "hex.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include "hex.h"
-
-/* Module tools */
-#include "../module_tools/tools.h"
 
 /* MEMOIRE INSTRUCTIONS */
 
@@ -353,101 +350,4 @@ int parseLigne(char *ligne, unsigned long int *instructionHex, instruction **ins
   *instructionHex=hex;
   free(operandes);
   return ret; /* 1 si valide 0 sinon (Pour les fausses opération et mauvais nombre d'opérandes et mauvaise valeurs)*/
-}
-
-/* Lit le fichier d'instruction assembleur ligne par ligne */
-/* Parse l'expression et appele la fonction de traduction hexadécimale */
-/* Mode défini si on est en mode auto (1) ou pàp (0) */
-/* Prend les fichiers input et output, la memoire des registres et des instructions en entrée */
-void parseFichier(char *input, char* output, int mode, instruction **instructions, registre** registres) {
-  /* Fichiers d'entrée, de sortie du programme et d'affichage */
-  FILE *fin=fopen(input, "r"),*fout=fopen(output, "w"),*tmp=fopen(".tmp","w");
-  /* Fichiers pour remplir les mémoires (opérandes et registres) */
-  size_t len=0;
-  char *ligne=NULL,*ligneOut=NULL,*buf=NULL; /* Ligne brute & uniformisée & buffer de lecture */
-  unsigned long int instructionHex=0; /* Valeur hexadécimale de l'instruction */
-  int programCounter=0,lignes=1;
-  char c='0';
-  int inW=1;
-  programCounter=DEBUT_PROG; /* Initialisation du PC local */
-  if (fin==NULL) {
-    printf("Erreur lors de l'ouverture du fichier '%s'\n",input);
-    exit(-1);
-  }
-  /* Initialisation du fichier (suppression du contenu ou création) */
-  if (fout==NULL) {
-    printf("Erreur lors de l'ouverture du fichier '%s'\n",output);
-    exit(-1);
-  }
-  if (tmp==NULL) {
-    printf("Erreur lors de l'ouverture du fichier '.tmp'\n");
-    exit(-1);
-  }
-  while(getline(&ligne,&len,fin)!=-1) { /* Tant qu'on est pas à la fin du fichier */
-    if(ligne[0]!='\n' && ligne[0]!='\0') { /* Si on n'à pas une ligne vide */
-      /* On uniforise la ligne */
-      if((ligneOut=(char *)calloc(strlen(ligne),sizeof(char)))==NULL){exit(1);};
-      uniformisationInstruction(ligne,ligneOut);
-      if(ligneOut[0]!='\0') { /* Si la ligne uniformisé n'est pas vide */
-         /* On a quelque chose */
-         /* Mode automatique */
-         if (mode) {
-           if (parseLigne(ligneOut,&instructionHex,instructions,registres)) {
-             /* On parse la ligne */
-            fprintf(fout,"%08lx\n",instructionHex);
-            fprintf(tmp,"%08d 0x%08lx   %s\n",programCounter,instructionHex,ligneOut);
-            programCounter+=4;
-           }
-           else if (mode==0) {printf("Erreur ligne %d, on passe à la suivante (opération non reconnue)\n",lignes);}
-         }
-         /* Mode pas à pas */
-         else if (!mode) {
-           if (parseLigne(ligneOut,&instructionHex,instructions,registres)) {
-            printf("%s\n", ligneOut);
-            printf("Instruction assembleur ligne %d : \n%s\n\n",lignes,ligneOut);
-            printf("Expression hexadécimale : \n0x%08lx\n\n", instructionHex);
-            printf("passer l'instruction: [p], instruction suivante: [enter], saut de la lecture: [s]\n");
-            do {
-              c=getchar();
-              inW=1;
-              if (c=='s' || c=='\n') {
-                fprintf(fout,"%08lx\n",instructionHex);
-                fprintf(tmp,"%08d 0x%08lx   %s\n",programCounter,instructionHex,ligneOut);
-                programCounter+=4;
-                inW=0;
-                if (c=='s') {mode=1;}
-              }
-              else {clean_stdin();}
-              if (c=='p') {inW=0;}
-            } while(inW);
-           }
-           else {printf("Erreur ligne %d, on passe à la suivante (opération non reconnue)\n\n",lignes);}
-         }
-       }
-       else if (mode==0) {printf("Erreur ligne %d, on passe à la suivante (ligne vide)\n\n",lignes);}
-      free(ligneOut); /* On libère la ligne uniformisé */
-    }
-    else if (mode==0) {printf("Erreur ligne %d, on passe à la suivante (ligne vide)\n\n",lignes);}
-    if (!mode) {lignes++;}
-  }
-  free(ligne); /* On libère le buffer de lecture */
-  fprintf(tmp, "------------------ Fin -------------------\n");
-  fclose(tmp);
-  fclose(fout);
-  /* Affichage final */
-  tmp=fopen(".tmp","r");
-  if (tmp) {
-    printf("\n---- Assembleur ----\n\nPC       Hex          Instruction\n------------------------------------------\n");
-    while (getline(&buf,&len,tmp)!=-1) {
-      printf("%s",buf);
-    }
-  }
-  else {
-    printf("Pas d'affichage\n");
-  }
-  free(buf); /* On libère le buffer de lecture */
-  fclose(fin); /* On ferme le fichier d'entrée */
-  /* On ferme et on efface le fichier temporaire d'affichage */
-  fclose(tmp);
-  remove(".tmp");
 }

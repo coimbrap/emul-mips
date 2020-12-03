@@ -18,8 +18,8 @@ ADDI $0,$0,100
 
 #Tout fonctionne du côté registre
 #Testons la mise en mémoire
-ADDI $22,$0,8
-SW $12,-4($22)
+ADDI $22,$0,30008
+SW $12,-30000($22)
 SW $15,0($0)
 
 LW $0,0($0)
