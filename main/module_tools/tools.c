@@ -26,11 +26,17 @@ int complementADeux(int value, int bits) {
 /* Retourne un entier signé correspondant à l'entier stocké dans la chaine */
 int valeurDecimale(char* s) {
   int num=-1,i=0,sign=1;
-  char* tmp=NULL,*tampon=NULL; /* tampon pour le stockage de strtok_r permet de faire du threading entre les deux fonctions */
+  char *buff=NULL,*tmp=NULL;
+  char *tampon=NULL; /* tampon pour le stockage de strtok_r permet de faire du threading entre les deux fonctions */
   if (s!=NULL) {
     if (s[i]=='-') {sign=-1;};
-    if ((tmp=strchr(s,'x'))!=NULL) { /* Si hexadécimal on convertit avec une autre fonction */
+    if ((strchr(s,'x'))!=NULL) { /* Si hexadécimal on convertit avec une autre fonction */
+      /* Pour ne pas altérer la chaine de départ */
+      if((buff=malloc(sizeof(char)*strlen(s)+1))==NULL){exit(0);};
+      strcpy(buff,s);
+      tmp=buff;
       num=hexToDec(strtok_r(tmp,"(",&tampon)); /* En cas d'offset imm(reg) on prend tout avant la première parenthèse car lecture dans le sens inverse */
+      free(buff);
     }
     else {
       while (s[i]!='\0' && s[i]!='(') {

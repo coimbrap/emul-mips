@@ -110,13 +110,16 @@ instruction *parsageInstruction(instruction **instructions,registre** registres,
   int i=0,incremOut=0,commence=0,debutOpe=0,nbOpe=0,nbReg=0,nbImm=0,num=0,coeffOpe=0;
   char *p=NULL,*parse=NULL,*tampon=NULL; /* tampon va être la zone de travail de strtok pour pouvoir utiliser strtok dans deux fonctions */
   instruction *ret=NULL;
-  int numOpe=0;
+  int numOpe=-1;
   int *incremOpe=NULL;
   parse=malloc(strlen(s)*sizeof(char));
   /* Mise au propre de l'expression, chaque partie est séparée de la précédente par un espace */
   while(s[i]!='\0' && s[i]!='\n' && s[i]!='#') {
     if(isalpha(s[i]) && !commence) {commence=1;}; /* Commence=1 : Opération trouvée */
-    if (s[i]==',' || s[i]==' ') {debutOpe=1;}
+    if (s[i]==',' || s[i]==' ') {
+      debutOpe=1;
+      numOpe=0;
+    }
     else if (s[i]!=' ' && s[i]!=',' && commence>0) {
       if (s[i]=='(') {*tailleTab=1;}; /* Si on à un offset imm(reg) on aura un paramètre de plus dans le tableau */
       if (debutOpe && commence==2) { /* Commence=2 : Opération écrite */
@@ -136,9 +139,9 @@ instruction *parsageInstruction(instruction **instructions,registre** registres,
   /* On sépare l'instruction avec l'espace comme séparateur */
   for (p=strtok_r(parse," ",&tampon);p!=NULL;p=strtok_r(NULL, " ",&tampon)) {
     /* Ecriture */
-    if (num==0 && nbOpe>0) {
+    if (num==0 && nbOpe>=0) {
       strcat(out,p);
-      strcat(out," ");
+      if(nbOpe!=0) {strcat(out," ");}; /* Si on a une instruction sans argument on ne met pas d'espace */
       /* Test d'existance de l'opération return NULL si inexistante */
       ret=trouveOperation(instructions,p);
       if(ret==NULL) {
@@ -168,8 +171,8 @@ instruction *parsageInstruction(instruction **instructions,registre** registres,
       p++; /* On va au caractère d'après */
       /* Même principe on incrémente en puissance de deux */
       if (p[0]=='$') {
-        incremOpe[numOpe++]=valeurDecimale(p);
         if(!traduitRegistre(registres,p)) {ret=NULL;};
+        incremOpe[numOpe++]=valeurDecimale(p);
         nbReg+=2<<coeffOpe++;
       }
       else if (isdigit(p[0]) || p[0]=='-') {
