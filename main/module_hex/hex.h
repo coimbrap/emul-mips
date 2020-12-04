@@ -18,6 +18,8 @@ typedef struct instruction {
   int ordreBits; /* Cas en fonction du type */
   int styleRemplissage; /* SG en fonction du type */
   int nbOperande; /* Nombre d'opérandes requis pour fonctionner */
+  int checksumReg;
+  int checksumImm;
 } instruction;
 
 typedef struct segment {

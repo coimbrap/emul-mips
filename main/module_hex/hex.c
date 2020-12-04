@@ -21,7 +21,7 @@ void remplissageStructInstruction(instruction **instructions, const char* fichie
     if((instructions[i]=malloc(sizeof(instruction)))==NULL){exit(1);};
     tmp=instructions[i];
     /* La ligne dans le fichier est de la forme : ADD,0x20,R,1,1,3 */
-    fscanf(fs,"%[^,],%x,%c,%d,%d,%d*",tmp->nom,&tmp->opcode,&tmp->typeInstruction,&tmp->ordreBits,&tmp->styleRemplissage,&tmp->nbOperande);
+    fscanf(fs,"%[^,],%x,%c,%d,%d,%d,%d,%d*",tmp->nom,&tmp->opcode,&tmp->typeInstruction,&tmp->ordreBits,&tmp->styleRemplissage,&tmp->nbOperande,&tmp->checksumReg,&tmp->checksumImm);
     fgetc(fs); /* Enlève \n */
   }
   fclose(fs);
@@ -34,6 +34,8 @@ void afficheInstruction(instruction *instruction) {
   printf("Type d'instruction : %c\n", instruction->typeInstruction);
   printf("Ordre bits : %d\n", instruction->ordreBits);
   printf("Style de remplissage : %d\n", instruction->styleRemplissage);
+  printf("Checksum Registe : %d\n", instruction->checksumReg);
+  printf("Checksum Immédiat : %d\n", instruction->checksumImm);
   printf("\n");
 }
 
@@ -143,7 +145,6 @@ instruction *parsageInstruction(instruction **instructions,registre** registres,
         free(parse);
         return NULL;
       }
-      afficheInstruction(ret);
     }
     else if (num!=nbOpe) {
       strcat(out,p);
@@ -154,7 +155,7 @@ instruction *parsageInstruction(instruction **instructions,registre** registres,
     }
     /* Calcul de notre checksum */
     if (p[0]=='$') {
-      traduitRegistre(registres,p);
+      if(!traduitRegistre(registres,p)) {ret=NULL;};
       incremOpe[numOpe++]=valeurDecimale(p);
       nbReg+=2<<coeffOpe++; /* On ajoute la puissance de deux du numéro de l'opérande */
     }
@@ -168,7 +169,7 @@ instruction *parsageInstruction(instruction **instructions,registre** registres,
       /* Même principe on incrémente en puissance de deux */
       if (p[0]=='$') {
         incremOpe[numOpe++]=valeurDecimale(p);
-        traduitRegistre(registres,p);
+        if(!traduitRegistre(registres,p)) {ret=NULL;};
         nbReg+=2<<coeffOpe++;
       }
       else if (isdigit(p[0]) || p[0]=='-') {
@@ -180,7 +181,10 @@ instruction *parsageInstruction(instruction **instructions,registre** registres,
     num++;
   }
   /* Comparaison du checksum avec le checksum théorique */
-//  if((compareChecksum(nbReg,ret->checksumReg,2)==0 || compareChecksum(nbImm,ret->checksumImm,2)==0)){ret=NULL;};
+  if (ret!=NULL) {
+    printf("Debug %s : %d|%d %d|%d\n",out,nbReg,ret->checksumReg,nbImm,ret->checksumImm);
+    if((compareChecksum(nbReg,ret->checksumReg,2)==0 || compareChecksum(nbImm,ret->checksumImm,1)==0)){ret=NULL;};
+  }
   free(parse);
   *operandes=incremOpe; /* On écrit le nouveau tableau */
   return ret;
@@ -336,18 +340,14 @@ int parseLigne(char *ligne, char **ligneParse, unsigned long int *instructionHex
           hex|=(rs&0x1f)<<21;
           hex|=(rt&0x1f)<<16;
           hex|=(imm&0xffff);
-          hex&=0xffffffff; /* sécurite, normalement inutile */
+          hex&=0xffffffff; /* sécurité, normalement inutile */
         }
       }
-    }
-    else {
-      printf("On à un NULL %s \n",ligne);
     }
   }
   /* On met la valeur hexadécimale dans l'argument passé par adresse */
   *ligneParse=ligneOut;
   *instructionHex=hex;
   free(operandes);
-  printf("On retourne %d\n", ret);
   return ret; /* 1 si valide 0 sinon (Pour les fausses opération et mauvais nombre d'opérandes et mauvaise valeurs)*/
 }
