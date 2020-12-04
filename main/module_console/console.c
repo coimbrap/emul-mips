@@ -122,10 +122,9 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
             insertion(mem,pc->valeur,instructionHex);
             fprintf(fout,"%08lx\n",instructionHex);
             (pc->valeur)+=4;
-            afficherSegments(segments,-1);
           }
           else {
-            printf("Erreur ligne %d, on passe à la suivante (opération non reconnue) %s|%s\n",lignes,ligne,ligneOut);
+            printf("Erreur ligne %d, on passe à la suivante (instruction ou argument non reconnue) %s\n",lignes,ligne);
             free(ligneOut);
           }
         }
@@ -156,7 +155,7 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
             } while(inW);
           }
           else {
-            printf("Erreur ligne %d, on passe à la suivante (opération non reconnue) %s|%s\n\n",lignes,ligne,ligneOut);
+            printf("Erreur ligne %d, on passe à la suivante (instruction ou argument non reconnue) %s\n\n",lignes,ligne);
             free(ligneOut);
           }
         }
