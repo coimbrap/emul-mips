@@ -7,7 +7,6 @@
 /* Parse l'expression et appele la fonction de traduction hexadécimale */
 /* Mode défini si on est en mode auto (1) ou pàp (0) */
 /* Prend les fichiers input et output, la memoire des registres et des instructions en entrée */
-
 void insererSegment(prog *segments, int programCounter, unsigned long int tradHex, char* instruction) {
   prog increment=*segments;
   segment *elem=NULL;
@@ -114,7 +113,7 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
     }
     printf("Lecture du fichier : %s\n\n", input);
     while(getline(&ligne,&len,fin)!=-1) { /* Tant qu'on est pas à la fin du fichier */
-      if(ligne[0]!='\n' && ligne[0]!='\0') { /* Si on n'à pas une ligne vide */
+      if(ligne[0]!='\n' && ligne[0]!='\0' && ligne[0]!='#') { /* Si on n'à pas une ligne vide */
         /* On a quelque chose */
         if (tmpMode) {
           if (parseLigne(ligne,&ligneOut,&instructionHex,instructions,registres)==1) {
@@ -166,7 +165,7 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
     fclose(fin);
     free(ligne);
   }
-  /* Sinon mode intéractif A REFAIRE */
+  /* Sinon mode intéractif */
   else if(mode==2) {
     /* On écrit l'instruction assembleur au clavier jusqu'a EXIT */
     while(saisie) {
