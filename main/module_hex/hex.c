@@ -185,7 +185,6 @@ instruction *parsageInstruction(instruction **instructions,registre** registres,
   }
   /* Comparaison du checksum avec le checksum théorique */
   if (ret!=NULL) {
-    printf("Debug %s : %d|%d %d|%d\n",out,nbReg,ret->checksumReg,nbImm,ret->checksumImm);
     if((compareChecksum(nbReg,ret->checksumReg,2)==0 || compareChecksum(nbImm,ret->checksumImm,1)==0)){ret=NULL;};
   }
   free(parse);
