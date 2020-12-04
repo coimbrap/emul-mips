@@ -32,8 +32,10 @@ void remplissageStructRegistre(registre **registres, const char* fichier) {
 
 /* prend en entrée un tableau de pointeur vers la structure registre et une chaine représentant le nom du registre */
 /* si il y a lieu remplace le mnémonique du registre par sa valeur entière dans nom */
-void traduitRegistre(registre **registres, char* nom) {
+/* Retourne 1 si traduit 0 sinon */
+int traduitRegistre(registre **registres, char* nom) {
   char *ret=NULL;
+  int state=1;
   registre *found=NULL;
   int nonTrouvee=1,i=0;
   /* Si on a une registre non traduit */
@@ -56,9 +58,12 @@ void traduitRegistre(registre **registres, char* nom) {
     /* Si la valeur décimale dans ret est inférieure à 32 (registre spéciaux) et différente à -1 on remplace la mnémonique par la valeur entière */
     if (valeurDecimale(ret)<32 && valeurDecimale(ret)!=-1) {
       strcpy(nom,ret);
+      state=1;
     }
+    else {state=0;};
     free(ret); /* On libère ret */
   }
+  return state;
 }
 
 /* prend en entrée un tableau de pointeur vers la structure registre */
