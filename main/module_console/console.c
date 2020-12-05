@@ -243,4 +243,5 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
   afficherMemoires(mem,DEBUT_MEMOIRE,DEBUT_PROG);
   printf("\n------- Prog -------\n");
   afficherMemoires(mem,DEBUT_PROG,0xFFFF);
+  libereSegments(segments);
 }

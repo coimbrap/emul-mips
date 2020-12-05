@@ -465,3 +465,43 @@ Valeur sur 32 bits signé [-2147483648,2147483647]
 TDL :
 - Limiter SW/LW dans la mémoire
 - Registres dans un tableau de taille fixe
+
+Parseur :
+
+- Uniformise l'opération
+- Vérifie que l'opération soit présente dans la liste des opérations
+- Vérifie que les arguments passé sont du bon type (par exemple on ne peut pas passer un registre à la place d'un immédiat)
+- Stocke tout les arguments dans un tableau
+
+instruction *parsageInstruction(instruction **instructions,registre** registres, char *s, char *out, int** operandes, int* tailleTab) {
+
+Au niveau des sorties on à par adresse un la taille du tableau des opérandes (tailleTab), le tableaux des opérandes (operandes) et la ligne Uniformise (out). A côté de ça la fonction retourne un pointeur vers la structure associé à l'instruction, NULL sinon.
+
+Pour l'Uniformisation on procède de la manière suivante, pour chaque ligne non vide on met l'instruction sous la forme `OPP ARG1 ARG2 ARG3`. A noter qu'un des arguments peut être un adressage indirect par registre avec déplacement.
+
+Une fois l'uniformisation effectué on vérifie que l'opération soit bien pris en charge, si c'est le cas on continu sinon on retourne NULL
+
+Pour la suite nous avons mis en place un système de checksum pour l'ordre registre, immédiat des arguments.
+
+On deux checksum, une pour les registres et une pour les immédiats. Il ne pourra pas y avoir plus de 3 registres ou trois valeurs immédiate.
+Voilà comment nous allons procéder pour le calcul de cette checksum :
+
+Prenons l'exemple des arguments suivant `ARG1 ARG2 ARG3`
+
+On parcourt les arguments un par un, en fonction du type (registre ou immédiat) on pondère la checksum correspondant par la puissance de 2 du numéro de l'argument.
+
+Exemple :
+
+Pour
+```
+SW $10, 10,($2)
+```
+On a
+```
+checksumReg=1*2^1+0*2^2+1*2^3=10
+checksumImm=0*2^1+1*2^2+0*2^3=4
+```
+
+Ainsi on pourra vérifié que les arguments sont du bon type en comparant une checksum théorique stockée dans la structure de l'opération avec les checksums calculées.
+
+Si les deux ne correspondent pas on est capable de dire quel argument n'est pas du bon type avant de retourner NULL ce qui aura pour effet de sauter l'instruction.
