@@ -8,12 +8,11 @@
 
 #define MASQUE_MAX 0xffffffff /* Valeur maximale d'une instruction en hexa */
 
-/* prend en entrée un pointeur vers la mémoire et le fichier des instructions hex */
-/* remplit la partie segment assembleur de la mémoire à partir des valeurs hex */
-/* retourne la valeur de la dernière case mémoire contenant une instruction (vMax du PC) */
-int chargeProgramme(memoire *mem, const char* progHex);
-
 /* Prend en entrée une instruction hexadécimale (demandé dans les specifications) */
 /* Exécute l'instruction, met à jour les registres et la mémoire et change le PC */
 void execInstruction(unsigned long int hex, registre **registres, instruction **instructions, memoire *mem);
+
+void execTypeR(instruction *found, int opcode, int rsI, int rtI, int rdI, int sa, registre *pc, registre **registres, instruction **instructions, memoire *mem);
+void execTypeI(instruction *found, int opcode, int rsI, int rtI, int imm, registre *pc, registre **registres, instruction **instructions, memoire *mem);
+
 #endif

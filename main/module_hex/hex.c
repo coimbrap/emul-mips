@@ -283,7 +283,7 @@ int parseLigne(char *ligne, char **ligneParse, unsigned long int *instructionHex
         else if (found->ordreBits==6) {
           /* SYSCALL */
           if (found->styleRemplissage==1) {
-            /*  Que faut il mettre ? */
+            /*  Non implémenté */
             rs=rt=rd=sa=0;
           }
         }
