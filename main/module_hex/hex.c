@@ -132,6 +132,13 @@ instruction *parsageInstruction(instruction **instructions,registre** registres,
     }
     i++;
   }
+  if (incremOut==0) {
+    free(parse);
+    return NULL;
+  }
+  else if(nbOpe==0) {
+    incremOut--; /* On était une case trop loin dans le cas d'une unique opérande */
+  }
   parse[incremOut]='\0';
   (*tailleTab)+=nbOpe;
   if(((*operandes)=(int *)calloc((*tailleTab),sizeof(int)))==NULL){exit(1);};
@@ -189,6 +196,7 @@ instruction *parsageInstruction(instruction **instructions,registre** registres,
   }
   free(parse);
   *operandes=incremOpe; /* On écrit le nouveau tableau */
+  printf("Checksum : %d|%d -> %s\n",nbReg,nbImm,out);
   return ret;
 }
 
