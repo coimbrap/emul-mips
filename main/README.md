@@ -505,3 +505,6 @@ checksumImm=0*2^1+1*2^2+0*2^3=4
 Ainsi on pourra vérifié que les arguments sont du bon type en comparant une checksum théorique stockée dans la structure de l'opération avec les checksums calculées.
 
 Si les deux ne correspondent pas on est capable de dire quel argument n'est pas du bon type avant de retourner NULL ce qui aura pour effet de sauter l'instruction.
+
+
+Les labels sont associé au program counter de l'instruction suivante. La correspondance est stockée dans la table des symboles
