@@ -14,4 +14,5 @@ void insertionQueue(symtable *tableorigine, char* nom, int valeur);
 void supressionTete(symtable *tableorigine);
 void tableAffiche(symtable ptr);
 void libereTable(symtable *symbols);
+int foundSymbol(symtable *symbols, char* symbol);
 #endif

@@ -26,6 +26,7 @@ void insertionQueue(symtable *tableorigine, char* nom, int valeur) {
 		increment=increment->suivant;
     increment->nom=nom;
 		increment->valeur=valeur;
+		increment->suivant=NULL;
 	}
 }
 
@@ -40,12 +41,12 @@ void supressionTete(symtable *tableorigine) {
 
 void tableAffiche(symtable ptr){
 	if (NULL==ptr)
-		printf("Table vide!") ;
+		printf("Table vide!");
 	else
-		printf("Contenu de la table : ") ;
-	while (NULL!=ptr) 	{
+		printf("Contenu de la table : ");
+	while (NULL!=ptr) {
 		printf("%s %i\n",ptr->nom,ptr->valeur);
-		ptr=ptr->suivant ;
+		ptr=ptr->suivant;
 	}
 }
 
@@ -60,4 +61,27 @@ void libereTable(symtable *symbols) {
     }
     supressionTete(symbols);
   }
+}
+
+int foundSymbol(symtable *symbols, char* symbol) {
+	symtable increment=NULL;
+	int nonTrouvee=1,ret=-1;
+	increment=*symbols;
+	if (*symbols==NULL) {printf("Recherche : Table des symboles vide\n");}
+	else if (increment->suivant==NULL && (strcmp(increment->nom,symbol)==0)) {
+		printf("Trouvé dans la table des symboles %s\n",increment->nom);
+		ret=increment->valeur;
+		nonTrouvee=0;
+	}
+	else {
+		while (increment->suivant!=NULL && nonTrouvee) {
+			if (strcmp(increment->nom,symbol)==0) {
+				printf("Trouvé dans la table des symboles %s\n",increment->nom);
+				ret=increment->valeur;
+				nonTrouvee=0;
+			}
+			increment=increment->suivant;
+		}
+	}
+	return ret;
 }
