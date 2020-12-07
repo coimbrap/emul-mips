@@ -89,6 +89,20 @@ void execTypeR(instruction *found, int opcode, int rsI, int rtI, int rdI, int sa
   if (rd!=NULL) {rd->valeur&=MASQUE_MAX;};
 }
 
+void execTypeJ(instruction *found, int opcode, int imm, registre *pc, registre **registres) {
+  registre *ra=NULL;
+  if (found->ordreBits==1) {
+    if (found->styleRemplissage==1) { /* JAL */
+      ra=registres[31];
+      ra->valeur=pc->valeur+4;
+      pc->valeur+=(imm<<2);
+    }
+    else if (found->styleRemplissage==1) { /* J */
+      pc->valeur+=(imm<<2);
+    }
+  }
+  pc->valeur=imm;
+}
 
 void execTypeI(instruction *found, int opcode, int rsI, int rtI, int imm, registre *pc, registre **registres, instruction **instructions, memoire *mem) {
   registre *rs=NULL,*rt=NULL;
@@ -172,16 +186,22 @@ void execInstruction(unsigned long int hex, registre **registres, instruction **
     else {
       opcode=((hex>>26)&0x3f);
       if ((found=trouveOpcode(instructions,opcode,'I'))!=NULL) { /* Instruction de type I */
-        rsI=((hex>>21) & 0x1F);
-        rtI=((hex>>16) & 0x1F);
-        imm=(hex & 0xFFFF);
-        /* Identification ROTR/SLR car même opcode */
-        if (found->ordreBits==2) {
-          if ((hex>>21)&0x1) {found=trouveOperation(instructions,"ROTR");}
-          else {found=trouveOperation(instructions,"SRL");}
+        if (found->typeInstruction=='I') {
+          rsI=((hex>>21) & 0x1F);
+          rtI=((hex>>16) & 0x1F);
+          imm=(hex & 0xFFFF);
+          /* Identification ROTR/SLR car même opcode */
+          if (found->ordreBits==2) {
+            if ((hex>>21)&0x1) {found=trouveOperation(instructions,"ROTR");}
+            else {found=trouveOperation(instructions,"SRL");}
+          }
+          imm=complementADeux(imm,16); /* On prend le complément à 2 d'un 16 bits car signé */
+          execTypeI(found,opcode,rsI,rtI,imm,pc,registres,instructions,mem);
         }
-        imm=complementADeux(imm,16); /* On prend le complément à 2 d'un 16 bits car signé */
-        execTypeI(found,opcode,rsI,rtI,imm,pc,registres,instructions,mem);
+        else if (found->typeInstruction=='J') {
+          imm=(hex&0x3FFFFFF);
+          execTypeJ(found,opcode,imm,pc,registres);
+        }
       }
     }
   }

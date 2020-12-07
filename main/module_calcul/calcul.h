@@ -14,5 +14,6 @@ void execInstruction(unsigned long int hex, registre **registres, instruction **
 
 void execTypeR(instruction *found, int opcode, int rsI, int rtI, int rdI, int sa, registre *pc, registre **registres, instruction **instructions, memoire *mem);
 void execTypeI(instruction *found, int opcode, int rsI, int rtI, int imm, registre *pc, registre **registres, instruction **instructions, memoire *mem);
+void execTypeJ(instruction *found, int opcode, int imm, registre *pc, registre **registres) {
 
 #endif
