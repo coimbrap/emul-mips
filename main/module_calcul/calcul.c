@@ -3,13 +3,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-void execTypeR(instruction *found, int opcode, int rsI, int rtI, int rdI, int sa, registre *pc, registre **registres, instruction **instructions, memoire *mem) {
+/* prend en entrée tout les paramètres d'une instruction de type R (rs,rt,rd et sa) */
+/* l'opcode, la structure de l'instruction, le pc et l'ensemble des registres */
+/* exécute l'instruction, met à jour les registres et la mémoire et change le PC */
+void execTypeR(int opcode, instruction *instr, int rsI, int rtI, int rdI, int sa, registre *pc, registre **registres) {
   registre *rs=NULL,*rt=NULL,*rd=NULL,*hi=NULL,*lo=NULL;
   rs=registres[rsI];
   rt=registres[rtI];
   rd=registres[rdI];
-  if (found->ordreBits==1) {
-    if (found->styleRemplissage==1) { /* ADD/AND/XOR/OR/SLT/SUB */
+  if (instr->ordreBits==1) {
+    if (instr->styleRemplissage==1) { /* ADD/AND/XOR/OR/SLT/SUB */
       if (rs!=NULL && rt!=NULL && rd!=NULL && rdI!=0) {
         /* ADD */
         switch(opcode) {
@@ -33,14 +36,14 @@ void execTypeR(instruction *found, int opcode, int rsI, int rtI, int rdI, int sa
       }
       pc->valeur+=4;
     }
-    else if (found->styleRemplissage==3) { /* SLL | Pas par opcode */
+    else if (instr->styleRemplissage==3) { /* SLL | Pas par opcode */
       if (rt!=NULL && rd!=NULL && rdI!=0) {rd->valeur=(rt->valeur<<sa);}
       pc->valeur+=4;
     }
   }
-  else if (found->ordreBits==2) { /* ROTR/SLR | Pas par opcode */
+  else if (instr->ordreBits==2) { /* ROTR/SLR | Pas par opcode */
     if (rt!=NULL && rd!=NULL && rdI!=0) {
-      switch(found->styleRemplissage) {
+      switch(instr->styleRemplissage) {
         case 1: /* ROTR */
           rd->valeur=((rt->valeur>>sa)|((rt->valeur)<<((NB_BIT_REGISTRE)-sa))); break;
         case 2: /* SRL */
@@ -49,7 +52,7 @@ void execTypeR(instruction *found, int opcode, int rsI, int rtI, int rdI, int sa
     }
     pc->valeur+=4;
   }
-  else if (found->ordreBits==3) { /* MULT/DIV */
+  else if (instr->ordreBits==3) { /* MULT/DIV */
     hi=registres[33]; /* HI */
     lo=registres[34]; /* LO */
     if (rs!=NULL && rt!=NULL && hi!=NULL && lo!=NULL) {
@@ -66,7 +69,7 @@ void execTypeR(instruction *found, int opcode, int rsI, int rtI, int rdI, int sa
     }
     pc->valeur+=4;
   }
-  else if (found->ordreBits==4) { /* JR */
+  else if (instr->ordreBits==4) { /* JR */
     if (rs!=NULL && pc!=NULL) {
       switch(opcode) {
         case 0x08: /* JR */
@@ -77,7 +80,7 @@ void execTypeR(instruction *found, int opcode, int rsI, int rtI, int rdI, int sa
     }
     pc->valeur+=4;
   }
-  else if (found->ordreBits==5) { /* MFHI/MFLO */
+  else if (instr->ordreBits==5) { /* MFHI/MFLO */
     hi=registres[33]; /* HI */
     lo=registres[34]; /* LO */
     if (rd!=NULL && hi!=NULL && lo!=NULL && rdI!=0) {
@@ -90,17 +93,20 @@ void execTypeR(instruction *found, int opcode, int rsI, int rtI, int rdI, int sa
     }
     pc->valeur+=4;
   }
-  else if (found->ordreBits==6) {pc->valeur+=4;}; /* Pas utilisé dans notre cas */
+  else if (instr->ordreBits==6) {pc->valeur+=4;}; /* Pas utilisé dans notre cas */
   if (rd!=NULL) {rd->valeur&=MASQUE_MAX;};
 }
 
-void execTypeI(instruction *found, int opcode, int rsI, int rtI, int imm, registre *pc, registre **registres, instruction **instructions, memoire *mem) {
+/* prend en entrée tout les paramètres d'une instruction de type I (rs,rt et imm) */
+/* l'opcode, la structure de l'instruction, le pc et l'ensemble des registres */
+/* exécute l'instruction, met à jour les registres et la mémoire et change le PC */
+void execTypeI(int opcode, instruction *instr, int rsI, int rtI, int imm, registre *pc, registre **registres, memoire *mem) {
   registre *rs=NULL,*rt=NULL;
-  if (found->typeInstruction=='I') {
+  if (instr->typeInstruction=='I') {
     rs=registres[rsI];
     rt=registres[rtI];
-    if (found->ordreBits==1) {
-      if (found->styleRemplissage==1) { /* ADDI/BEQ/BNE */
+    if (instr->ordreBits==1) {
+      if (instr->styleRemplissage==1) { /* ADDI/BEQ/BNE */
         if (rs!=NULL && rt!=NULL) {
           switch(opcode) {
             case 0x8: /* ADDI */
@@ -115,7 +121,7 @@ void execTypeI(instruction *found, int opcode, int rsI, int rtI, int imm, regist
         }
         pc->valeur+=4;
       }
-      if (found->styleRemplissage==2) { /* BGTZ/BLEZ */
+      if (instr->styleRemplissage==2) { /* BGTZ/BLEZ */
         if (rs!=NULL) {
           switch(opcode) {
             case 0x7: /* BGTZ */
@@ -126,7 +132,7 @@ void execTypeI(instruction *found, int opcode, int rsI, int rtI, int imm, regist
         }
         pc->valeur+=4;
       }
-      if (found->styleRemplissage==3) { /* LUI */
+      if (instr->styleRemplissage==3) { /* LUI */
         if (rt!=NULL) {
           switch(opcode) {
             case 0xf: /* LUI */
@@ -135,7 +141,7 @@ void execTypeI(instruction *found, int opcode, int rsI, int rtI, int imm, regist
         }
         pc->valeur+=4;
       }
-      if (found->styleRemplissage==4) { /* LW/SW */
+      if (instr->styleRemplissage==4) { /* LW/SW */
         if (rs!=NULL && rt!=NULL) {
           switch(opcode) {
             case 0x23: /* LW */
@@ -150,25 +156,28 @@ void execTypeI(instruction *found, int opcode, int rsI, int rtI, int imm, regist
   }
 }
 
-void execTypeJ(instruction *found, int opcode, int imm, registre *pc, registre **registres) {
+/* prend en entrée tout le paramètre d'une instruction de type J (index) */
+/* l'opcode, la structure de l'instruction, le pc et l'ensemble des registres */
+/* exécute l'instruction, met à jour le registre ra et change le PC */
+void execTypeJ(int opcode, instruction *instr, int index, registre *pc, registre **registres) {
   registre *ra=NULL;
-  if (found->ordreBits==1) { /* JAL/J */
-    if (found->styleRemplissage==1) { /* JAL */
+  if (instr->ordreBits==1) { /* JAL/J */
+    if (instr->styleRemplissage==1) { /* JAL */
       ra=registres[31];
       ra->valeur=pc->valeur+4;
-      pc->valeur+=(imm<<2);
+      pc->valeur+=(index<<2);
     }
-    else if (found->styleRemplissage==2) { /* J */
-      pc->valeur+=(imm<<2);
+    else if (instr->styleRemplissage==2) { /* J */
+      pc->valeur+=(index<<2);
     }
   }
   pc->valeur=imm;
 }
 
-/* Prend en entrée une instruction hexadécimale (demandé dans les specifications) */
-/* Exécute l'instruction, met à jour les registres et la mémoire et change le PC */
+/* Prend en entrée une instruction hexadécimale (demandé dans les spécifications) */
+/* Appelle la fonction associé au type d'instruction qui s'occupe du reste */
 void execInstruction(unsigned long int hex, registre **registres, instruction **instructions, memoire *mem) {
-  instruction *found=NULL;
+  instruction *instr=NULL;
   registre *pc=NULL;
   int rsI=0,rtI=0,rdI=0,sa=0,imm=0,opcode=0;
   /* Si la taille de valeur hexadécimale est inférieure à la taille max on traite l'instruction */
@@ -178,33 +187,33 @@ void execInstruction(unsigned long int hex, registre **registres, instruction **
     /* Si les 6 premiers zéro sont nul -> Type R */
     else if ((hex&(0xfc000000))==0) { /* Masque : 11111100...0 */
       opcode=hex&0x3f;
-      if ((found=trouveOpcode(instructions,opcode,'R'))!=NULL) {
+      if ((instr=trouveOpcode(instructions,opcode,'R'))!=NULL) {
         rsI=((hex>>21) & 0x1F); /* Valeur décimale des 21 à 26 bits */
         rtI=((hex>>16) & 0x1F);
         rdI=((hex>>11) & 0x1F);
         sa=((hex>>6) & 0x1F);
-        execTypeR(found,opcode,rsI,rtI,rdI,sa,pc,registres,instructions,mem);
+        execTypeR(opcode,instr,rsI,rtI,rdI,sa,pc,registres);
       }
     }
     /* Sinon c'est une instruction I ou J */
     else {
       opcode=((hex>>26)&0x3f);
-      if ((found=trouveOpcode(instructions,opcode,'I'))!=NULL) { /* Instruction de type I */
-        if (found->typeInstruction=='I') {
+      if ((instr=trouveOpcode(instructions,opcode,'I'))!=NULL) { /* Instruction de type I */
+        if (instr->typeInstruction=='I') {
           rsI=((hex>>21) & 0x1F);
           rtI=((hex>>16) & 0x1F);
           imm=(hex & 0xFFFF);
           /* Identification ROTR/SLR car même opcode */
-          if (found->ordreBits==2) {
-            if ((hex>>21)&0x1) {found=trouveOperation(instructions,"ROTR");}
-            else {found=trouveOperation(instructions,"SRL");}
+          if (instr->ordreBits==2) {
+            if ((hex>>21)&0x1) {instr=trouveOperation(instructions,"ROTR");}
+            else {instr=trouveOperation(instructions,"SRL");}
           }
           imm=complementADeux(imm,16); /* On prend le complément à 2 d'un 16 bits car signé */
-          execTypeI(found,opcode,rsI,rtI,imm,pc,registres,instructions,mem);
+          execTypeI(instr,opcode,rsI,rtI,imm,pc,registres,instructions,mem);
         }
-        else if (found->typeInstruction=='J') {
+        else if (instr->typeInstruction=='J') {
           imm=(hex&0x3FFFFFF);
-          execTypeJ(found,opcode,imm,pc,registres);
+          execTypeJ(opcode,instr,imm,pc,registres);
         }
       }
     }
