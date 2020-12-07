@@ -12,37 +12,40 @@ void execTypeR(instruction *found, int opcode, int rsI, int rtI, int rdI, int sa
     if (found->styleRemplissage==1) { /* ADD/AND/XOR/OR/SLT/SUB */
       if (rs!=NULL && rt!=NULL && rd!=NULL && rdI!=0) {
         /* ADD */
-        if (opcode==0x20) {
-          if ((rs->valeur+rt->valeur)<=0xffffffff) {rd->valeur=(rs->valeur+rt->valeur);}
-          else {printf("Exception : Overflow\nNo changes\n");};
+        switch(opcode) {
+          case 0x22: /* SUB */
+            rd->valeur=(rs->valeur-rt->valeur); break;
+          case 0x24: /* AND */
+            rd->valeur=(rs->valeur&rt->valeur); break;
+          case 0x26: /* XOR */
+            rd->valeur=(rs->valeur^rt->valeur); break;
+          case 0x25: /* OR */
+            rd->valeur=(rs->valeur|rt->valeur); break;
+          case 0x2A: /* SLT */
+            if (rs->valeur<rt->valeur) {rd->valeur=1;}
+            else {rd->valeur=0;};
+            break;
+          case 0x20: /* ADD */
+            if ((rs->valeur+rt->valeur)<=0xffffffff) {rd->valeur=(rs->valeur+rt->valeur);}
+            else {printf("Exception : Overflow\nNo changes\n");};
+            break;
         }
-        /* AND */
-        else if (opcode==0x24) {rd->valeur=(rs->valeur&rt->valeur);}
-        /* XOR */
-        else if (opcode==0x26) {rd->valeur=(rs->valeur^rt->valeur);}
-        /* OR */
-        else if (opcode==0x25) {rd->valeur=(rs->valeur|rt->valeur);}
-        /* SLT */
-        else if (opcode==0x2A) {
-          if (rs->valeur<rt->valeur) {rd->valeur=1;}
-          else {rd->valeur=0;}
-        }
-        /* SUB */
-        else if (opcode==0x22) {rd->valeur=(rs->valeur-rt->valeur);}
       }
       pc->valeur+=4;
     }
-    else if (found->styleRemplissage==3) { /* SLL */
+    else if (found->styleRemplissage==3) { /* SLL | Pas par opcode */
       if (rt!=NULL && rd!=NULL && rdI!=0) {rd->valeur=(rt->valeur<<sa);}
       pc->valeur+=4;
     }
   }
-  else if (found->ordreBits==2) { /* ROTR/SLR */
+  else if (found->ordreBits==2) { /* ROTR/SLR | Pas par opcode */
     if (rt!=NULL && rd!=NULL && rdI!=0) {
-      /* ROTR */
-      if (found->styleRemplissage==1) {rd->valeur=((rt->valeur>>sa)|((rt->valeur)<<((NB_BIT_REGISTRE)-sa)));}
-      /* SRL */
-      else if(found->styleRemplissage==2) {rd->valeur=((rt->valeur)>>sa);}
+      switch(found->styleRemplissage) {
+        case 1: /* ROTR */
+          rd->valeur=((rt->valeur>>sa)|((rt->valeur)<<((NB_BIT_REGISTRE)-sa))); break;
+        case 2: /* SRL */
+          rd->valeur=((rt->valeur)>>sa); break;
+      }
     }
     pc->valeur+=4;
   }
@@ -50,26 +53,26 @@ void execTypeR(instruction *found, int opcode, int rsI, int rtI, int rdI, int sa
     hi=registres[33]; /* HI */
     lo=registres[34]; /* LO */
     if (rs!=NULL && rt!=NULL && hi!=NULL && lo!=NULL) {
-      /* MULT */
-      if (opcode==0x18) {
-        hi->valeur=((((rs->valeur*rt->valeur)&0xffffffff00000000)>>32)&MASQUE_MAX);
-        lo->valeur=(((rs->valeur*rt->valeur)&0xffffffff)&MASQUE_MAX);
-      }
-      /* DIV */
-      else if (opcode==0x1A) {
-        hi->valeur=(rs->valeur%rt->valeur);
-        lo->valeur=(rs->valeur/rt->valeur);
+      switch(opcode) {
+        case 0x18: /* MULT */
+          hi->valeur=((((rs->valeur*rt->valeur)&0xffffffff00000000)>>32)&MASQUE_MAX);
+          lo->valeur=(((rs->valeur*rt->valeur)&0xffffffff)&MASQUE_MAX);
+          break;
+        case 0x1A: /* DIV */
+          hi->valeur=(rs->valeur%rt->valeur);
+          lo->valeur=(rs->valeur/rt->valeur);
+          break;
       }
     }
     pc->valeur+=4;
   }
-  else if (found->ordreBits==4) {
+  else if (found->ordreBits==4) { /* JR */
     if (rs!=NULL && pc!=NULL) {
-      /* JR */
-      if (opcode==0x08) {
-        rs->valeur+=DEBUT_PROG; /* On se place au bon endroit dans la mémoire */
-        if (rs->valeur>=DEBUT_PROG) {pc->valeur=rs->valeur;}
-        else {printf("Erreur - JR : Valeur du PC trop faible\n");}
+      switch(opcode) {
+        case 0x08: /* JR */
+          if ((rs->valeur+DEBUT_PROG)>=DEBUT_PROG) {pc->valeur=(rs->valeur+DEBUT_PROG);}
+          else {printf("Erreur - JR : Valeur du PC trop faible\n");}
+          break;
       }
     }
     pc->valeur+=4;
@@ -78,30 +81,17 @@ void execTypeR(instruction *found, int opcode, int rsI, int rtI, int rdI, int sa
     hi=registres[33]; /* HI */
     lo=registres[34]; /* LO */
     if (rd!=NULL && hi!=NULL && lo!=NULL && rdI!=0) {
-      /* MFHI */
-      if (opcode==0x10) {rd->valeur=hi->valeur;}
-      /* MFLO */
-      else if (opcode==0x12) {rd->valeur=lo->valeur;}
+      switch(opcode) {
+        case 0x10: /* MFHI */
+          rd->valeur=hi->valeur; break;
+        case 0x12: /* MFLO */
+          rd->valeur=lo->valeur; break;
+      }
     }
     pc->valeur+=4;
   }
   else if (found->ordreBits==6) {pc->valeur+=4;}; /* Pas utilisé dans notre cas */
   if (rd!=NULL) {rd->valeur&=MASQUE_MAX;};
-}
-
-void execTypeJ(instruction *found, int opcode, int imm, registre *pc, registre **registres) {
-  registre *ra=NULL;
-  if (found->ordreBits==1) {
-    if (found->styleRemplissage==1) { /* JAL */
-      ra=registres[31];
-      ra->valeur=pc->valeur+4;
-      pc->valeur+=(imm<<2);
-    }
-    else if (found->styleRemplissage==1) { /* J */
-      pc->valeur+=(imm<<2);
-    }
-  }
-  pc->valeur=imm;
 }
 
 void execTypeI(instruction *found, int opcode, int rsI, int rtI, int imm, registre *pc, registre **registres, instruction **instructions, memoire *mem) {
@@ -112,53 +102,67 @@ void execTypeI(instruction *found, int opcode, int rsI, int rtI, int imm, regist
     if (found->ordreBits==1) {
       if (found->styleRemplissage==1) { /* ADDI/BEQ/BNE */
         if (rs!=NULL && rt!=NULL) {
-          /* ADDI */
-          if (opcode==0x8 && rtI!=0) {
-            if ((rs->valeur+imm)<=0xFFFFFFFF) {rt->valeur=(rs->valeur+imm);}
-            else {printf("Exception : Overflow\nNo changes\n");}
-          }
-          /* BEQ */
-          if (opcode==0x4) {
-            if (rs->valeur==rt->valeur) {pc->valeur+=(imm<<2);}
-          }
-          /* BNE */
-          if (opcode==0x5) {
-            if (rs->valeur!=rt->valeur) {pc->valeur+=(imm<<2);}
+          switch(opcode) {
+            case 0x8: /* ADDI */
+              if (rtI!=0 && ((rs->valeur+imm)<=0xFFFFFFFF)) {rt->valeur=(rs->valeur+imm);}
+              else {printf("Exception : Overflow\nNo changes\n");};
+              break;
+            case 0x4: /* BEQ */
+              if (rs->valeur==rt->valeur) {pc->valeur+=(imm<<2);}; break;
+            case 0x5: /* BNE */
+              if (rs->valeur!=rt->valeur) {pc->valeur+=(imm<<2);}; break;
           }
         }
         pc->valeur+=4;
       }
       if (found->styleRemplissage==2) { /* BGTZ/BLEZ */
         if (rs!=NULL) {
-          /* BGTZ */
-          if (opcode==0x7) {
-            if (rs->valeur>0) {pc->valeur+=(imm<<2);};
-          }
-          /* BLEZ */
-          if (opcode==0x6) {
-            if (rs->valeur<=0) {pc->valeur+=(imm<<2);};
+          switch(opcode) {
+            case 0x7: /* BGTZ */
+              if (rs->valeur>0) {pc->valeur+=(imm<<2);}; break;
+            case 0x6: /* BLEZ */
+              if (rs->valeur<=0) {pc->valeur+=(imm<<2);}; break;
           }
         }
         pc->valeur+=4;
       }
       if (found->styleRemplissage==3) { /* LUI */
         if (rt!=NULL) {
-          /* LUI */
-          if (opcode==0xf && rtI!=0) {rt->valeur=(imm<<16);};
+          switch(opcode) {
+            case 0xf: /* LUI */
+              if (rtI!=0) {rt->valeur=(imm<<16);}; break;
+          }
         }
         pc->valeur+=4;
       }
       if (found->styleRemplissage==4) { /* LW/SW */
         if (rs!=NULL && rt!=NULL) {
-          /* LW */
-          if (opcode==0x23 && rtI!=0) {rt->valeur=valeurMemoire(mem,(rs->valeur+imm));}
-          /* SW */
-          if (opcode==0x2b) {insertion(mem,(rs->valeur+imm),rt->valeur);}
+          switch(opcode) {
+            case 0x23: /* LW */
+              if (rtI!=0) {rt->valeur=valeurMemoire(mem,(rs->valeur+imm));}; break;
+            case 0x2b: /* SW */
+              insertion(mem,(rs->valeur+imm),rt->valeur); break;
+          }
         }
         pc->valeur+=4;
       }
     }
   }
+}
+
+void execTypeJ(instruction *found, int opcode, int imm, registre *pc, registre **registres) {
+  registre *ra=NULL;
+  if (found->ordreBits==1) { /* JAL/J */
+    if (found->styleRemplissage==1) { /* JAL */
+      ra=registres[31];
+      ra->valeur=pc->valeur+4;
+      pc->valeur+=(imm<<2);
+    }
+    else if (found->styleRemplissage==2) { /* J */
+      pc->valeur+=(imm<<2);
+    }
+  }
+  pc->valeur=imm;
 }
 
 /* Prend en entrée une instruction hexadécimale (demandé dans les specifications) */
