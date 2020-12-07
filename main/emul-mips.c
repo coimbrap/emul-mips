@@ -1,7 +1,7 @@
 #include "module_console/console.h"
-
 #include <string.h>
 #include <stdio.h>
+
 int main(int argc, char *argv[]) {
   FILE *file;
   instruction* instructions[NB_OPERATIONS+1];
@@ -36,5 +36,8 @@ int main(int argc, char *argv[]) {
   liberationRegistres(registres);
   liberationInstruction(instructions);
   liberation(&mem);
+  tableAffiche(symbols);
+  libereTable(&symbols);
+  tableAffiche(symbols);
   return 0;
 }
