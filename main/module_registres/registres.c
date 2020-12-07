@@ -36,7 +36,7 @@ void remplissageStructRegistre(registre **registres, const char* fichier) {
 int traduitRegistre(registre **registres, char* nom) {
   char *ret=NULL;
   int state=1;
-  registre *found=NULL;
+  registre *reg=NULL;
   int nonTrouvee=1,i=0;
   /* Si on a une registre non traduit */
   if (valeurDecimale(nom)==-1) {
@@ -46,14 +46,14 @@ int traduitRegistre(registre **registres, char* nom) {
     /* Tant que l'on n'a pas trouvé et que l'on est pas à la fin du tableau */
     while (nonTrouvee && i<NB_REGISTRE) {
       if (strcmp(registres[i]->nom,nom)==0) {
-        found=registres[i];
+        reg=registres[i];
         nonTrouvee=0;
       }
       i++;
     }
     /* Si on trouve le registre on met dans ret la valeur décimale du registre */
-    if (found!=NULL) {
-      ret=intVersChaine(found->numero,ret);
+    if (reg!=NULL) {
+      ret=intVersChaine(reg->numero,ret);
     }
     /* Si la valeur décimale dans ret est inférieure à 32 (registre spéciaux) et différente à -1 on remplace la mnémonique par la valeur entière */
     if (valeurDecimale(ret)<32 && valeurDecimale(ret)!=-1) {

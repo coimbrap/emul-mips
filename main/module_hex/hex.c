@@ -90,13 +90,15 @@ instruction* trouveOpcode(instruction** instructions, int opcode, char type) {
 
 /* PARSAGE */
 
-int compareChecksum(int valeur,int checksum,int type) {
-  int val[]={2,4,8}; /* Valeur des 3 puissances de deux utilisé dans le calcul de la somme de controle */
+/* prend en entrée le checksum calculé et le checksum théorique */
+/* les comparre est dit ou sont les différences et donc ou sont les erreurs */
+int compareChecksum(int checksumCalc,int checksumTheor,int type) {
+  int val[]={2,4,8}; /* checksumCalc des 3 puissances de deux utilisé dans le calcul de la somme de controle */
   int ret=1,i=0;
-  if (valeur!=checksum) {
+  if (checksumCalc!=checksumTheor) {
     ret=0;
     for(i=0;i<3;i++) {
-      if((valeur&val[i])!=(checksum&val[i])) {
+      if((checksumCalc&val[i])!=(checksumTheor&val[i])) {
         printf("Erreur sur le %dème paramètre, ",i+1);
         if (type==1) {printf("un argument de type immédiat est attendu\n");} /* IMM */
         else if (type==2) {printf("un argument de type registre est attendu\n");} /* REG */
@@ -106,23 +108,26 @@ int compareChecksum(int valeur,int checksum,int type) {
   return ret;
 }
 
-/* Mise au propre de l'expression, chaque partie est séparée de la précédente par un espace */
-int nettoyageInstruction(char *s, char **parse, int *tailleTab,int *nbOpe) {
+/* prend une ligne du fichier (src) un pointeur vers la chaine que l'on va parser */
+/* ainsi que la taille du tableau opérandes et le nombre d'opérande que nous allons écrire par adresse */
+/* met au propre de l'expression, chaque partie est séparée de la précédente par un espace */
+/* retourne 0 -> echec | 1 -> label | 2 -> instruction */
+int nettoyageInstruction(char *src, char **parse, int *tailleTab,int *nbOpe) {
   int i=0,commence=0,debutOpe=0,incremOut=0;
-  while(s[i]!='\0' && s[i]!='\n' && s[i]!='#') {
-    if(isalpha(s[i]) && !commence) {commence=1;}; /* Commence=1 : Opération trouvée */
-    if (s[i]==',' || s[i]==' ') {
+  while(src[i]!='\0' && src[i]!='\n' && src[i]!='#') {
+    if(isalpha(src[i]) && !commence) {commence=1;}; /* Commence=1 : Opération trouvée */
+    if (src[i]==',' || src[i]==' ') {
       debutOpe=1;
     }
-    else if (s[i]!=' ' && s[i]!=',' && commence>0) {
-      if (s[i]=='(') {*tailleTab=1;}; /* Si on à un offset imm(reg) on aura un paramètre de plus dans le tableau */
+    else if (src[i]!=' ' && src[i]!=',' && commence>0) {
+      if (src[i]=='(') {*tailleTab=1;}; /* Si on à un offset imm(reg) on aura un paramètre de plus dans le tableau */
       if (debutOpe && commence==2) { /* Commence=2 : Opération écrite */
         (*parse)[incremOut++]=' '; /* On ajoute un ' ' */
         (*nbOpe)++;
       }
       debutOpe=0;
       commence=2;
-      (*parse)[incremOut++]=s[i]; /* On copie le caractère */
+      (*parse)[incremOut++]=src[i]; /* On copie le caractère */
     }
     i++;
   }
@@ -138,7 +143,9 @@ int nettoyageInstruction(char *s, char **parse, int *tailleTab,int *nbOpe) {
   return 2;
 }
 
-int calculChecksum(instruction **found, char *parse, char *out, int **incremOpe, registre **registres, int* nbOpe, int* nbImm, int* nbReg, instruction** instructions, symtable *symbols) {
+/*  */
+
+int calculChecksum(instruction **instr, char *parse, char *out, int **incremOpe, registre **registres, int* nbOpe, int* nbImm, int* nbReg, instruction** instructions, symtable *symbols) {
   char *tampon=NULL;
   char *p=NULL;
   int num=0,coeffOpe=0,numOpe=0,tmp=0;
@@ -148,8 +155,8 @@ int calculChecksum(instruction **found, char *parse, char *out, int **incremOpe,
       strcat(out,p);
       if((*nbOpe)!=0) {strcat(out," ");}; /* Si on a une instruction sans argument on ne met pas d'espace */
       /* Test d'existance de l'opération return NULL si inexistante */
-      (*found)=trouveOperation(instructions,p);
-      if((*found)==NULL) {
+      (*instr)=trouveOperation(instructions,p);
+      if((*instr)==NULL) {
         return 0; /* On arrête le calcul, l'opération n'est pas existante */
       }
     }
@@ -162,7 +169,7 @@ int calculChecksum(instruction **found, char *parse, char *out, int **incremOpe,
     }
     /* Calcul de notre checksum */
     if (p[0]=='$') {
-      if(!traduitRegistre(registres,p)) {(*found)=NULL;};
+      if(!traduitRegistre(registres,p)) {(*instr)=NULL;};
       (*incremOpe)[numOpe++]=valeurDecimale(p);
       (*nbReg)+=2<<coeffOpe++; /* On ajoute la puissance de deux du numéro de l'opérande */
     }
@@ -184,7 +191,7 @@ int calculChecksum(instruction **found, char *parse, char *out, int **incremOpe,
       p++; /* On va au caractère d'après */
       /* Même principe on incrémente en puissance de deux */
       if (p[0]=='$') {
-        if(!traduitRegistre(registres,p)) {(*found)=NULL;};
+        if(!traduitRegistre(registres,p)) {(*instr)=NULL;};
         (*incremOpe)[numOpe++]=valeurDecimale(p);
         (*nbReg)+=2<<coeffOpe++;
       }
@@ -199,7 +206,7 @@ int calculChecksum(instruction **found, char *parse, char *out, int **incremOpe,
 }
 
 
-int parsageInstruction(instruction **found, instruction **instructions,registre** registres, symtable *symbols, char *s, char *out, int** operandes, int* tailleTab) {
+int parsageInstruction(instruction **instr, instruction **instructions,registre** registres, symtable *symbols, char *s, char *out, int** operandes, int* tailleTab) {
   int nbOpe=0,nbReg=0,nbImm=0;
   char *parse=NULL; /* tampon va être la zone de travail de strtok pour pouvoir utiliser strtok dans deux fonctions */
   int ret=0;
@@ -217,11 +224,11 @@ int parsageInstruction(instruction **found, instruction **instructions,registre*
   else {
     if(((*operandes)=(int *)calloc((*tailleTab),sizeof(int)))==NULL){exit(1);};
     /* Les checksums seront dans nbImm et nbReg */
-    calculChecksum(found,parse,out,operandes,registres,&nbOpe,&nbImm,&nbReg,instructions,symbols);
+    calculChecksum(instr,parse,out,operandes,registres,&nbOpe,&nbImm,&nbReg,instructions,symbols);
     /* Comparaison du checksum avec le checksum théorique */
-    if ((*found)!=NULL) {
-      if((compareChecksum(nbReg,(*found)->checksumReg,2)==0 || compareChecksum(nbImm,(*found)->checksumImm,1)==0)){
-        (*found)=NULL;
+    if ((*instr)!=NULL) {
+      if((compareChecksum(nbReg,(*instr)->checksumReg,2)==0 || compareChecksum(nbImm,(*instr)->checksumImm,1)==0)){
+        (*instr)=NULL;
       };
     }
     free(parse);
@@ -229,8 +236,9 @@ int parsageInstruction(instruction **found, instruction **instructions,registre*
   return ret;
 }
 
-/* Retourne 1 si le numéro est valide, 0 sinon */
-/* Vérifie que num appartienne bien à l'intervale [min,max] */
+/* prend en entrée un nombre ainsi qu'une borne min et une borne max */
+/* vérifie que num appartienne bien à l'intervale [min,max] */
+/* retourne 1 si le numéro est valide, 0 sinon */
 int check(int num, int min, int max) {
   int ret=1;
   if (num<min || num>max) {
@@ -245,76 +253,76 @@ int check(int num, int min, int max) {
 int parseLigne(char *ligne, int pc, char **ligneParse, unsigned long int *instructionHex, symtable *symbols, instruction **instructions, registre **registres) {
   int ret=0;
   unsigned long int hex=0;
-  instruction *found=NULL;
+  instruction *instr=NULL;
   int rs=0,rt=0,imm=0,rd=0,sa=0;
   char *ligneOut=*ligneParse;
   int *operandes=NULL;
   int tailleTab=0;
   if (ligne!=NULL) {
     if((ligneOut=(char *)calloc(strlen(ligne),sizeof(char)))==NULL){exit(1);};
-    if (parsageInstruction(&found,instructions,registres,symbols,ligne,ligneOut,&operandes,&tailleTab)) { /* Si on retourne 1 c'est un label */
+    if (parsageInstruction(&instr,instructions,registres,symbols,ligne,ligneOut,&operandes,&tailleTab)) { /* Si on retourne 1 c'est un label */
       insertionQueue(symbols,ligneOut,pc);
       ret=10;
     }
-    else if (found!=NULL && tailleTab==found->nbOperande) {
+    else if (instr!=NULL && tailleTab==instr->nbOperande) {
       ret=1; /* On a une expression valide */
       /* Instruction de type R */
-      if (found->typeInstruction=='R') {
+      if (instr->typeInstruction=='R') {
         /* On remplit les valeurs de opcode,rs,rt,rd et sa */
-        if (found->ordreBits==1) {
+        if (instr->ordreBits==1) {
           /* ADD/AND/XOR/OR/SLT/SUB */
-          if (found->styleRemplissage==1) {
+          if (instr->styleRemplissage==1) {
             rs=operandes[1];
             rt=operandes[2];
             rd=operandes[0];
             sa=0;
           }
           /* NOP */
-          else if (found->styleRemplissage==2) {
+          else if (instr->styleRemplissage==2) {
             ;
           }
           /* SLL */
-          else if (found->styleRemplissage==3) {
+          else if (instr->styleRemplissage==3) {
             rs=0;
             rt=operandes[1];
             rd=operandes[0];
             sa=operandes[2];
           }
         }
-        else if (found->ordreBits==2) {
+        else if (instr->ordreBits==2) {
           /* ROTR */
-          if (found->styleRemplissage==1) {rs=1;}
+          if (instr->styleRemplissage==1) {rs=1;}
           /* SRL */
-          else if (found->styleRemplissage==2) {rs=0;}
+          else if (instr->styleRemplissage==2) {rs=0;}
           rt=operandes[1];
           rd=operandes[0];
           sa=operandes[2];
         }
-        else if (found->ordreBits==3) {
+        else if (instr->ordreBits==3) {
           /* MULT */
-          if (found->styleRemplissage==1) {
+          if (instr->styleRemplissage==1) {
             rs=operandes[0];
             rt=operandes[1];
             rd=sa=0;
           }
         }
-        else if (found->ordreBits==4) {
+        else if (instr->ordreBits==4) {
           /* JR -> Implémentation de la release 1 de l'architecture */
-          if (found->styleRemplissage==1) {
+          if (instr->styleRemplissage==1) {
             rs=operandes[0];
             rt=rd=sa=0;
           }
         }
-        else if (found->ordreBits==5) {
+        else if (instr->ordreBits==5) {
           /* MFHI/MFLO */
-          if (found->styleRemplissage==1) {
+          if (instr->styleRemplissage==1) {
             rd=operandes[0];
             rs=rt=sa=0;
           }
         }
-        else if (found->ordreBits==6) {
+        else if (instr->ordreBits==6) {
           /* SYSCALL */
-          if (found->styleRemplissage==1) {
+          if (instr->styleRemplissage==1) {
             /*  Non implémenté */
             rs=rt=rd=sa=0;
           }
@@ -332,17 +340,17 @@ int parseLigne(char *ligne, int pc, char **ligneParse, unsigned long int *instru
         hex|=(rt&0x1f)<<16;
         hex|=(rd&0x1f)<<11;
         hex|=(sa&0x1f)<<6;
-        hex|=(found->opcode);
+        hex|=(instr->opcode);
       }
       /* Instruction de type I */
-      else if (found->typeInstruction=='I') {
+      else if (instr->typeInstruction=='I') {
         /* On remplit les valeurs de opcode,rs,rt et imm */
-        hex=((found->opcode)<<26); /* Opcode */
-        if (found->ordreBits==1) {
+        hex=((instr->opcode)<<26); /* Opcode */
+        if (instr->ordreBits==1) {
           /* ADDI/BEQ/BNE */
-          if (found->styleRemplissage==1) {
+          if (instr->styleRemplissage==1) {
             /* ADDI change, l'instruction présente rt rs imm */
-            if ((found->opcode)==0x08) {
+            if ((instr->opcode)==0x08) {
               rs=operandes[1];
               rt=operandes[0];
             }
@@ -354,19 +362,19 @@ int parseLigne(char *ligne, int pc, char **ligneParse, unsigned long int *instru
             imm=operandes[2];
           }
           /* BGTZ/BLEZ */
-          else if (found->styleRemplissage==2) {
+          else if (instr->styleRemplissage==2) {
             rs=operandes[0];
             rt=0;
             imm=operandes[1];
           }
           /* LUI */
-          else if (found->styleRemplissage==3) {
+          else if (instr->styleRemplissage==3) {
             rs=0;
             rt=operandes[0];
             imm=operandes[1];
           }
           /* LW/SW */
-          else if (found->styleRemplissage==4) {
+          else if (instr->styleRemplissage==4) {
             rs=operandes[2];
             rt=operandes[0];
             imm=operandes[1];
@@ -385,13 +393,13 @@ int parseLigne(char *ligne, int pc, char **ligneParse, unsigned long int *instru
           hex&=0xffffffff; /* sécurité, normalement inutile */
         }
       }
-      else if (found->typeInstruction=='J') {
-        hex=((found->opcode)<<26); /* Opcode */
-        if (found->ordreBits==1) {
+      else if (instr->typeInstruction=='J') {
+        hex=((instr->opcode)<<26); /* Opcode */
+        if (instr->ordreBits==1) {
           /* ADDI/BEQ/BNE */
-          if (found->styleRemplissage==1) {
+          if (instr->styleRemplissage==1) {
             /* ADDI change, l'instruction présente rt rs imm */
-            if ((found->opcode)==0x03) {
+            if ((instr->opcode)==0x03) {
               imm=operandes[0];
             }
           }
