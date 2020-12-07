@@ -3,10 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 
-/* Lit le fichier d'instruction assembleur ligne par ligne */
-/* Parse l'expression et appele la fonction de traduction hexadécimale */
-/* Mode défini si on est en mode auto (1) ou pàp (0) */
-/* Prend les fichiers input et output, la memoire des registres et des instructions en entrée */
+/* prend en entrée la liste chaîné des segments, le program counteur la version hexa et le string de l'instruction uniforisé */
+/* ajoute cette instruction à la liste chaîné */
 void insererSegment(prog *segments, int programCounter, unsigned long int tradHex, char* instruction) {
   prog increment=*segments;
   segment *elem=NULL;
@@ -27,6 +25,8 @@ void insererSegment(prog *segments, int programCounter, unsigned long int tradHe
   }
 }
 
+/* prend en entrée la liste chaîné des segments et le program counteur */
+/* affiche l'ensemble des segments assembleur contenu dans la liste chainée */
 void afficherSegments(prog *segments, int pc) {
   prog increment=*segments;
   if (increment==NULL) {
@@ -50,7 +50,9 @@ void afficherSegments(prog *segments, int pc) {
   }
 }
 
+/* prend en entrée la liste chaîné des segments, le program counteur et le type */
 /* type=1 : pc,hex,char type=0 : char */
+/* affiche l'ensemble des segments assembleur contenu dans la liste chainée */
 void afficherSegmentPc(prog *segments, int pc, int type) {
   prog increment=*segments;
   int c=1;
@@ -70,6 +72,8 @@ void afficherSegmentPc(prog *segments, int pc, int type) {
   }
 }
 
+/* prend en entrée la liste chaîné des segments */
+/* libère l'ensemble de la liste chainée pour éviter les fuites mémoire */
 void libereSegments(prog *segments) {
   prog increment=NULL;
   while (*segments!=NULL) {
@@ -80,8 +84,11 @@ void libereSegments(prog *segments) {
   }
 }
 
-/* Mode: 0: pàp, 1: auto et 2: intéractif */
-void parseFichier(char *input, char* output, int mode, instruction **instructions, registre** registres, symtable *symbols, memoire *mem, prog *segments) {
+/* prend en entrée le fichier d'entrée, le fichier de sortie (fichier d'entrée pas forcément utilisé) */
+/* ainsi que les structures de stockage des instructions, des registres, la mémoire, les segments pour l'afficage, la table des symboles */
+/* ET le Mode: 0: pàp, 1: auto et 2: intéractif */
+/* parse ligne après ligne le fichier et s'occupe de tout l'affichage et des saisie utilisateur */
+void parseFichier(char *input, char* output, int mode, instruction **instructions, registre** registres, memoire *mem, prog *segments, symtable *symbols) {
   /* Fichiers d'entrée, de sortie du programme et d'affichage */
   FILE *fin=NULL,*fout=fopen(output, "w");
   size_t len=0;
