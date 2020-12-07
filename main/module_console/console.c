@@ -81,7 +81,7 @@ void libereSegments(prog *segments) {
 }
 
 /* Mode: 0: pàp, 1: auto et 2: intéractif */
-void parseFichier(char *input, char* output, int mode, instruction **instructions, registre** registres, memoire *mem, prog *segments) {
+void parseFichier(char *input, char* output, int mode, instruction **instructions, registre** registres, symtable *symbols, memoire *mem, prog *segments) {
   /* Fichiers d'entrée, de sortie du programme et d'affichage */
   FILE *fin=NULL,*fout=fopen(output, "w");
   /* Fichiers pour remplir les mémoires (opérandes et registres) */
@@ -95,6 +95,7 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
   registre *pc=NULL,*sp=NULL;
   int pcMax=0;
   int tmpMode=mode;
+  int retParse=0;
   int saisie=1;
   char *line=NULL;
   pc=registres[32]; /* PC */
@@ -116,11 +117,15 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
       if(ligne[0]!='\n' && ligne[0]!='\0' && ligne[0]!='#') { /* Si on n'à pas une ligne vide */
         /* On a quelque chose */
         if (tmpMode) {
-          if (parseLigne(ligne,&ligneOut,&instructionHex,instructions,registres)==1) {
+          retParse=parseLigne(ligne,pc->valeur,&ligneOut,&instructionHex,symbols,instructions,registres);
+          if (retParse==1) {
             insererSegment(segments,pc->valeur,instructionHex,ligneOut);
             insertion(mem,pc->valeur,instructionHex);
             fprintf(fout,"%08lx\n",instructionHex);
             (pc->valeur)+=4;
+          }
+          else if (retParse==10) {
+            printf("On a un label %ld \n", pc->valeur);
           }
           else {
             printf("Erreur ligne %d, on passe à la suivante (instruction ou argument non reconnue) %s\n",lignes,ligne);
@@ -129,7 +134,8 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
         }
         /* Mode pas à pas */
         else if (!tmpMode) {
-          if (parseLigne(ligne,&ligneOut,&instructionHex,instructions,registres)) {
+          retParse=parseLigne(ligne,pc->valeur,&ligneOut,&instructionHex,symbols,instructions,registres);
+          if (retParse==1) {
             printf("Instruction assembleur ligne %d : \n%s\n\n",lignes,ligneOut);
             printf("Expression hexadécimale : \n0x%08lx\n\n", instructionHex);
             printf("passer l'instruction: [p], instruction suivante: [enter], saut de la lecture: [s]\n");
@@ -153,6 +159,9 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
               }
             } while(inW);
           }
+          else if (retParse==10) {
+            printf("On a un label %ld \n", pc->valeur);
+          }
           else {
             printf("Erreur ligne %d, on passe à la suivante (instruction ou argument non reconnue) %s\n\n",lignes,ligne);
             free(ligneOut);
@@ -172,11 +181,15 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
       if(getline(&line,&len,stdin)>0) {
         if(line[0]!='\0' && line[0]!='\n') { /* Si la ligne uniformisé n'est pas vide */
           /* On a quelque chose */
-          if (parseLigne(line,&ligneOut,&instructionHex,instructions,registres)) {
+          retParse=parseLigne(line,pc->valeur,&ligneOut,&instructionHex,symbols,instructions,registres);
+          if (retParse==1) {
             insererSegment(segments,pc->valeur,instructionHex,ligneOut);
             insertion(mem,pc->valeur,instructionHex);
             fprintf(fout,"%08lx\n",instructionHex);
             (pc->valeur)+=4;
+          }
+          else if(retParse==10) {
+            printf("On a un label %ld \n", pc->valeur);
           }
           else {free(ligneOut);}
         }
@@ -242,4 +255,8 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
   printf("\n------- Pile -------\n");
   afficherMemoires(mem,DEBUT_MEMOIRE,DEBUT_PROG);
   libereSegments(segments);
+  tableAffiche(*symbols);
+  libereTable(symbols);
+  tableAffiche(*symbols);
+  printf("Fin\n");
 }

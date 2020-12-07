@@ -106,15 +106,16 @@ int compareChecksum(int valeur,int checksum,int type) {
   return ret;
 }
 
-instruction *parsageInstruction(instruction **instructions,registre** registres, char *s, char *out, int** operandes, int* tailleTab) {
+int parsageInstruction(instruction **found, instruction **instructions,registre** registres, char *s, char *out, int** operandes, int* tailleTab) {
   int i=0,incremOut=0,commence=0,debutOpe=0,nbOpe=0,nbReg=0,nbImm=0,num=0,coeffOpe=0;
   char *p=NULL,*parse=NULL,*tampon=NULL; /* tampon va être la zone de travail de strtok pour pouvoir utiliser strtok dans deux fonctions */
-  instruction *ret=NULL;
+  int ret=0;
   int numOpe=-1;
   int *incremOpe=NULL;
   parse=malloc(strlen(s)*sizeof(char));
   /* Mise au propre de l'expression, chaque partie est séparée de la précédente par un espace */
   while(s[i]!='\0' && s[i]!='\n' && s[i]!='#') {
+    printf("Char %c\n", s[i]);
     if(isalpha(s[i]) && !commence) {commence=1;}; /* Commence=1 : Opération trouvée */
     if (s[i]==',' || s[i]==' ') {
       debutOpe=1;
@@ -134,69 +135,80 @@ instruction *parsageInstruction(instruction **instructions,registre** registres,
   }
   if (incremOut==0) {
     free(parse);
-    return NULL;
+    return 0;
   }
-  else if(nbOpe==0) {
-    incremOut--; /* On était une case trop loin dans le cas d'une unique opérande */
-  }
+  //else if(nbOpe==0) {
+  //  incremOut--; /* On était une case trop loin dans le cas d'une unique opérande */
+  //}*/
   parse[incremOut]='\0';
-  (*tailleTab)+=nbOpe;
-  if(((*operandes)=(int *)calloc((*tailleTab),sizeof(int)))==NULL){exit(1);};
-  incremOpe=*operandes;
-  /* On sépare l'instruction avec l'espace comme séparateur */
-  for (p=strtok_r(parse," ",&tampon);p!=NULL;p=strtok_r(NULL, " ",&tampon)) {
-    /* Ecriture */
-    if (num==0 && nbOpe>=0) {
-      strcat(out,p);
-      if(nbOpe!=0) {strcat(out," ");}; /* Si on a une instruction sans argument on ne met pas d'espace */
-      /* Test d'existance de l'opération return NULL si inexistante */
-      ret=trouveOperation(instructions,p);
-      if(ret==NULL) {
-        free(parse);
-        return NULL;
+  printf("Parsé : %s\n",parse);
+  if (strchr(parse,':')!=NULL) {
+    ret=1;
+    parse[incremOut-1]='\0'; /* On enlève le : */
+    strcat(out,parse);
+    free(parse);
+    printf("On à un label\n");
+  }
+  else {
+    (*tailleTab)+=nbOpe;
+    if(((*operandes)=(int *)calloc((*tailleTab),sizeof(int)))==NULL){exit(1);};
+    incremOpe=*operandes;
+    /* On sépare l'instruction avec l'espace comme séparateur */
+    for (p=strtok_r(parse," ",&tampon);p!=NULL;p=strtok_r(NULL, " ",&tampon)) {
+      /* Ecriture */
+      if (num==0 && nbOpe>=0) {
+        strcat(out,p);
+        if(nbOpe!=0) {strcat(out," ");}; /* Si on a une instruction sans argument on ne met pas d'espace */
+        /* Test d'existance de l'opération return NULL si inexistante */
+        (*found)=trouveOperation(instructions,p);
+        if((*found)==NULL) {
+          free(parse);
+          return 0;
+        }
       }
-    }
-    else if (num!=nbOpe) {
-      strcat(out,p);
-      strcat(out,",");
-    }
-    else {
-      strcat(out,p);
-    }
-    /* Calcul de notre checksum */
-    if (p[0]=='$') {
-      if(!traduitRegistre(registres,p)) {ret=NULL;};
-      incremOpe[numOpe++]=valeurDecimale(p);
-      nbReg+=2<<coeffOpe++; /* On ajoute la puissance de deux du numéro de l'opérande */
-    }
-    else if (isdigit(p[0]) || p[0]=='-') {
-      incremOpe[numOpe++]=valeurDecimale(p);
-      nbImm+=2<<coeffOpe++; /* Pareil */
-    }
-    /* Si il y a une parenthèse ouvrante dans l'opérande */
-    if((p=strchr(p,'('))!=NULL) {
-      p++; /* On va au caractère d'après */
-      /* Même principe on incrémente en puissance de deux */
+      else if (num!=nbOpe) {
+        strcat(out,p);
+        strcat(out,",");
+      }
+      else {
+        strcat(out,p);
+      }
+      /* Calcul de notre checksum */
       if (p[0]=='$') {
-        if(!traduitRegistre(registres,p)) {ret=NULL;};
+        if(!traduitRegistre(registres,p)) {(*found)=NULL;};
         incremOpe[numOpe++]=valeurDecimale(p);
-        nbReg+=2<<coeffOpe++;
+        nbReg+=2<<coeffOpe++; /* On ajoute la puissance de deux du numéro de l'opérande */
       }
       else if (isdigit(p[0]) || p[0]=='-') {
         incremOpe[numOpe++]=valeurDecimale(p);
-        nbImm+=2<<coeffOpe++;
+        nbImm+=2<<coeffOpe++; /* Pareil */
       }
+      /* Si il y a une parenthèse ouvrante dans l'opérande */
+      if((p=strchr(p,'('))!=NULL) {
+        p++; /* On va au caractère d'après */
+        /* Même principe on incrémente en puissance de deux */
+        if (p[0]=='$') {
+          if(!traduitRegistre(registres,p)) {(*found)=NULL;};
+          incremOpe[numOpe++]=valeurDecimale(p);
+          nbReg+=2<<coeffOpe++;
+        }
+        else if (isdigit(p[0]) || p[0]=='-') {
+          incremOpe[numOpe++]=valeurDecimale(p);
+          nbImm+=2<<coeffOpe++;
+        }
+      }
+  /* Quand offset imm1(imm2) ou imm(reg) ou (reg) ou (imm) Juste imm(reg) de valide */
+      num++;
     }
-/* Quand offset imm1(imm2) ou imm(reg) ou (reg) ou (imm) Juste imm(reg) de valide */
-    num++;
+    /* Comparaison du checksum avec le checksum théorique */
+    if ((*found)!=NULL) {
+      if((compareChecksum(nbReg,(*found)->checksumReg,2)==0 || compareChecksum(nbImm,(*found)->checksumImm,1)==0)){(*found)=NULL;};
+    }
+    free(parse);
+    *operandes=incremOpe; /* On écrit le nouveau tableau */
+    printf("Checksum : %d|%d -> %s\n",nbReg,nbImm,out);
   }
-  /* Comparaison du checksum avec le checksum théorique */
-  if (ret!=NULL) {
-    if((compareChecksum(nbReg,ret->checksumReg,2)==0 || compareChecksum(nbImm,ret->checksumImm,1)==0)){ret=NULL;};
-  }
-  free(parse);
-  *operandes=incremOpe; /* On écrit le nouveau tableau */
-  printf("Checksum : %d|%d -> %s\n",nbReg,nbImm,out);
+  printf("Retourne %d\n", ret);
   return ret;
 }
 
@@ -213,7 +225,7 @@ int check(int num, int min, int max) {
 
 /* Traduit une ligne passé en argument (*ligne) en une valeur hexadécimale stockée dans *instructionHex (passé par adresse) */
 /* Retourne 0 si l'operation n'existe pas, est invalide ou que les valeurs sont out of range 1 sinon */
-int parseLigne(char *ligne, char **ligneParse, unsigned long int *instructionHex, instruction **instructions, registre **registres) {
+int parseLigne(char *ligne, int pc, char **ligneParse, unsigned long int *instructionHex, symtable *symbols, instruction **instructions, registre **registres) {
   int ret=0;
   unsigned long int hex=0;
   instruction *found=NULL;
@@ -223,8 +235,12 @@ int parseLigne(char *ligne, char **ligneParse, unsigned long int *instructionHex
   int tailleTab=0;
   if (ligne!=NULL) {
     if((ligneOut=(char *)calloc(strlen(ligne),sizeof(char)))==NULL){exit(1);};
-    found=parsageInstruction(instructions,registres,ligne,ligneOut,&operandes,&tailleTab);
-    if (found!=NULL && tailleTab==found->nbOperande) {
+    if (parsageInstruction(&found,instructions,registres,ligne,ligneOut,&operandes,&tailleTab)) { /* Si on retourne 1 c'est un label */
+      printf("Pointeur transmis %d %s fin\n",pc,ligneOut);
+      insertionQueue(symbols,ligneOut,pc);
+      ret=10;
+    }
+    else if (found!=NULL && tailleTab==found->nbOperande) {
       ret=1; /* On a une expression valide */
       /* Instruction de type R */
       if (found->typeInstruction=='R') {
