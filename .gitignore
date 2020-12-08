@@ -2,6 +2,7 @@
 !Makefile
 !*.*
 !*/
+Rendu_Latex/
 *.o
 hex.txt
 *.tar.xz
