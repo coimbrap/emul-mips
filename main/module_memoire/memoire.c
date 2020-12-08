@@ -122,8 +122,7 @@ unsigned long int valeurMemoire(memoire *m, int adresse) {
 /* *m pointera donc vers NULL à la fin */
 void liberation(memoire *m) {
   memoire increment=NULL,precedent=NULL;
-  if (*m==NULL) {printf("Libération : mémoire vide\n");}
-  else {
+  if (*m!=NULL) {
     increment=*m;
 		/* Tant que le prochain élément ne pas NULL */
     while (increment->suivant!=NULL) {

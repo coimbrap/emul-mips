@@ -36,8 +36,6 @@ int main(int argc, char *argv[]) {
   liberationRegistres(registres);
   liberationInstruction(instructions);
   liberation(&mem);
-  tableAffiche(symbols);
   libereTable(&symbols);
-  tableAffiche(symbols);
   return 0;
 }

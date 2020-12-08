@@ -55,27 +55,22 @@ void supressionTete(symtable *tableorigine) {
 /* prend en entrée la table des symboles */
 /* affiche l'ensemble de la table des symboles dans l'ordre */
 void tableAffiche(symtable symbols) {
-	if (NULL==symbols)
-		printf("Table vide!");
-	else
+	if (NULL!=symbols) {
 		printf("Contenu de la table : ");
-	while (NULL!=symbols) {
-		printf("%s %i\n",symbols->nom,symbols->valeur);
-		symbols=symbols->suivant;
+		while (NULL!=symbols) {
+			printf("%s %i\n",symbols->nom,symbols->valeur);
+			symbols=symbols->suivant;
+		}
 	}
 }
 
 /* prend en entrée la table des symboles */
 /* libère l'ensemble de la table des symboles pour éviter les fuites mémoire */
 void libereTable(symtable *symbols) {
-  symtable increment=NULL;
   if (*symbols!=NULL) {
-    increment=*symbols;
-    while (increment->suivant!=NULL) {
-      increment=increment->suivant;
+    while ((*symbols)->suivant!=NULL) {
       supressionTete(symbols);
     }
-    supressionTete(symbols);
   }
 }
 

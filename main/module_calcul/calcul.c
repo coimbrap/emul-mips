@@ -171,7 +171,6 @@ void execTypeJ(int opcode, instruction *instr, int index, registre *pc, registre
       pc->valeur+=(index<<2);
     }
   }
-  pc->valeur=imm;
 }
 
 /* Prend en entrée une instruction hexadécimale (demandé dans les spécifications) */
@@ -209,7 +208,7 @@ void execInstruction(unsigned long int hex, registre **registres, instruction **
             else {instr=trouveOperation(instructions,"SRL");}
           }
           imm=complementADeux(imm,16); /* On prend le complément à 2 d'un 16 bits car signé */
-          execTypeI(instr,opcode,rsI,rtI,imm,pc,registres,instructions,mem);
+          execTypeI(opcode,instr,rsI,rtI,imm,pc,registres,mem);
         }
         else if (instr->typeInstruction=='J') {
           imm=(hex&0x3FFFFFF);
