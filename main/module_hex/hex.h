@@ -11,24 +11,15 @@
 #define NB_OPERATIONS 26
 
 typedef struct instruction {
-  char nom[TAILLE_MAX_OPERATEUR]; /* En ascii */
-  unsigned int opcode; /* sous forme hexadécimale */
+  char nom[TAILLE_MAX_OPERATEUR]; /* en ascii */
+  unsigned int opcode; /* entier de l'instruction */
   char typeInstruction; /* 'R' || 'I' || 'J' */
-  int ordreBits; /* Cas en fonction du type */
-  int styleRemplissage; /* SG en fonction du type */
+  int ordreBits; /* Ordre des bits */
+  int styleRemplissage; /* Style de remplissage des champs */
   int nbOperande; /* Nombre d'opérandes requis pour fonctionner */
-  int checksumReg;
-  int checksumImm;
+  int checksumReg; /* Checksum théorique des registres */
+  int checksumImm; /* Checksum théorique des immédiats */
 } instruction;
-
-typedef struct segment {
-  int pc;
-  unsigned long int hex;
-  char *asem;
-  struct segment* suivant;
-} segment;
-
-typedef segment* prog;
 
 /* MEMOIRE INSTRUCTIONS */
 

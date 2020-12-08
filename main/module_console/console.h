@@ -7,6 +7,16 @@
 #include "../module_memoire/memoire.h"
 #include "../module_table/table.h"
 
+typedef struct segment {
+  int pc;
+  unsigned long int hex;
+  char *asem;
+  struct segment* suivant;
+} segment;
+
+typedef segment* prog;
+
+
 /* prend en entrée la liste chaîné des segments, le program counteur la version hexa et le string de l'instruction uniforisé */
 /* ajoute cette instruction à la liste chaîné */
 void insererSegment(prog *segments, int programCounter, unsigned long int tradHex, char* instruction);
