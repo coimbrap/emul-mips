@@ -163,7 +163,7 @@ void afficherMemoires(memoire *m, int adresseMin, int adresseMax) {
 void afficherMemoire(memoire slot) {
   if(slot==NULL) {printf("No record\n");}
   else {
-    printf("0x%04x      %-11d   0x%08x   ",slot->adresse,(int) slot->valeur,(int) slot->valeur);
+    printf("@%08d   %-11d   0x%08x   ",slot->adresse,(int) slot->valeur,(int) slot->valeur);
     decToBin(slot->valeur);
   }
 }

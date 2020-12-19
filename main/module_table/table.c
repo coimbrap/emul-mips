@@ -11,7 +11,7 @@
 /* insère en tête le symbole dans la table des symboles */
 void insertionTete(symtable *tableorigine, char* nom, int valeur) {
 	symtable head=malloc(sizeof(symbol));
-	head->nom=malloc((strlen(nom)+1)*sizeof(char));
+	head->nom=malloc(strlen(nom)+1);
 	strcpy(head->nom,nom);
   head->suivant=*tableorigine;
 	head->valeur=valeur;
@@ -34,7 +34,7 @@ void insertionQueue(symtable *tableorigine, char* nom, int valeur) {
 		increment->suivant=malloc(sizeof(symbol));
 		increment=increment->suivant;
 		/* On malloc une place pour le nom et on le strcpy */
-    increment->nom=malloc((strlen(nom)+1)*sizeof(char));
+    increment->nom=malloc(strlen(nom)+1);
 		strcpy(increment->nom,nom);
 		increment->valeur=valeur;
 		increment->suivant=NULL;
@@ -165,7 +165,7 @@ void fillSymbols(char *input, instruction **instructions, registre** registres, 
 	    }
 	    /* Comparaison du checksum avec le checksum théorique */
 	    if (ret!=0) {
-	      if((compareChecksum(nbReg,instr->checksumReg,2)==0 || compareChecksum(nbImm,instr->checksumImm,1)==0)){ret=0;};
+	      if((nbReg!=instr->checksumReg) ||( nbImm!=instr->checksumImm)){ret=0;};
 			}
 			if (ret==1) {pc+=4;}
 			free(parse);
