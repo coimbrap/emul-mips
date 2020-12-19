@@ -46,7 +46,9 @@ instruction* trouveOpcode(instruction **instructions, int opcode, char type);
 
 /* PARSAGE */
 
-int compareChecksum(int valeur,int checksum,int type);
+/* prend en entrée le checksum calculé et le checksum théorique pour les registres et les immédiats */
+/* les compare est dit ou sont les différences et donc ou sont les erreurs */
+int compareChecksum(char* ligne, int checksumCalcR,int checksumTheorR, int checksumCalcI,int checksumTheorI, int type);
 
 /* Prend en entrée un pointeur vers une chaine non uniforisé et une pointeur pour stocké la chaine uniformisé */
 /* S'occupe d'uniformiser la chaine */
@@ -54,7 +56,7 @@ int parsageInstruction(instruction **instr, instruction **instructions,registre*
 
 /* Retourne 1 si le numéro est valide, 0 sinon */
 /* Vérifie que num appartienne bien à l'intervale [min,max] */
-int check(int num, int min, int max);
+int check(char* ligne, int num, int min, int max);
 
 int nettoyageInstruction(char *s, char **parse, int *tailleTab,int *nbOpe);
 
@@ -62,6 +64,6 @@ int calculChecksum(instruction **instr, char *parse, char *out, int **incremOpe,
 
 /* Traduit une ligne passé en argument (*ligne) en une valeur hexadécimale stockée dans *instructionHex (passé par adresse) */
 /* Retourne 0 si l'operation n'existe pas, est invalide ou que les valeurs sont out of range 1 sinon */
-int parseLigne(char *ligne, int pc, char **ligneParse, unsigned long int *instructionHex, symtable *symbols, instruction **instructions, registre **registres);
+int hexLigne(char *ligne, int pc, char **ligneParse, unsigned long int *instructionHex, symtable *symbols, instruction **instructions, registre **registres);
 
 #endif

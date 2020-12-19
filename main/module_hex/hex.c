@@ -90,18 +90,22 @@ instruction* trouveOpcode(instruction** instructions, int opcode, char type) {
 
 /* PARSAGE */
 
-/* prend en entrée le checksum calculé et le checksum théorique */
-/* les comparre est dit ou sont les différences et donc ou sont les erreurs */
-int compareChecksum(int checksumCalc,int checksumTheor,int type) {
+/* prend en entrée le checksum calculé et le checksum théorique pour les registres et les immédiats */
+/* les compare est dit ou sont les différences et donc ou sont les erreurs */
+int compareChecksum(char* ligne, int checksumCalcR,int checksumTheorR, int checksumCalcI,int checksumTheorI, int type) {
   int val[]={2,4,8}; /* checksumCalc des 3 puissances de deux utilisé dans le calcul de la somme de controle */
   int ret=1,i=0;
-  if (checksumCalc!=checksumTheor) {
-    ret=0;
+  if ((checksumCalcR!=checksumTheorR) || (checksumCalcI!=checksumTheorI)) {
     for(i=0;i<3;i++) {
-      if((checksumCalc&val[i])!=(checksumTheor&val[i])) {
-        printf("Erreur sur le %dème paramètre, ",i+1);
-        if (type==1) {printf("un argument de type immédiat est attendu\n");} /* IMM */
-        else if (type==2) {printf("un argument de type registre est attendu\n");} /* REG */
+      if((checksumTheorR&val[i])!=0 && (checksumCalcR&val[i])!=(checksumTheorR&val[i])) {
+        if(ret) {printf("\n%s",ligne);};
+        ret=0;
+        printf(" Erreur sur le %dème paramètre, un argument de type registre est attendu\n",i+1); /* REG */
+      }
+      if((checksumTheorI&val[i])!=0 && (checksumCalcI&val[i])!=(checksumTheorI&val[i])) {
+        if(ret) {printf("%s ",ligne);};
+        ret=0;
+        printf(" Erreur sur le %dème paramètre, un argument de type immédiat est attendu\n",i+1); /* IMM */
       }
     }
   }
@@ -119,7 +123,7 @@ int nettoyageInstruction(char *src, char **parse, int *tailleTab,int *nbOpe) {
     if (src[i]==',' || src[i]==' ') {
       debutOpe=1;
     }
-    else if (src[i]!=' ' && src[i]!=',' && commence>0) {
+    else if ((isalnum(src[i]) || src[i]=='$' || src[i]==':' || src[i]=='(' || src[i]==')' || src[i]=='-') && commence>0) { /* on filtre */
       if (src[i]=='(') {*tailleTab=1;}; /* Si on à un offset imm(reg) on aura un paramètre de plus dans le tableau */
       if (debutOpe && commence==2) { /* Commence=2 : Opération écrite */
         (*parse)[incremOut++]=' '; /* On ajoute un ' ' */
@@ -143,12 +147,11 @@ int nettoyageInstruction(char *src, char **parse, int *tailleTab,int *nbOpe) {
   return 2;
 }
 
-/*  */
-
 int calculChecksum(instruction **instr, char *parse, char *out, int **incremOpe, registre **registres, int* nbOpe, int* nbImm, int* nbReg, instruction** instructions, symtable *symbols) {
   char *tampon=NULL;
   char *p=NULL;
   int num=0,coeffOpe=0,numOpe=0,tmp=0;
+  char *parseTmp=strdup(parse); /* on garde une copie de parse pour l'affichage */
   for (p=strtok_r(parse," ",&tampon);p!=NULL;p=strtok_r(NULL, " ",&tampon)) {
     /* Ecriture */
     if (num==0 && (*nbOpe)>=0) {
@@ -157,6 +160,8 @@ int calculChecksum(instruction **instr, char *parse, char *out, int **incremOpe,
       /* Test d'existance de l'opération return NULL si inexistante */
       (*instr)=trouveOperation(instructions,p);
       if((*instr)==NULL) {
+        free(parseTmp);
+        printf("%s\n Erreur, l'opération est invalide\n",parseTmp);
         return 0; /* On arrête le calcul, l'opération n'est pas existante */
       }
     }
@@ -169,7 +174,10 @@ int calculChecksum(instruction **instr, char *parse, char *out, int **incremOpe,
     }
     /* Calcul de notre checksum */
     if (p[0]=='$') {
-      if(!traduitRegistre(registres,p)) {(*instr)=NULL;};
+      if(!traduitRegistre(registres,p)) {
+        printf("%s\n Erreur, %s n'est pas un registre valide\n",parseTmp,p);
+        (*instr)=NULL;
+      }
       (*incremOpe)[numOpe++]=valeurDecimale(p);
       (*nbReg)+=2<<coeffOpe++; /* On ajoute la puissance de deux du numéro de l'opérande */
     }
@@ -182,16 +190,17 @@ int calculChecksum(instruction **instr, char *parse, char *out, int **incremOpe,
         (*incremOpe)[numOpe++]=tmp;
         (*nbImm)+=2<<coeffOpe++;
       }
-      else {
-        printf("Label non trouvée\n");
-      }
+      else {printf("Label non trouvée\n");};
     }
     /* Si il y a une parenthèse ouvrante dans l'opérande */
     if((p=strchr(p,'('))!=NULL) {
       p++; /* On va au caractère d'après */
       /* Même principe on incrémente en puissance de deux */
       if (p[0]=='$') {
-        if(!traduitRegistre(registres,p)) {(*instr)=NULL;};
+        if(!traduitRegistre(registres,p)) {
+          printf("%s\nErreur, %s n'est pas un registre valide\n",parseTmp,p);
+          (*instr)=NULL;
+        }
         (*incremOpe)[numOpe++]=valeurDecimale(p);
         (*nbReg)+=2<<coeffOpe++;
       }
@@ -202,24 +211,30 @@ int calculChecksum(instruction **instr, char *parse, char *out, int **incremOpe,
     }
     num++;
   }
+  free(parseTmp);
   return 1; /* On a calculé le checksum */
 }
-
 
 int parsageInstruction(instruction **instr, instruction **instructions,registre** registres, symtable *symbols, char *s, char *out, int** operandes, int* tailleTab) {
   int nbOpe=0,nbReg=0,nbImm=0;
   char *parse=NULL; /* tampon va être la zone de travail de strtok pour pouvoir utiliser strtok dans deux fonctions */
-  int ret=0;
-  parse=malloc(strlen(s)*sizeof(char));
+  int ret=2; /* 2 -> expression valide */
+  parse=malloc(strlen(s)+1);
   int state=nettoyageInstruction(s,&parse,tailleTab,&nbOpe);
   if (state==0) {
-    free(parse);
-    return 0;
+    ret=0; /* Retourne 0 -> On affiche pas d'erreur car vide */
   }
   else if (state==1) {
-    ret=1;
+    ret=1; /* label */
     strcat(out,parse);
-    free(parse);
+  }
+  else if (*tailleTab==0) { /* Pour les opérations sans opérandes */
+    (*instr)=trouveOperation(instructions,parse);
+    strcat(out,parse);
+    if ((*instr)==NULL) {
+      printf("\n%s\n Erreur l'opération n'est pas reconnue\n", out);
+      ret=0;
+    }
   }
   else {
     if(((*operandes)=(int *)calloc((*tailleTab),sizeof(int)))==NULL){exit(1);};
@@ -227,22 +242,31 @@ int parsageInstruction(instruction **instr, instruction **instructions,registre*
     calculChecksum(instr,parse,out,operandes,registres,&nbOpe,&nbImm,&nbReg,instructions,symbols);
     /* Comparaison du checksum avec le checksum théorique */
     if ((*instr)!=NULL) {
-      if((compareChecksum(nbReg,(*instr)->checksumReg,2)==0 || compareChecksum(nbImm,(*instr)->checksumImm,1)==0)){
+      if ((*tailleTab)!=(*instr)->nbOperande) {
+        printf("\n%s Erreur on attend %d opérandes, on en a %d\n",s,(*instr)->nbOperande,(*tailleTab));
         (*instr)=NULL;
-      };
+        ret=0;
+      }
+      else {
+        if(compareChecksum(s,nbReg,(*instr)->checksumReg,nbImm,(*instr)->checksumImm,1)==0) {
+          (*instr)=NULL;
+          ret=0;
+        }
+      }
     }
-    free(parse);
   }
+  free(parse);
   return ret;
 }
 
 /* prend en entrée un nombre ainsi qu'une borne min et une borne max */
 /* vérifie que num appartienne bien à l'intervale [min,max] */
 /* retourne 1 si le numéro est valide, 0 sinon */
-int check(int num, int min, int max) {
+int check(char *ligne, int num, int min, int max) {
   int ret=1;
   if (num<min || num>max) {
-    printf("ERREUR : %d n'est pas une valeur valide\n-> Vous devez choisir une valeur incluse dans [%d,%d]\n",num,min,max);
+    printf("\n%s\n",ligne);
+    printf(" Erreur %d n'est pas une valeur valide\n  -> Vous devez choisir une valeur incluse dans [%d,%d]\n",num,min,max);
     ret=0;
   }
   return ret;
@@ -250,7 +274,7 @@ int check(int num, int min, int max) {
 
 /* Traduit une ligne passé en argument (*ligne) en une valeur hexadécimale stockée dans *instructionHex (passé par adresse) */
 /* Retourne 0 si l'operation n'existe pas, est invalide ou que les valeurs sont out of range 1 sinon */
-int parseLigne(char *ligne, int pc, char **ligneParse, unsigned long int *instructionHex, symtable *symbols, instruction **instructions, registre **registres) {
+int hexLigne(char *ligne, int pc, char **ligneParse, unsigned long int *instructionHex, symtable *symbols, instruction **instructions, registre **registres) {
   int ret=0;
   unsigned long int hex=0;
   instruction *instr=NULL;
@@ -258,13 +282,18 @@ int parseLigne(char *ligne, int pc, char **ligneParse, unsigned long int *instru
   char *ligneOut=*ligneParse;
   int *operandes=NULL;
   int tailleTab=0;
+  int stateInst=0;
   if (ligne!=NULL) {
     if((ligneOut=(char *)calloc(strlen(ligne),sizeof(char)))==NULL){exit(1);};
-    if (parsageInstruction(&instr,instructions,registres,symbols,ligne,ligneOut,&operandes,&tailleTab)) { /* Si on retourne 1 c'est un label */
+    stateInst=parsageInstruction(&instr,instructions,registres,symbols,ligne,ligneOut,&operandes,&tailleTab);
+    if (stateInst==1) { /* Si on retourne 1 c'est un label */
       insertionQueue(symbols,ligneOut,pc);
       ret=10;
     }
-    else if (instr!=NULL && tailleTab==instr->nbOperande) {
+    else if (stateInst==3) {
+      printf("Merdee %s\n",ligneOut);
+    }
+    else if (instr!=NULL) {
       ret=1; /* On a une expression valide */
       /* Instruction de type R */
       if (instr->typeInstruction=='R') {
@@ -329,7 +358,7 @@ int parseLigne(char *ligne, int pc, char **ligneParse, unsigned long int *instru
         }
         /* Vérification des valeurs passées */
         /* Valeur sa € [0,31] */
-        if (!(check(rs,0,31) && check(rt,0,31) && check(rd,0,31) && check(sa,0,31))) {
+        if (!(check(ligneOut,rs,0,31) && check(ligneOut,rt,0,31) && check(ligneOut,rd,0,31) && check(ligneOut,sa,0,31))) {
           free(operandes); /* On libère le tableau opérandes */
           *ligneParse=ligneOut;
           return 0; /* On saute la ligne */
@@ -381,7 +410,7 @@ int parseLigne(char *ligne, int pc, char **ligneParse, unsigned long int *instru
           }
           /* Vérification des valeurs passées */
           /* Valeur immédiate € [-32768,32767] */
-          if (!(check(imm,-32768,32767) && check(rs,0,31) && check(rt,0,31))) {
+          if (!(check(ligneOut,imm,-32768,32767) && check(ligneOut,rs,0,31) && check(ligneOut,rt,0,31))) {
             free(operandes); /* On libère le tableau opérandes */
             *ligneParse=ligneOut;
             return 0; /* On saute la ligne */
@@ -407,6 +436,9 @@ int parseLigne(char *ligne, int pc, char **ligneParse, unsigned long int *instru
         hex|=(imm);
         hex&=0xffffffff; /* sécurité, normalement inutile */
       }
+    }
+    else {
+      free(ligneOut);
     }
   }
   /* On met la valeur hexadécimale dans l'argument passé par adresse */
