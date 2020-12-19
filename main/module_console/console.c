@@ -118,25 +118,24 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
       if(ligne[0]!='\n' && ligne[0]!='\0' && ligne[0]!='#') { /* Si on n'à pas une ligne vide */
         /* On a quelque chose */
         if (tmpMode) {
-          retParse=parseLigne(ligne,pc->valeur,&ligneOut,&instructionHex,symbols,instructions,registres);
+          retParse=hexLigne(ligne,pc->valeur,&ligneOut,&instructionHex,symbols,instructions,registres);
           if (retParse==1) {
             insererSegment(segments,pc->valeur,instructionHex,ligneOut);
             insertion(mem,pc->valeur,instructionHex);
             fprintf(fout,"%08lx\n",instructionHex);
             (pc->valeur)+=4;
           }
-          else if (retParse==10) {
-            printf("On a un label %ld \n", pc->valeur);
+          else if (retParse==10) { /* On a un label */
             free(ligneOut);
           }
-          else {
+          else if (retParse!=0) {
             printf("Erreur ligne %d, on passe à la suivante (instruction ou argument non reconnue) %s\n",lignes,ligne);
             free(ligneOut);
           }
         }
         /* Mode pas à pas */
         else if (!tmpMode) {
-          retParse=parseLigne(ligne,pc->valeur,&ligneOut,&instructionHex,symbols,instructions,registres);
+          retParse=hexLigne(ligne,pc->valeur,&ligneOut,&instructionHex,symbols,instructions,registres);
           if (retParse==1) {
             printf("Instruction assembleur ligne %d : \n%s\n\n",lignes,ligneOut);
             printf("Expression hexadécimale : \n0x%08lx\n\n", instructionHex);
@@ -165,7 +164,7 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
             printf("On a un label %ld \n", pc->valeur);
           }
           else {
-            printf("Erreur ligne %d, on passe à la suivante (instruction ou argument non reconnue) %s\n\n",lignes,ligne);
+    //        printf("Erreur ligne %d, on passe à la suivante (instruction ou argument non reconnue) %s\n\n",lignes,ligne);
             free(ligneOut);
           }
         }
@@ -186,7 +185,7 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
         exec=0;
         if(line[0]!='\0' && line[0]!='\n') { /* Si la ligne uniformisé n'est pas vide */
           /* On a quelque chose */
-          retParse=parseLigne(line,pc->valeur,&ligneOut,&instructionHex,symbols,instructions,registres);
+          retParse=hexLigne(line,pc->valeur,&ligneOut,&instructionHex,symbols,instructions,registres);
           if(strcmp(line,"EXIT\n")==0) {
             inW=0;
             saisie=0;
@@ -252,7 +251,7 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
     printf("\n----- Exécution du programme -----\n\n");
     /* Init du registre SP */
     sp=registres[29];
-    (sp->valeur)=DEBUT_PILE;
+    /* (sp->valeur)=DEBUT_PILE; */
     pcMax=pc->valeur; /* On mémorise le pcMAx */
     pc->valeur=DEBUT_PROG;
     /* Tant qu'on à pas atteint la dernière instruction */
