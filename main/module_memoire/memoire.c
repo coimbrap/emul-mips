@@ -122,8 +122,7 @@ unsigned long int valeurMemoire(memoire *m, int adresse) {
 /* *m pointera donc vers NULL à la fin */
 void liberation(memoire *m) {
   memoire increment=NULL,precedent=NULL;
-  if (*m==NULL) {printf("Libération : mémoire vide\n");}
-  else {
+  if (*m!=NULL) {
     increment=*m;
 		/* Tant que le prochain élément ne pas NULL */
     while (increment->suivant!=NULL) {
@@ -145,7 +144,7 @@ void liberation(memoire *m) {
 void afficherMemoires(memoire *m, int adresseMin, int adresseMax) {
 	memoire increment=*m;
 	int one=0; /* passe à un si on affiche quelque chose */
-  printf("\nAdresse     Décimal      Hex          Binaire\n--------------------------------------------------------------------------\n");
+  printf("\nAdresse     Décimal       Hex          Binaire\n--------------------------------------------------------------------------\n");
 	/* Sinon tant que l'on est pas en fin de liste et que l'adresse est inférieure à l'adresse max */
   while(increment!=NULL && increment->adresse<adresseMax) {
 		/* Si l'adresse et supérieure à l'adresse min on affiche et on passe one à 1 */
@@ -164,7 +163,7 @@ void afficherMemoires(memoire *m, int adresseMin, int adresseMax) {
 void afficherMemoire(memoire slot) {
   if(slot==NULL) {printf("No record\n");}
   else {
-    printf("0x%04x      %-11d   0x%08x   ",slot->adresse,(int) slot->valeur,(int) slot->valeur);
+    printf("@%08d   %-11d   0x%08x   ",slot->adresse,(int) slot->valeur,(int) slot->valeur);
     decToBin(slot->valeur);
   }
 }

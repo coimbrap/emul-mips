@@ -32,33 +32,38 @@ void remplissageStructRegistre(registre **registres, const char* fichier) {
 
 /* prend en entrée un tableau de pointeur vers la structure registre et une chaine représentant le nom du registre */
 /* si il y a lieu remplace le mnémonique du registre par sa valeur entière dans nom */
-void traduitRegistre(registre **registres, char* nom) {
+/* Retourne 1 si traduit 0 sinon */
+int traduitRegistre(registre **registres, char* nom) {
   char *ret=NULL;
-  registre *found=NULL;
+  int state=1;
+  registre *reg=NULL;
   int nonTrouvee=1,i=0;
   /* Si on a une registre non traduit */
   if (valeurDecimale(nom)==-1) {
+    if(nom[0]=='$') {nom++;};
     /* Allocation de la chaine pour la représentation de l'int */
     if((ret=(char *)calloc(TAILLE_MAX_INT,sizeof(char)))==NULL){exit(1);};
     /* Tant que l'on n'a pas trouvé et que l'on est pas à la fin du tableau */
     while (nonTrouvee && i<NB_REGISTRE) {
-      printf("Cherche\n");
       if (strcmp(registres[i]->nom,nom)==0) {
-        found=registres[i];
+        reg=registres[i];
         nonTrouvee=0;
       }
       i++;
     }
     /* Si on trouve le registre on met dans ret la valeur décimale du registre */
-    if (found!=NULL) {
-      ret=intVersChaine(found->numero,ret);
+    if (reg!=NULL) {
+      ret=intVersChaine(reg->numero,ret);
     }
     /* Si la valeur décimale dans ret est inférieure à 32 (registre spéciaux) et différente à -1 on remplace la mnémonique par la valeur entière */
     if (valeurDecimale(ret)<32 && valeurDecimale(ret)!=-1) {
       strcpy(nom,ret);
+      state=1;
     }
+    else {state=0;};
     free(ret); /* On libère ret */
   }
+  return state;
 }
 
 /* prend en entrée un tableau de pointeur vers la structure registre */
@@ -79,9 +84,8 @@ void afficheRegistre(registre *registre) {
   if (strcmp(registre->nom,"zero")==0) {
     printf("$%d ($%s)  %-11d   0x%08x   ",registre->numero,registre->nom,(int)registre->valeur,(int)registre->valeur);
   }
-  else if (registre->numero==-1) {
+  else if (registre->numero>31) {
     printf("$%s         %-11d   0x%08x   ",registre->nom,(int)registre->valeur,(int)registre->valeur);
-
   }
   else if (registre->numero<10) {
     printf("$%d ($%s)    %-11d   0x%08x   ",registre->numero,registre->nom,(int)registre->valeur,(int)registre->valeur);

@@ -1,0 +1,5 @@
+ADDI $20,$0,8
+label:
+ADDI $19,$19,4
+BEQ $19,$20,4
+JAL label

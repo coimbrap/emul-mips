@@ -24,7 +24,7 @@ void remplissageStructRegistre(registre **registres, const char* fichier);
 
 /* prend en entrée un tableau de pointeur vers la structure registre et une chaine représentant le nom du registre */
 /* si il y a lieu remplace le mnémonique du registre par sa valeur entière dans nom */
-void traduitRegistre(registre **registres, char* registre);
+int traduitRegistre(registre **registres, char* registre);
 
 /* prend en entrée un tableau de pointeur vers la structure registre */
 /* libère chaque case du tableau pour éviter les fuites en mémoires */

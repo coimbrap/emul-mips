@@ -26,21 +26,28 @@ int complementADeux(int value, int bits) {
 /* Retourne un entier signé correspondant à l'entier stocké dans la chaine */
 int valeurDecimale(char* s) {
   int num=-1,i=0,sign=1;
+  char *buff=NULL,*tmp=NULL;
+  char *tampon=NULL; /* tampon pour le stockage de strtok_r permet de faire du threading entre les deux fonctions */
   if (s!=NULL) {
-    /* On détermine le signe */
-    if(s[i]=='-'){
-      sign=-1;
-      i++;
+    if (s[i]=='-') {sign=-1;};
+    if ((strchr(s,'x'))!=NULL) { /* Si hexadécimal on convertit avec une autre fonction */
+      /* Pour ne pas altérer la chaine de départ */
+      if((buff=malloc(sizeof(char)*strlen(s)+1))==NULL){exit(0);};
+      strcpy(buff,s);
+      tmp=buff;
+      num=hexToDec(strtok_r(tmp,"(",&tampon)); /* En cas d'offset imm(reg) on prend tout avant la première parenthèse car lecture dans le sens inverse */
+      free(buff);
     }
-    if (s[i]>='0' && s[i]<='9') {
-      num=0;
+    else {
+      while (s[i]!='\0' && s[i]!='(') {
+        if (s[i]=='-') {sign=-1;}
+        else if (s[i]>='0' && s[i]<='9') {
+          if (num==-1) {num=0;};
+          num=num*10+(s[i]-'0');
+        }
+        i++;
+      }
     }
-    /* Pas de for pour déterminer le signe et pour s'arreter dès la fin du nombre */
-    while (s[i]>='0' && s[i]<='9'){
-      num=num*10+(s[i]-'0'); /* Manipulation ASCII */
-      i++;
-    }
-    /* On retourne l'entier avec le bon signe */
   }
   return sign*num;
 }
@@ -62,7 +69,7 @@ unsigned long int hexToDec(char* hex) {
   unsigned long int dec=0,base=1;
   int len=strlen(hex)-1;
   if (len<=8) {
-    for(i=len;i>=0;i--){
+    for(i=len;i>=0;i--) {
       if (hex[i]>='0' && hex[i]<='9') {
         /* Si c'est un nombre on le transforme en entier et on le multiplie par la base */
         dec+=(hex[i]-'0')*base;
@@ -78,7 +85,7 @@ unsigned long int hexToDec(char* hex) {
         base*=16;
       }
     }
-    /* Gère les valeurs négative pour des nombre de moins de 8octets et donc le nombre d'octet est une mutlitple de 4*/
+    /* Gère les valeurs négative pour des nombre de moins de 8octets et donc le nombre d'octet est un multiple de 4*/
     if (len!=8 && len%4==0) {
       dec=complementADeux(dec,len*4);
     }

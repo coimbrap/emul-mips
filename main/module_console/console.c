@@ -3,11 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 
-/* Lit le fichier d'instruction assembleur ligne par ligne */
-/* Parse l'expression et appele la fonction de traduction hexadécimale */
-/* Mode défini si on est en mode auto (1) ou pàp (0) */
-/* Prend les fichiers input et output, la memoire des registres et des instructions en entrée */
-
+/* prend en entrée la liste chaîné des segments, le program counteur la version hexa et le string de l'instruction uniforisé */
+/* ajoute cette instruction à la liste chaîné */
 void insererSegment(prog *segments, int programCounter, unsigned long int tradHex, char* instruction) {
   prog increment=*segments;
   segment *elem=NULL;
@@ -28,6 +25,8 @@ void insererSegment(prog *segments, int programCounter, unsigned long int tradHe
   }
 }
 
+/* prend en entrée la liste chaîné des segments et le program counteur */
+/* affiche l'ensemble des segments assembleur contenu dans la liste chainée */
 void afficherSegments(prog *segments, int pc) {
   prog increment=*segments;
   if (increment==NULL) {
@@ -51,7 +50,9 @@ void afficherSegments(prog *segments, int pc) {
   }
 }
 
+/* prend en entrée la liste chaîné des segments, le program counteur et le type */
 /* type=1 : pc,hex,char type=0 : char */
+/* affiche l'ensemble des segments assembleur contenu dans la liste chainée */
 void afficherSegmentPc(prog *segments, int pc, int type) {
   prog increment=*segments;
   int c=1;
@@ -71,6 +72,8 @@ void afficherSegmentPc(prog *segments, int pc, int type) {
   }
 }
 
+/* prend en entrée la liste chaîné des segments */
+/* libère l'ensemble de la liste chainée pour éviter les fuites mémoire */
 void libereSegments(prog *segments) {
   prog increment=NULL;
   while (*segments!=NULL) {
@@ -81,21 +84,20 @@ void libereSegments(prog *segments) {
   }
 }
 
-/* Mode: 0: pàp, 1: auto et 2: intéractif */
-void parseFichier(char *input, char* output, int mode, instruction **instructions, registre** registres, memoire *mem, prog *segments) {
+/* prend en entrée le fichier d'entrée, le fichier de sortie (fichier d'entrée pas forcément utilisé) */
+/* ainsi que les structures de stockage des instructions, des registres, la mémoire, les segments pour l'afficage, la table des symboles */
+/* ET le Mode: 0: pàp, 1: auto et 2: intéractif */
+/* parse ligne après ligne le fichier et s'occupe de tout l'affichage et des saisie utilisateur */
+void parseFichier(char *input, char* output, int mode, instruction **instructions, registre** registres, memoire *mem, prog *segments, symtable *symbols) {
   /* Fichiers d'entrée, de sortie du programme et d'affichage */
   FILE *fin=NULL,*fout=fopen(output, "w");
-  /* Fichiers pour remplir les mémoires (opérandes et registres) */
   size_t len=0;
-  char *ligne=NULL,*ligneOut=NULL; /* Ligne brute & uniformisée & buffer de lecture */
+  char *ligne=NULL,*ligneOut=NULL,*line=NULL; /* Ligne brute & uniformisée & buffer de lecture */
   unsigned long int instructionHex=0; /* Valeur hexadécimale de l'instruction */
-  int lignes=1;
+  int lignes=1,pcMax=0,tmpMode=mode,retParse=0,saisie=1,inW=1;
   char c='0';
-  int inW=1;
   unsigned long int instruction=0;
   registre *pc=NULL,*sp=NULL;
-  int pcMax=0;
-  int tmpMode=mode;
   pc=registres[32]; /* PC */
   pc->valeur=DEBUT_PROG; /* Initialisation du PC */
   /* Initialisation du fichier (suppression du contenu ou création) */
@@ -111,58 +113,60 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
       exit(-1);
     }
     printf("Lecture du fichier : %s\n\n", input);
+    fillSymbols(input,instructions,registres,symbols);
     while(getline(&ligne,&len,fin)!=-1) { /* Tant qu'on est pas à la fin du fichier */
-      if(ligne[0]!='\n' && ligne[0]!='\0') { /* Si on n'à pas une ligne vide */
-        /* On uniforise la ligne */
-        if((ligneOut=(char *)calloc(strlen(ligne),sizeof(char)))==NULL){exit(1);};
-        uniformisationInstruction(ligne,ligneOut);
-        if(ligneOut[0]!='\0') { /* Si la ligne uniformisé n'est pas vide */
-          /* On a quelque chose */
-          if (tmpMode) {
-            if (parseLigne(ligneOut,&instructionHex,instructions,registres)) {
-              insererSegment(segments,pc->valeur,instructionHex,ligneOut);
-              insertion(mem,pc->valeur,instructionHex);
-              fprintf(fout,"%08lx\n",instructionHex);
-              (pc->valeur)+=4;
-            }
-            else {
-              free(ligneOut);
-              printf("Erreur ligne %d, on passe à la suivante (opération non reconnue)\n",lignes);
-            }
+      if(ligne[0]!='\n' && ligne[0]!='\0' && ligne[0]!='#') { /* Si on n'à pas une ligne vide */
+        /* On a quelque chose */
+        if (tmpMode) {
+          retParse=hexLigne(ligne,pc->valeur,&ligneOut,&instructionHex,symbols,instructions,registres);
+          if (retParse==1) {
+            insererSegment(segments,pc->valeur,instructionHex,ligneOut);
+            insertion(mem,pc->valeur,instructionHex);
+            fprintf(fout,"%08lx\n",instructionHex);
+            (pc->valeur)+=4;
           }
-          /* Mode pas à pas */
-          else if (!tmpMode) {
-            if (parseLigne(ligneOut,&instructionHex,instructions,registres)) {
-              printf("Instruction assembleur ligne %d : \n%s\n\n",lignes,ligneOut);
-              printf("Expression hexadécimale : \n0x%08lx\n\n", instructionHex);
-              printf("passer l'instruction: [p], instruction suivante: [enter], saut de la lecture: [s]\n");
-              do {
-                c=getchar();
-                inW=1;
-                if (c=='s' || c=='\n') {
-                  insererSegment(segments,pc->valeur,instructionHex,ligneOut);
-                  insertion(mem,pc->valeur,instructionHex);
-                  fprintf(fout,"%08lx\n",instructionHex);
-                  (pc->valeur)+=4;
-                  inW=0;
-                  if (c=='s') {
-                    tmpMode=1;
-                /*    clean_stdin(); */
-                  }
-                }
-                else {clean_stdin();}
-                if (c=='p') {
-                  free(ligneOut);
-                  inW=0;
-                }
-              } while(inW);
-            }
-            else {
-              free(ligneOut);
-              printf("Erreur ligne %d, on passe à la suivante (opération non reconnue)\n\n",lignes);
-            }
+          else if (retParse==10) { /* On a un label */
+            free(ligneOut);
           }
-          else {free(ligneOut);}
+          else if (retParse!=0) {
+            printf("Erreur ligne %d, on passe à la suivante (instruction ou argument non reconnue) %s\n",lignes,ligne);
+            free(ligneOut);
+          }
+        }
+        /* Mode pas à pas */
+        else if (!tmpMode) {
+          retParse=hexLigne(ligne,pc->valeur,&ligneOut,&instructionHex,symbols,instructions,registres);
+          if (retParse==1) {
+            printf("Instruction assembleur ligne %d : \n%s\n\n",lignes,ligneOut);
+            printf("Expression hexadécimale : \n0x%08lx\n\n", instructionHex);
+            printf("passer l'instruction: [p], instruction suivante: [enter], saut de la lecture: [s]\n");
+            do {
+              c=getchar();
+              inW=1;
+              if (c=='s' || c=='\n') {
+                insererSegment(segments,pc->valeur,instructionHex,ligneOut);
+                insertion(mem,pc->valeur,instructionHex);
+                fprintf(fout,"%08lx\n",instructionHex);
+                (pc->valeur)+=4;
+                inW=0;
+                if (c=='s') {
+                  tmpMode=1;
+                }
+              }
+              else {clean_stdin();}
+              if (c=='p') {
+                free(ligneOut);
+                inW=0;
+              }
+            } while(inW);
+          }
+          else if (retParse==10) {
+            printf("On a un label %ld \n", pc->valeur);
+          }
+          else {
+    //        printf("Erreur ligne %d, on passe à la suivante (instruction ou argument non reconnue) %s\n\n",lignes,ligne);
+            free(ligneOut);
+          }
         }
         else {free(ligneOut);}
       }
@@ -174,25 +178,65 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
   /* Sinon mode intéractif */
   else if(mode==2) {
     /* On écrit l'instruction assembleur au clavier jusqu'a EXIT */
-    int saisie=1;
-    char *line=NULL;
+    printf("Saisissez un instruction ou EXIT : \n");
+    int exec=0;
     while(saisie) {
-        if(getline(&line,&len,stdin)>0) {
-        if((ligneOut=(char *)calloc(strlen(line),sizeof(char)))==NULL){exit(1);};
-        uniformisationInstruction(line,ligneOut);
-        if(ligneOut[0]!='\0') { /* Si la ligne uniformisé n'est pas vide */
+      if(getline(&line,&len,stdin)>0) {
+        exec=0;
+        if(line[0]!='\0' && line[0]!='\n') { /* Si la ligne uniformisé n'est pas vide */
           /* On a quelque chose */
-          if (parseLigne(ligneOut,&instructionHex,instructions,registres)) {
+          retParse=hexLigne(line,pc->valeur,&ligneOut,&instructionHex,symbols,instructions,registres);
+          if(strcmp(line,"EXIT\n")==0) {
+            inW=0;
+            saisie=0;
+            free(ligneOut);
+          }
+          else if (retParse==1) {
             insererSegment(segments,pc->valeur,instructionHex,ligneOut);
             insertion(mem,pc->valeur,instructionHex);
             fprintf(fout,"%08lx\n",instructionHex);
+            afficherSegmentPc(segments,pc->valeur,1);
+            printf("registres: [r], memoire: [m], programme: [p], executer [enter]\n");
+            do {
+              c=getchar();
+              inW=1;
+
+              if (c=='\n' && !exec) {
+                instruction=valeurMemoire(mem,pc->valeur); /* On récupère la valeur de l'instruction en mémoire */
+                printf("--> Exécution de l'instruction : ");
+                printf("\nregistres: [r], memoire: [m], programme: [p], saisie [i]\n");
+                afficherSegmentPc(segments,pc->valeur,0);
+                execInstruction(instruction,registres,instructions,mem); /* Exécute l'opération, s'occupe d'incrémenter le PC */
+                exec=1;
+              }
+              else {clean_stdin();}
+              if (c=='p') {
+                afficherSegments(segments,pc->valeur);
+                printf("\nregistres: [r], memoire: [m], programme: [p], saisie [i], executer [enter]\n");
+              }
+              if (c=='m') {
+                afficherMemoires(mem,DEBUT_MEMOIRE,DEBUT_PROG);
+                printf("\nregistres: [r], memoire: [m], programme: [p], saisie [i], executer [enter]\n");
+              }
+              if (c=='r') {
+                afficheRegistres(registres);
+                printf("\nregistres: [r], memoire: [m], programme: [p], saisie [i], executer [enter]\n");
+              }
+              if (c=='i' && exec) {
+                printf("Saisissez un instruction ou EXIT : \n");
+                inW=0;
+              }
+            } while(inW);
             (pc->valeur)+=4;
           }
-          else {free(ligneOut);}
+          else {
+            free(ligneOut);
+            ligneOut=NULL;
+            printf("Saisissez un instruction ou EXIT : \n\n");
+          }
         }
-        else {free(ligneOut);}
-        if(strcmp(line,"EXIT\n")==0) {
-          saisie=0;
+        else {
+          if(ligneOut!=NULL) {free(ligneOut);};
         }
       }
     }
@@ -200,57 +244,58 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
     /* Une fois la structure remplit on passe à l'éxécution */
   }
   fclose(fout);
-  printf("\nFormes hexadécimale écrites dans '%s'\n", output);
-  printf("\n---- Assembleur ----\n\n");
-  afficherSegments(segments,-1);
-  printf("\n----- Exécution du programme -----\n\n");
-  /* Init du registre SP */
-  sp=registres[29];
-  (sp->valeur)=DEBUT_PILE;
-  pcMax=pc->valeur; /* On mémorise le pcMAx */
-  pc->valeur=DEBUT_PROG;
-  /* Tant qu'on à pas atteint la dernière instruction */
-  clean_stdin();
-  while((pc->valeur)<pcMax) {
-    if (mode==1) {
-      instruction=valeurMemoire(mem,pc->valeur); /* On récupère la valeur de l'instruction en mémoire */
-      printf("Exécution de l'instruction :\n");
-      afficherSegmentPc(segments,pc->valeur,1);
-      execInstruction(instruction,registres,instructions,mem); /* Exécute l'opération, s'occupe d'incrémenter le PC */
-    }
-    else if (mode==0 || mode==2) {
-      afficherSegmentPc(segments,pc->valeur,1);
-      printf("registres: [r], memoire: [m], programme: [p], continuer [enter]\n");
-      do {
-        c=getchar();
-        inW=1;
-        if (c=='\n') {
-          instruction=valeurMemoire(mem,pc->valeur); /* On récupère la valeur de l'instruction en mémoire */
-          printf("--> Exécution de l'instruction : ");
-          afficherSegmentPc(segments,pc->valeur,0);
-          execInstruction(instruction,registres,instructions,mem); /* Exécute l'opération, s'occupe d'incrémenter le PC */
-          inW=0;
-        }
-        else {clean_stdin();}
-        if (c=='p') {
-          afficherSegments(segments,pc->valeur);
-          printf("\nregistres: [r], memoire: [m], programme: [p], continuer [enter]\n");
-        }
-        if (c=='m') {
-          afficherMemoires(mem,DEBUT_PILE,DEBUT_PROG);
-          printf("\nregistres: [r], memoire: [m], programme: [p], continuer [enter]\n");
-        }
-        if (c=='r') {
-          afficheRegistres(registres);
-          printf("\nregistres: [r], memoire: [m], programme: [p], continuer [enter]\n");
-        }
-      } while(inW);
+  if (mode!=2) {
+    printf("\nFormes hexadécimale écrites dans '%s'\n", output);
+    printf("\n---- Assembleur ----\n\n");
+    afficherSegments(segments,-1);
+    printf("\n----- Exécution du programme -----\n\n");
+    /* Init du registre SP */
+    sp=registres[29];
+    /* (sp->valeur)=DEBUT_PILE; */
+    pcMax=pc->valeur; /* On mémorise le pcMAx */
+    pc->valeur=DEBUT_PROG;
+    /* Tant qu'on à pas atteint la dernière instruction */
+    clean_stdin();
+    while((pc->valeur)<pcMax) {
+      if (mode==1) {
+        instruction=valeurMemoire(mem,pc->valeur); /* On récupère la valeur de l'instruction en mémoire */
+        printf("Exécution de l'instruction :\n");
+        afficherSegmentPc(segments,pc->valeur,1);
+        execInstruction(instruction,registres,instructions,mem); /* Exécute l'opération, s'occupe d'incrémenter le PC */
+      }
+      else if (mode==0) {
+        afficherSegmentPc(segments,pc->valeur,1);
+        printf("registres: [r], memoire: [m], programme: [p], continuer [enter]\n");
+        do {
+          c=getchar();
+          inW=1;
+          if (c=='\n') {
+            instruction=valeurMemoire(mem,pc->valeur); /* On récupère la valeur de l'instruction en mémoire */
+            printf("--> Exécution de l'instruction : ");
+            afficherSegmentPc(segments,pc->valeur,0);
+            execInstruction(instruction,registres,instructions,mem); /* Exécute l'opération, s'occupe d'incrémenter le PC */
+            inW=0;
+          }
+          else {clean_stdin();}
+          if (c=='p') {
+            afficherSegments(segments,pc->valeur);
+            printf("\nregistres: [r], memoire: [m], programme: [p], continuer [enter]\n");
+          }
+          if (c=='m') {
+            afficherMemoires(mem,DEBUT_MEMOIRE,DEBUT_PROG);
+            printf("\nregistres: [r], memoire: [m], programme: [p], continuer [enter]\n");
+          }
+          if (c=='r') {
+            afficheRegistres(registres);
+            printf("\nregistres: [r], memoire: [m], programme: [p], continuer [enter]\n");
+          }
+        } while(inW);
+      }
     }
   }
   printf("\n------ Registres ------\n");
   afficheRegistres(registres);
-  printf("\n------- Pile -------\n");
-  afficherMemoires(mem,DEBUT_PILE,DEBUT_PROG);
-  printf("\n------- Prog -------\n");
-  afficherMemoires(mem,DEBUT_PROG,0xFFFF);
+  printf("\n------- Mémoire -------\n");
+  afficherMemoires(mem,DEBUT_MEMOIRE,DEBUT_PROG);
+  libereSegments(segments);
 }

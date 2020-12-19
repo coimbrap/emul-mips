@@ -21,7 +21,7 @@ void remplissageStructInstruction(instruction **instructions, const char* fichie
     if((instructions[i]=malloc(sizeof(instruction)))==NULL){exit(1);};
     tmp=instructions[i];
     /* La ligne dans le fichier est de la forme : ADD,0x20,R,1,1,3 */
-    fscanf(fs,"%[^,],%x,%c,%d,%d,%d*",tmp->nom,&tmp->opcode,&tmp->typeInstruction,&tmp->ordreBits,&tmp->styleRemplissage,&tmp->nbOperande);
+    fscanf(fs,"%[^,],%x,%c,%d,%d,%d,%d,%d*",tmp->nom,&tmp->opcode,&tmp->typeInstruction,&tmp->ordreBits,&tmp->styleRemplissage,&tmp->nbOperande,&tmp->checksumReg,&tmp->checksumImm);
     fgetc(fs); /* Enlève \n */
   }
   fclose(fs);
@@ -34,6 +34,8 @@ void afficheInstruction(instruction *instruction) {
   printf("Type d'instruction : %c\n", instruction->typeInstruction);
   printf("Ordre bits : %d\n", instruction->ordreBits);
   printf("Style de remplissage : %d\n", instruction->styleRemplissage);
+  printf("Checksum Registe : %d\n", instruction->checksumReg);
+  printf("Checksum Immédiat : %d\n", instruction->checksumImm);
   printf("\n");
 }
 
@@ -77,7 +79,7 @@ instruction* trouveOpcode(instruction** instructions, int opcode, char type) {
   instruction *ret=NULL;
   /* On parcourt tout le tableau instructions tant qu'on est pas à la fin ou que l'on à pas trouvé */
   while (nonTrouvee && i<NB_OPERATIONS) {
-    if (instructions[i]->typeInstruction==type && (instructions[i]->opcode==opcode)) {
+    if ((instructions[i]->typeInstruction==type || instructions[i]->typeInstruction=='J') && (instructions[i]->opcode==opcode)) {
       ret=instructions[i];
       nonTrouvee=0;
     }
@@ -86,267 +88,361 @@ instruction* trouveOpcode(instruction** instructions, int opcode, char type) {
   return ret;
 }
 
-/* PARSSAGE */
+/* PARSAGE */
 
-/* Prend en entrée un chaine s (l'instruction) */
-/* Retourne le nombre d'opérande dans un opération passée en entrée */
-int nombreOperande(char *s) {
-  int ret=0,i=0,commence=0,space=0;
-  while(s[i]!='\0') {
-    /* La ligne commence quand on rencontre une lette */
-    if(isalpha(s[i]) && !commence) {commence=1;}
-     /* Il y a au moins une opérande quand on recontre un espace après le début */
-    if(isspace(s[i]) && commence && !space) {space=1;}
-    /* Si on rencontre un caractère de fin d'opérande on incrémente */
-    if (commence && space && (s[i]==',' || s[i]=='(' || s[i]=='\n')) {ret++;}
-    i++;
+/* prend en entrée le checksum calculé et le checksum théorique pour les registres et les immédiats */
+/* les compare est dit ou sont les différences et donc ou sont les erreurs */
+int compareChecksum(char* ligne, int checksumCalcR,int checksumTheorR, int checksumCalcI,int checksumTheorI, int type) {
+  int val[]={2,4,8}; /* checksumCalc des 3 puissances de deux utilisé dans le calcul de la somme de controle */
+  int ret=1,i=0;
+  if ((checksumCalcR!=checksumTheorR) || (checksumCalcI!=checksumTheorI)) {
+    for(i=0;i<3;i++) {
+      if((checksumTheorR&val[i])!=0 && (checksumCalcR&val[i])!=(checksumTheorR&val[i])) {
+        if(ret) {printf("\n%s",ligne);};
+        ret=0;
+        printf(" Erreur sur le %dème paramètre, un argument de type registre est attendu\n",i+1); /* REG */
+      }
+      if((checksumTheorI&val[i])!=0 && (checksumCalcI&val[i])!=(checksumTheorI&val[i])) {
+        if(ret) {printf("%s ",ligne);};
+        ret=0;
+        printf(" Erreur sur le %dème paramètre, un argument de type immédiat est attendu\n",i+1); /* IMM */
+      }
+    }
   }
-  /* On incrémente de 1 si on a rencontré au moins une opérande */
-  if (ret!=0 || space) {ret++;}
   return ret;
 }
 
-/* Prend en entrée un pointeur vers une chaine non uniforisé et une pointeur pour stocké la chaine uniformisé */
-/* S'occupe d'uniformiser la chaine */
-void uniformisationInstruction(char *s, char *out) {
-  int i=0,incremOut=0,writeSpace=-1,commence=0,ope=0;
-  while(s[i]!='\0' && s[i]!='\n' && s[i]!='#') {
-    /* La ligne commence lorsque l'on rencontre le premier caractère */
-    if(isalpha(s[i]) && !commence) {
-      commence=1;
+/* prend une ligne du fichier (src) un pointeur vers la chaine que l'on va parser */
+/* ainsi que la taille du tableau opérandes et le nombre d'opérande que nous allons écrire par adresse */
+/* met au propre de l'expression, chaque partie est séparée de la précédente par un espace */
+/* retourne 0 -> echec | 1 -> label | 2 -> instruction */
+int nettoyageInstruction(char *src, char **parse, int *tailleTab,int *nbOpe) {
+  int i=0,commence=0,debutOpe=0,incremOut=0;
+  while(src[i]!='\0' && src[i]!='\n' && src[i]!='#') {
+    if(isalpha(src[i]) && !commence) {commence=1;}; /* Commence=1 : Opération trouvée */
+    if (src[i]==',' || src[i]==' ') {
+      debutOpe=1;
     }
-    /* Pour garder UN espace entre l'operation et les opérandes */
-    /* Si on est sur un espace, qu'on a pas encore écrit un espace et que l'instruction à commencé on demande l'écriture d'un espace */
-    if(isspace(s[i]) && writeSpace==-1 && commence) {
-      out[incremOut++]=s[i];
-      writeSpace=1;
-    }
-    /* Sinon si on à pas un espace et que l'instruction à commencé on recopie dans la chaine uniformisé */
-    else if (s[i]!=' ' && commence) {
-      out[incremOut++]=s[i];
-      ope=incremOut;
+    else if ((isalnum(src[i]) || src[i]=='$' || src[i]==':' || src[i]=='(' || src[i]==')' || src[i]=='-') && commence>0) { /* on filtre */
+      if (src[i]=='(') {*tailleTab=1;}; /* Si on à un offset imm(reg) on aura un paramètre de plus dans le tableau */
+      if (debutOpe && commence==2) { /* Commence=2 : Opération écrite */
+        (*parse)[incremOut++]=' '; /* On ajoute un ' ' */
+        (*nbOpe)++;
+      }
+      debutOpe=0;
+      commence=2;
+      (*parse)[incremOut++]=src[i]; /* On copie le caractère */
     }
     i++;
   }
-  /*On marque la fin de la chaîne */
-  out[ope]='\0';
+  if (incremOut==0) {
+    return 0;
+  }
+  (*parse)[incremOut]='\0';
+  if (strchr((*parse),':')!=NULL) {
+    (*parse)[incremOut-1]='\0'; /* On enlève le : */
+    return 1;
+  }
+  (*tailleTab)+=(*nbOpe);
+  return 2;
 }
 
-/* Retourne 1 si le numéro est valide, 0 sinon */
-/* Vérifie que num appartienne bien à l'intervale [min,max] */
-int check(int num, int min, int max) {
+int calculChecksum(instruction **instr, char *parse, char *out, int **incremOpe, registre **registres, int* nbOpe, int* nbImm, int* nbReg, instruction** instructions, symtable *symbols) {
+  char *tampon=NULL;
+  char *p=NULL;
+  int num=0,coeffOpe=0,numOpe=0,tmp=0;
+  char *parseTmp=strdup(parse); /* on garde une copie de parse pour l'affichage */
+  for (p=strtok_r(parse," ",&tampon);p!=NULL;p=strtok_r(NULL, " ",&tampon)) {
+    /* Ecriture */
+    if (num==0 && (*nbOpe)>=0) {
+      strcat(out,p);
+      if((*nbOpe)!=0) {strcat(out," ");}; /* Si on a une instruction sans argument on ne met pas d'espace */
+      /* Test d'existance de l'opération return NULL si inexistante */
+      (*instr)=trouveOperation(instructions,p);
+      if((*instr)==NULL) {
+        free(parseTmp);
+        printf("%s\n Erreur, l'opération est invalide\n",parseTmp);
+        return 0; /* On arrête le calcul, l'opération n'est pas existante */
+      }
+    }
+    else if (num!=(*nbOpe)) {
+      strcat(out,p);
+      strcat(out,",");
+    }
+    else {
+      strcat(out,p);
+    }
+    /* Calcul de notre checksum */
+    if (p[0]=='$') {
+      if(!traduitRegistre(registres,p)) {
+        printf("%s\n Erreur, %s n'est pas un registre valide\n",parseTmp,p);
+        (*instr)=NULL;
+      }
+      (*incremOpe)[numOpe++]=valeurDecimale(p);
+      (*nbReg)+=2<<coeffOpe++; /* On ajoute la puissance de deux du numéro de l'opérande */
+    }
+    else if (isdigit(p[0]) || p[0]=='-') {
+      (*incremOpe)[numOpe++]=valeurDecimale(p);
+      (*nbImm)+=2<<coeffOpe++; /* Pareil */
+    }
+    else if (num>0 && isalpha(p[0])) {
+      if ((tmp=foundSymbol(symbols,p))!=-1) {
+        (*incremOpe)[numOpe++]=tmp;
+        (*nbImm)+=2<<coeffOpe++;
+      }
+      else {printf("Label non trouvée\n");};
+    }
+    /* Si il y a une parenthèse ouvrante dans l'opérande */
+    if((p=strchr(p,'('))!=NULL) {
+      p++; /* On va au caractère d'après */
+      /* Même principe on incrémente en puissance de deux */
+      if (p[0]=='$') {
+        if(!traduitRegistre(registres,p)) {
+          printf("%s\nErreur, %s n'est pas un registre valide\n",parseTmp,p);
+          (*instr)=NULL;
+        }
+        (*incremOpe)[numOpe++]=valeurDecimale(p);
+        (*nbReg)+=2<<coeffOpe++;
+      }
+      else if (isdigit(p[0]) || p[0]=='-') {
+        (*incremOpe)[numOpe++]=valeurDecimale(p);
+        (*nbImm)+=2<<coeffOpe++;
+      }
+    }
+    num++;
+  }
+  free(parseTmp);
+  return 1; /* On a calculé le checksum */
+}
+
+int parsageInstruction(instruction **instr, instruction **instructions,registre** registres, symtable *symbols, char *s, char *out, int** operandes, int* tailleTab) {
+  int nbOpe=0,nbReg=0,nbImm=0;
+  char *parse=NULL; /* tampon va être la zone de travail de strtok pour pouvoir utiliser strtok dans deux fonctions */
+  int ret=2; /* 2 -> expression valide */
+  parse=malloc(strlen(s)+1);
+  int state=nettoyageInstruction(s,&parse,tailleTab,&nbOpe);
+  if (state==0) {
+    ret=0; /* Retourne 0 -> On affiche pas d'erreur car vide */
+  }
+  else if (state==1) {
+    ret=1; /* label */
+    strcat(out,parse);
+  }
+  else if (*tailleTab==0) { /* Pour les opérations sans opérandes */
+    (*instr)=trouveOperation(instructions,parse);
+    strcat(out,parse);
+    if ((*instr)==NULL) {
+      printf("\n%s\n Erreur l'opération n'est pas reconnue\n", out);
+      ret=0;
+    }
+  }
+  else {
+    if(((*operandes)=(int *)calloc((*tailleTab),sizeof(int)))==NULL){exit(1);};
+    /* Les checksums seront dans nbImm et nbReg */
+    calculChecksum(instr,parse,out,operandes,registres,&nbOpe,&nbImm,&nbReg,instructions,symbols);
+    /* Comparaison du checksum avec le checksum théorique */
+    if ((*instr)!=NULL) {
+      if ((*tailleTab)!=(*instr)->nbOperande) {
+        printf("\n%s Erreur on attend %d opérandes, on en a %d\n",s,(*instr)->nbOperande,(*tailleTab));
+        (*instr)=NULL;
+        ret=0;
+      }
+      else {
+        if(compareChecksum(s,nbReg,(*instr)->checksumReg,nbImm,(*instr)->checksumImm,1)==0) {
+          (*instr)=NULL;
+          ret=0;
+        }
+      }
+    }
+  }
+  free(parse);
+  return ret;
+}
+
+/* prend en entrée un nombre ainsi qu'une borne min et une borne max */
+/* vérifie que num appartienne bien à l'intervale [min,max] */
+/* retourne 1 si le numéro est valide, 0 sinon */
+int check(char *ligne, int num, int min, int max) {
   int ret=1;
   if (num<min || num>max) {
-    printf("ERREUR : %d n'est pas une valeur valide\n-> Vous devez choisir une valeur incluse dans [%d,%d]\n",num,min,max);
+    printf("\n%s\n",ligne);
+    printf(" Erreur %d n'est pas une valeur valide\n  -> Vous devez choisir une valeur incluse dans [%d,%d]\n",num,min,max);
     ret=0;
   }
   return ret;
 }
 
-/* Retourne un tableau d'int contenant la valeur de toutes les operandes */
-/* Si l'opérande est passé en hexadécimal elle est traduite en décimal */
-/* Offset représente l'avancement dans le tableau de char ligne */
-int* parseOperandes(char *ligne, int* offset, registre** registres) {
-  int nbOperande=0;
-  int* operandes=0;
-  int i=*offset,j=0,k=0,numOpe=0,hexa=0;
-  char tmp[16]=""; /* Tableau temporaire */
-  nbOperande=nombreOperande(ligne); /* On compte les opérandes */
-  /* Allocation du tableau de stockage des operandes que nous retournerons */
-  if((operandes=calloc(nbOperande,sizeof(int)))==NULL){exit(1);};
-  for(j=0;j<nbOperande;j++) {
-    k=0;
-    /* La fin d'une opérande est marqué par les caractères '(',',' ou '\0' */
-    while(ligne[i]!='(' && ligne[i]!=',' && ligne[i]!='\0') {
-      /* On prend que les nombres, les moins et les lettres */
-      if ((ligne[i]>='0' && ligne[i]<='9') || ligne[i]=='-' || isalpha(ligne[i])) {
-          tmp[k]=ligne[i];
-          /* Si on rencontre un x c'est que la valeur est hexadécimale */
-          if (ligne[i]=='x') {hexa=1;}
-        k++;
-      }
-      i++;
-    }
-    tmp[k]='\0';
-    /* Si on à une valeur immédiate en hexadécimal on la traduit en décimal */
-    if (hexa) {operandes[numOpe]=hexToDec(tmp);}
-    else {
-      traduitRegistre(registres,tmp);
-      operandes[numOpe]=valeurDecimale(tmp);
-    }
-    i++; /* On passe au caractère suivant */
-    numOpe++; /* On avance d'un opérateur */
-    *offset=i;
-  }
-  return operandes; /* On retourne le tableau des opérandes */
-}
-
-/* Stocke dans le tableau de char operation l'opération assembleur de l'instruction de la ligne (ADD...) */
-/* Offset représente l'avancement dans le tableau de char ligne */
-void parseOperation(char *ligne, char* operation, int* offset) {
-  int i=*offset,j=0;
-  /* Cas général : espace ou $ || NOP : \n ou \0 */
-  while(ligne[i]!= ' ' && ligne[i]!='$' && ligne[i]!='\0' && ligne[i]!='\n') {
-    operation[j++]=ligne[i++];
-  }
-  operation[j]='\0'; /* On met un \0 pour marquer la fin de la ligne et cacher la suite */
-  *offset=i;
-}
-
 /* Traduit une ligne passé en argument (*ligne) en une valeur hexadécimale stockée dans *instructionHex (passé par adresse) */
 /* Retourne 0 si l'operation n'existe pas, est invalide ou que les valeurs sont out of range 1 sinon */
-int parseLigne(char *ligne, unsigned long int *instructionHex, instruction **instructions, registre **registres) {
-  int offset=0,ret=0;
+int hexLigne(char *ligne, int pc, char **ligneParse, unsigned long int *instructionHex, symtable *symbols, instruction **instructions, registre **registres) {
+  int ret=0;
   unsigned long int hex=0;
-  instruction *found=NULL;
+  instruction *instr=NULL;
   int rs=0,rt=0,imm=0,rd=0,sa=0;
-  char operation[TAILLE_MAX_OPERATEUR]="";
+  char *ligneOut=*ligneParse;
   int *operandes=NULL;
-
-  /* On récupère l'opération */
-  parseOperation(ligne,operation,&offset);
-  /* On cherche l'opération dans la structure mémoire (pointeur vers structure) */
-  found=trouveOperation(instructions,operation);
-  /* Si l'opération à été trouvé dans la structure mémoire et qu'on à le bon nombre d'opérande on continu */
-  if (found!=NULL && nombreOperande(ligne)==found->nbOperande) {
-    ret=1; /* On a une expression valide */
-    /* On parse les operandes */
-    operandes=parseOperandes(ligne,&offset,registres);
-    /* Instruction de type R */
-    if (found->typeInstruction=='R') {
-      /* On remplit les valeurs de opcode,rs,rt,rd et sa */
-      if (found->ordreBits==1) {
-        /* ADD/AND/XOR/OR/SLT/SUB */
-        if (found->styleRemplissage==1) {
-          rs=operandes[1];
-          rt=operandes[2];
-          rd=operandes[0];
-          sa=0;
+  int tailleTab=0;
+  int stateInst=0;
+  if (ligne!=NULL) {
+    if((ligneOut=(char *)calloc(strlen(ligne),sizeof(char)))==NULL){exit(1);};
+    stateInst=parsageInstruction(&instr,instructions,registres,symbols,ligne,ligneOut,&operandes,&tailleTab);
+    if (stateInst==1) { /* Si on retourne 1 c'est un label */
+      insertionQueue(symbols,ligneOut,pc);
+      ret=10;
+    }
+    else if (stateInst==3) {
+      printf("Merdee %s\n",ligneOut);
+    }
+    else if (instr!=NULL) {
+      ret=1; /* On a une expression valide */
+      /* Instruction de type R */
+      if (instr->typeInstruction=='R') {
+        /* On remplit les valeurs de opcode,rs,rt,rd et sa */
+        if (instr->ordreBits==1) {
+          /* ADD/AND/XOR/OR/SLT/SUB */
+          if (instr->styleRemplissage==1) {
+            rs=operandes[1];
+            rt=operandes[2];
+            rd=operandes[0];
+            sa=0;
+          }
+          /* NOP */
+          else if (instr->styleRemplissage==2) {
+            ;
+          }
+          /* SLL */
+          else if (instr->styleRemplissage==3) {
+            rs=0;
+            rt=operandes[1];
+            rd=operandes[0];
+            sa=operandes[2];
+          }
         }
-        /* NOP */
-        else if (found->styleRemplissage==2) {
-          ;
-        }
-        /* SLL */
-        else if (found->styleRemplissage==3) {
-          rs=0;
+        else if (instr->ordreBits==2) {
+          /* ROTR */
+          if (instr->styleRemplissage==1) {rs=1;}
+          /* SRL */
+          else if (instr->styleRemplissage==2) {rs=0;}
           rt=operandes[1];
           rd=operandes[0];
           sa=operandes[2];
         }
-      }
-      else if (found->ordreBits==2) {
-        /* ROTR */
-        if (found->styleRemplissage==1) {rs=1;}
-        /* SRL */
-        else if (found->styleRemplissage==2) {rs=0;}
-        rt=operandes[1];
-        rd=operandes[0];
-        sa=operandes[2];
-      }
-      else if (found->ordreBits==3) {
-        /* MULT */
-        if (found->styleRemplissage==1) {
-          rs=operandes[0];
-          rt=operandes[1];
-          rd=0;
-          sa=0;
-        }
-      }
-      else if (found->ordreBits==4) {
-        /* JR -> Implémentation de la release 1 de l'architecture */
-        if (found->styleRemplissage==1) {
-          rs=operandes[0];
-          rt=0;
-          rd=0;
-          sa=0;
-        }
-      }
-      else if (found->ordreBits==5) {
-        /* MFHI/MFLO */
-        if (found->styleRemplissage==1) {
-          rs=0;
-          rt=0;
-          rd=operandes[0];
-          sa=0;
-        }
-      }
-      else if (found->ordreBits==6) {
-        /* SYSCALL */
-        if (found->styleRemplissage==1) {
-          /*  Que faut il mettre ? */
-          rs=0;
-          rt=0;
-          rd=0;
-          sa=0;
-        }
-      }
-      /* Vérification des valeurs passées */
-      /* Valeur sa € [0,31] */
-      if (!(check(rs,0,31) && check(rt,0,31) && check(rd,0,31) && check(sa,0,31))) {
-        free(operandes); /* On libère le tableau opérandes */
-        return 0; /* On saute la ligne */
-      }
-      /* On obtient la valeur hexadécimale avec des décalages binaires et des masques */
-      hex=0;
-      hex|=(rs&0x1f)<<21;
-      hex|=(rt&0x1f)<<16;
-      hex|=(rd&0x1f)<<11;
-      hex|=(sa&0x1f)<<6;
-      hex|=(found->opcode);
-    }
-    /* Instruction de type I */
-    else if (found->typeInstruction=='I') {
-      /* On remplit les valeurs de opcode,rs,rt et imm */
-      hex=((found->opcode)<<26); /* Opcode */
-      if (found->ordreBits==1) {
-        /* ADDI/BEQ/BNE */
-        if (found->styleRemplissage==1) {
-          /* ADDI change, l'instruction présente rt rs imm */
-          if ((found->opcode)==0x08) {
-            rs=operandes[1];
-            rt=operandes[0];
-          }
-          /* rs rt imm */
-          else {
+        else if (instr->ordreBits==3) {
+          /* MULT */
+          if (instr->styleRemplissage==1) {
             rs=operandes[0];
             rt=operandes[1];
+            rd=sa=0;
           }
-          imm=operandes[2];
         }
-        /* BGTZ/BLEZ */
-        else if (found->styleRemplissage==2) {
-          rs=operandes[0];
-          rt=0;
-          imm=operandes[1];
+        else if (instr->ordreBits==4) {
+          /* JR -> Implémentation de la release 1 de l'architecture */
+          if (instr->styleRemplissage==1) {
+            rs=operandes[0];
+            rt=rd=sa=0;
+          }
         }
-        /* LUI */
-        else if (found->styleRemplissage==3) {
-          rs=0;
-          rt=operandes[0];
-          imm=operandes[1];
+        else if (instr->ordreBits==5) {
+          /* MFHI/MFLO */
+          if (instr->styleRemplissage==1) {
+            rd=operandes[0];
+            rs=rt=sa=0;
+          }
         }
-        /* LW/SW */
-        else if (found->styleRemplissage==4) {
-          rs=operandes[2];
-          rt=operandes[0];
-          imm=operandes[1];
+        else if (instr->ordreBits==6) {
+          /* SYSCALL */
+          if (instr->styleRemplissage==1) {
+            /*  Non implémenté */
+            rs=rt=rd=sa=0;
+          }
         }
         /* Vérification des valeurs passées */
-        /* Valeur immédiate € [-32768,32767] */
-        if (!(check(imm,-32768,32767) && check(rs,0,31) && check(rt,0,31))) {
+        /* Valeur sa € [0,31] */
+        if (!(check(ligneOut,rs,0,31) && check(ligneOut,rt,0,31) && check(ligneOut,rd,0,31) && check(ligneOut,sa,0,31))) {
           free(operandes); /* On libère le tableau opérandes */
+          *ligneParse=ligneOut;
           return 0; /* On saute la ligne */
         }
         /* On obtient la valeur hexadécimale avec des décalages binaires et des masques */
+        hex=0;
         hex|=(rs&0x1f)<<21;
         hex|=(rt&0x1f)<<16;
-        hex|=(imm&0xffff);
-        hex&=0xffffffff; /* sécurite, normalement inutile */
+        hex|=(rd&0x1f)<<11;
+        hex|=(sa&0x1f)<<6;
+        hex|=(instr->opcode);
       }
+      /* Instruction de type I */
+      else if (instr->typeInstruction=='I') {
+        /* On remplit les valeurs de opcode,rs,rt et imm */
+        hex=((instr->opcode)<<26); /* Opcode */
+        if (instr->ordreBits==1) {
+          /* ADDI/BEQ/BNE */
+          if (instr->styleRemplissage==1) {
+            /* ADDI change, l'instruction présente rt rs imm */
+            if ((instr->opcode)==0x08) {
+              rs=operandes[1];
+              rt=operandes[0];
+            }
+            /* rs rt imm */
+            else {
+              rs=operandes[0];
+              rt=operandes[1];
+            }
+            imm=operandes[2];
+          }
+          /* BGTZ/BLEZ */
+          else if (instr->styleRemplissage==2) {
+            rs=operandes[0];
+            rt=0;
+            imm=operandes[1];
+          }
+          /* LUI */
+          else if (instr->styleRemplissage==3) {
+            rs=0;
+            rt=operandes[0];
+            imm=operandes[1];
+          }
+          /* LW/SW */
+          else if (instr->styleRemplissage==4) {
+            rs=operandes[2];
+            rt=operandes[0];
+            imm=operandes[1];
+          }
+          /* Vérification des valeurs passées */
+          /* Valeur immédiate € [-32768,32767] */
+          if (!(check(ligneOut,imm,-32768,32767) && check(ligneOut,rs,0,31) && check(ligneOut,rt,0,31))) {
+            free(operandes); /* On libère le tableau opérandes */
+            *ligneParse=ligneOut;
+            return 0; /* On saute la ligne */
+          }
+          /* On obtient la valeur hexadécimale avec des décalages binaires et des masques */
+          hex|=(rs&0x1f)<<21;
+          hex|=(rt&0x1f)<<16;
+          hex|=(imm&0xffff);
+          hex&=0xffffffff; /* sécurité, normalement inutile */
+        }
+      }
+      else if (instr->typeInstruction=='J') {
+        hex=((instr->opcode)<<26); /* Opcode */
+        if (instr->ordreBits==1) {
+          /* ADDI/BEQ/BNE */
+          if (instr->styleRemplissage==1) {
+            /* ADDI change, l'instruction présente rt rs imm */
+            if ((instr->opcode)==0x03) {
+              imm=operandes[0];
+            }
+          }
+        }
+        hex|=(imm);
+        hex&=0xffffffff; /* sécurité, normalement inutile */
+      }
+    }
+    else {
+      free(ligneOut);
     }
   }
   /* On met la valeur hexadécimale dans l'argument passé par adresse */
+  *ligneParse=ligneOut;
   *instructionHex=hex;
   free(operandes);
   return ret; /* 1 si valide 0 sinon (Pour les fausses opération et mauvais nombre d'opérandes et mauvaise valeurs)*/
