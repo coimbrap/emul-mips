@@ -133,20 +133,24 @@ int nettoyageInstruction(char *src, char **parse, int *tailleTab,int *nbOpe) {
       commence=2;
       (*parse)[incremOut++]=src[i]; /* On copie le caractère */
     }
-    i++;
+    i++; /* On avance dans la ligne source */
   }
   if (incremOut==0) {
-    return 0;
+    return 0; /* On a rien copié -> Ligne incorecte */
   }
   (*parse)[incremOut]='\0';
   if (strchr((*parse),':')!=NULL) {
     (*parse)[incremOut-1]='\0'; /* On enlève le : */
-    return 1;
+    return 1; /* On a un label */
   }
-  (*tailleTab)+=(*nbOpe);
-  return 2;
+  (*tailleTab)+=(*nbOpe); /* Mise à jour de la taille du tableau des opérandes */
+  return 2; /* Tout s'est bien passé */
 }
 
+/* prend en entrée la ligne d'entrée, la table des symboles et la mémoire des instructions */
+/* ainsi que des variables par adresses que la fonction va modifier lors du calcul des checksums */
+/* pratique, de la mise en forme de l'expression et de l'identification de l'instruction */
+/* retourne : 1 c'est bon on a calculé || 0 opération invalide */
 int calculChecksum(instruction **instr, char *parse, char *out, int **incremOpe, registre **registres, int* nbOpe, int* nbImm, int* nbReg, instruction** instructions, symtable *symbols) {
   char *tampon=NULL;
   char *p=NULL;
@@ -165,6 +169,7 @@ int calculChecksum(instruction **instr, char *parse, char *out, int **incremOpe,
         return 0; /* On arrête le calcul, l'opération n'est pas existante */
       }
     }
+    /* On reconstitue l'instruction */
     else if (num!=(*nbOpe)) {
       strcat(out,p);
       strcat(out,",");
@@ -186,13 +191,14 @@ int calculChecksum(instruction **instr, char *parse, char *out, int **incremOpe,
       (*nbImm)+=2<<coeffOpe++; /* Pareil */
     }
     else if (num>0 && isalpha(p[0])) {
+      /* On a une label dans ce cas on cherche la correspondance dans la table des symboles */
       if ((tmp=foundSymbol(symbols,p))!=-1) {
         (*incremOpe)[numOpe++]=tmp;
-        (*nbImm)+=2<<coeffOpe++;
+        (*nbImm)+=2<<coeffOpe++; /* On incrémente le checksum des immédiats */
       }
       else {printf("Label non trouvée\n");};
     }
-    /* Si il y a une parenthèse ouvrante dans l'opérande */
+    /* Si il y a une parenthèse ouvrante dans l'opérande on refait la même chose */
     if((p=strchr(p,'('))!=NULL) {
       p++; /* On va au caractère d'après */
       /* Même principe on incrémente en puissance de deux */
@@ -215,6 +221,10 @@ int calculChecksum(instruction **instr, char *parse, char *out, int **incremOpe,
   return 1; /* On a calculé le checksum */
 }
 
+/* prend en entrée la mémoire des instruction, les registres, la mémoire, la table des symboles */
+/* la ligne non édité, la ligne de sortie, un pointeur vers le tableau des opérandes et un pointeur vers la taille de ce tableau */
+/* s'occupe de parser l'expression c'est à dire d'identifier toutes les erreur possible et de remplir le tableau des opérandes */
+/* return 2: Expression valide || 1: Label || 0: Erreur */
 int parsageInstruction(instruction **instr, instruction **instructions,registre** registres, symtable *symbols, char *s, char *out, int** operandes, int* tailleTab) {
   int nbOpe=0,nbReg=0,nbImm=0;
   char *parse=NULL; /* tampon va être la zone de travail de strtok pour pouvoir utiliser strtok dans deux fonctions */
@@ -242,12 +252,14 @@ int parsageInstruction(instruction **instr, instruction **instructions,registre*
     calculChecksum(instr,parse,out,operandes,registres,&nbOpe,&nbImm,&nbReg,instructions,symbols);
     /* Comparaison du checksum avec le checksum théorique */
     if ((*instr)!=NULL) {
+      /* Si on a pas le bon nombre d'opérandes on retourne un erreur */
       if ((*tailleTab)!=(*instr)->nbOperande) {
         printf("\n%s Erreur on attend %d opérandes, on en a %d\n",s,(*instr)->nbOperande,(*tailleTab));
         (*instr)=NULL;
         ret=0;
       }
       else {
+        /* Si les checksums ne sont pas égaux la fonction affiche les erreurs et on quitte la fonction sur une erreur */
         if(compareChecksum(s,nbReg,(*instr)->checksumReg,nbImm,(*instr)->checksumImm,1)==0) {
           (*instr)=NULL;
           ret=0;
@@ -272,8 +284,9 @@ int check(char *ligne, int num, int min, int max) {
   return ret;
 }
 
-/* Traduit une ligne passé en argument (*ligne) en une valeur hexadécimale stockée dans *instructionHex (passé par adresse) */
-/* Retourne 0 si l'operation n'existe pas, est invalide ou que les valeurs sont out of range 1 sinon */
+/* on prend en entrée l'ensemble des mémoires (reg, symtable, instr...), la ligne pure, un pointeur vers la ligne de sortie */
+/* Traduit une ligne passé en argument (*ligne) en un pointeur vers la valeur hexadécimale que l'on calculé (*instructionHex) */
+/* Retourne 0 si l'operation n'existe pas, est invalide ou que les valeurs sont out of range 1 si elle est valide 2 si c'est une label */
 int hexLigne(char *ligne, int pc, char **ligneParse, unsigned long int *instructionHex, symtable *symbols, instruction **instructions, registre **registres) {
   int ret=0;
   unsigned long int hex=0;
@@ -282,16 +295,11 @@ int hexLigne(char *ligne, int pc, char **ligneParse, unsigned long int *instruct
   char *ligneOut=*ligneParse;
   int *operandes=NULL;
   int tailleTab=0;
-  int stateInst=0;
   if (ligne!=NULL) {
     if((ligneOut=(char *)calloc(strlen(ligne),sizeof(char)))==NULL){exit(1);};
-    stateInst=parsageInstruction(&instr,instructions,registres,symbols,ligne,ligneOut,&operandes,&tailleTab);
-    if (stateInst==1) { /* Si on retourne 1 c'est un label */
+    if (parsageInstruction(&instr,instructions,registres,symbols,ligne,ligneOut,&operandes,&tailleTab)) { /* Si on retourne 1 c'est un label */
       insertionQueue(symbols,ligneOut,pc);
-      ret=10;
-    }
-    else if (stateInst==3) {
-      printf("Merdee %s\n",ligneOut);
+      ret=2;
     }
     else if (instr!=NULL) {
       ret=1; /* On a une expression valide */

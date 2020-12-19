@@ -116,34 +116,29 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
     fillSymbols(input,instructions,registres,symbols);
     while(getline(&ligne,&len,fin)!=-1) { /* Tant qu'on est pas à la fin du fichier */
       if(ligne[0]!='\n' && ligne[0]!='\0' && ligne[0]!='#') { /* Si on n'à pas une ligne vide */
-        /* On a quelque chose */
+        /* Si mode automatique */
         if (tmpMode) {
           retParse=hexLigne(ligne,pc->valeur,&ligneOut,&instructionHex,symbols,instructions,registres);
+          /* Ligne correcte on stocke les infos dans la structure d'affichage */
           if (retParse==1) {
             insererSegment(segments,pc->valeur,instructionHex,ligneOut);
             insertion(mem,pc->valeur,instructionHex);
             fprintf(fout,"%08lx\n",instructionHex);
             (pc->valeur)+=4;
           }
-          else if (retParse==10) { /* On a un label */
-            free(ligneOut);
-          }
-          else if (retParse!=0) {
-            printf("Erreur ligne %d, on passe à la suivante (instruction ou argument non reconnue) %s\n",lignes,ligne);
-            free(ligneOut);
-          }
+          else {free(ligneOut);} /* On a un label ou une erreur */
         }
-        /* Mode pas à pas */
+        /* Si mode pas à pas */
         else if (!tmpMode) {
           retParse=hexLigne(ligne,pc->valeur,&ligneOut,&instructionHex,symbols,instructions,registres);
           if (retParse==1) {
             printf("Instruction assembleur ligne %d : \n%s\n\n",lignes,ligneOut);
             printf("Expression hexadécimale : \n0x%08lx\n\n", instructionHex);
             printf("passer l'instruction: [p], instruction suivante: [enter], saut de la lecture: [s]\n");
-            do {
+            do { /* Saisie de l'utilisateur en boucle */
               c=getchar();
               inW=1;
-              if (c=='s' || c=='\n') {
+              if (c=='s' || c=='\n') { /* On stocke dans la structure d'affichage */
                 insererSegment(segments,pc->valeur,instructionHex,ligneOut);
                 insertion(mem,pc->valeur,instructionHex);
                 fprintf(fout,"%08lx\n",instructionHex);
@@ -153,20 +148,15 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
                   tmpMode=1;
                 }
               }
-              else {clean_stdin();}
+              else {clean_stdin();} /* On clean stdin pour le tour suivant */
               if (c=='p') {
                 free(ligneOut);
                 inW=0;
               }
+
             } while(inW);
           }
-          else if (retParse==10) {
-            printf("On a un label %ld \n", pc->valeur);
-          }
-          else {
-    //        printf("Erreur ligne %d, on passe à la suivante (instruction ou argument non reconnue) %s\n\n",lignes,ligne);
-            free(ligneOut);
-          }
+          else {free(ligneOut);} /* Label ou erreur */
         }
         else {free(ligneOut);}
       }
@@ -175,7 +165,7 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
     fclose(fin);
     free(ligne);
   }
-  /* Sinon mode intéractif */
+  /* Sinon mode intéractif exécution et lecture en simultané */
   else if(mode==2) {
     /* On écrit l'instruction assembleur au clavier jusqu'a EXIT */
     printf("Saisissez un instruction ou EXIT : \n");
@@ -244,6 +234,7 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
     /* Une fois la structure remplit on passe à l'éxécution */
   }
   fclose(fout);
+  /* On exécute le programme si mode automatique ou pas à pas */
   if (mode!=2) {
     printf("\nFormes hexadécimale écrites dans '%s'\n", output);
     printf("\n---- Assembleur ----\n\n");
@@ -296,6 +287,6 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
   printf("\n------ Registres ------\n");
   afficheRegistres(registres);
   printf("\n------- Mémoire -------\n");
-  afficherMemoires(mem,DEBUT_MEMOIRE,DEBUT_PROG);
+  afficherMemoires(mem,DEBUT_MEMOIRE,FIN_MEM); /* On affiche toute la mémoire */
   libereSegments(segments);
 }
