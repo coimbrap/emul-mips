@@ -29,8 +29,8 @@ void execTypeR(int opcode, instruction *instr, int rsI, int rtI, int rdI, int sa
             else {rd->valeur=0;};
             break;
           case 0x20: /* ADD */
-            if ((rs->valeur+rt->valeur)<=0xffffffff) {rd->valeur=(rs->valeur+rt->valeur);}
-            else {printf("Exception : Overflow\nNo changes\n");};
+            if ((((int)(rs->valeur+rt->valeur))<=0xFFFFFFFF)) {rd->valeur=(rs->valeur+rt->valeur);}
+            else {printf("Erreur - ADD : Overflow\n");};
             break;
         }
       }
@@ -110,8 +110,8 @@ void execTypeI(int opcode, instruction *instr, int rsI, int rtI, int imm, regist
         if (rs!=NULL && rt!=NULL) {
           switch(opcode) {
             case 0x8: /* ADDI */
-              if (rtI!=0 && ((rs->valeur+imm)<=0xFFFFFFFF)) {rt->valeur=(rs->valeur+imm);}
-              else {printf("Exception : Overflow\nNo changes\n");};
+              if (rtI!=0 && (((int)(rs->valeur+rt->valeur))<=0xFFFFFFFF)) {rt->valeur=(rs->valeur+imm);}
+              else {printf("Erreur - ADDI : Overflow\n");};
               break;
             case 0x4: /* BEQ */
               if (rs->valeur==rt->valeur) {pc->valeur+=(imm<<2);}; break;
@@ -145,9 +145,9 @@ void execTypeI(int opcode, instruction *instr, int rsI, int rtI, int imm, regist
         if (rs!=NULL && rt!=NULL) {
           switch(opcode) {
             case 0x23: /* LW */
-              if (rtI!=0) {rt->valeur=valeurMemoire(mem,(rs->valeur+imm));}; break;
+              if (rtI!=0) {rt->valeur=valeurMemoire(mem,4*(rs->valeur+imm));}; break;
             case 0x2b: /* SW */
-              insertion(mem,(rs->valeur+imm),rt->valeur); break;
+              insertion(mem,4*(rs->valeur+imm),rt->valeur); break;
           }
         }
         pc->valeur+=4;
@@ -161,14 +161,15 @@ void execTypeI(int opcode, instruction *instr, int rsI, int rtI, int imm, regist
 /* exécute l'instruction, met à jour le registre ra et change le PC */
 void execTypeJ(int opcode, instruction *instr, int index, registre *pc, registre **registres) {
   registre *ra=NULL;
+  printf("Index : %d\n", index);
   if (instr->ordreBits==1) { /* JAL/J */
     if (instr->styleRemplissage==1) { /* JAL */
       ra=registres[31];
       ra->valeur=pc->valeur+4;
-      pc->valeur+=(index<<2);
+      pc->valeur=index;
     }
     else if (instr->styleRemplissage==2) { /* J */
-      pc->valeur+=(index<<2);
+      pc->valeur=index;
     }
   }
 }
