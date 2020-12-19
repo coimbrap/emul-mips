@@ -22,6 +22,8 @@ Nous allons aborder les points suivant :
 Les fonctionnalités clé de notre code et les modules de base
 ============================================================
 
+Vérification de la structure des instructions
+---------------------------------------------
 
 Cette fonctionnalité permet de s'assurer que les arguments passé dans
 l'instruction sont du bon type.
@@ -77,6 +79,8 @@ comparant les checksums théorique stockée dans la structure de
 l'opération avec les checksums calculées. Si les deux ne correspondent
 pas on est capable de dire d'où vient le.s erreur.s.
 
+Stockage des informations associé aux opérations
+------------------------------------------------
 
 Cette partie est une des clés de voûte de notre programme. Elle nous
 permet d'associer une opération à 3 critères qui nous permettent de
@@ -186,6 +190,8 @@ assembleur :
     on passe à la suivante. Dans tout les autres cas on passe au calcul
     de la valeur hexadécimale de l'opération.
 
+Gestion des labels
+------------------
 
 La gestion des labels et nécessaire pour les instructions de type J, ici
 nous n'implémenterons que les instructions J et JAL. Il faudra associé
@@ -252,6 +258,8 @@ program counter de l'instruction qui suit le label.
 
 Voilà comment fonctionne notre système de vérification des instructions
 
+Module registres
+----------------
 
 L'objectif de ce module est de fournir une implémentation des registres
 d'un processeur MIPS en C. Ce module permettra de lire la valeur d'un
@@ -306,6 +314,8 @@ d'aller voir dans la case du tableau associé au registre, on pourra à
 partir de là consulter ou modifier la valeur du registre. Nous n'avons
 donc pas besoin d'une fonction pour
 
+Module mémoire
+--------------
 
 Une case mémoire est composée de 32 bits
 
@@ -440,7 +450,10 @@ Nous n'avons pas encore abordé les 3 derniers modules, pour le module
 outils sont fonctionnement est clair nous n'en parlerons donc pas, nous
 allons aborder le reste dans la suite.
 
+Gestion de l'affichage et modes de fonctionnement
+-------------------------------------------------
 
+### Mode automatique
 
 Commande : `emul-mips in.txt out.txt`
 
@@ -466,6 +479,7 @@ manière suivante :
 -   A la fin de l'exécution on affiche l'état des registres et de la
     mémoire avant de tout libérer pour éviter les fuites mémoire
 
+### Mode pas à pas
 
 Commande : `emul-mips -pas in.txt out.txt`
 
@@ -494,6 +508,7 @@ différence des points suivant :
 
     -   Passer à l'instruction suivante
 
+### Mode interactif
 
 Commande : `emul-mips -pas out.txt`
 
@@ -534,6 +549,7 @@ passe de la manière suivante :
 L'instruction EXIT permet d'interrompre la saisie et affiche l'état
 final des registres et de la mémoire
 
+### Fonctionnement de l'affichage des segments en cours d'exécution
 
 Nos différents modes on besoin de pouvoir afficher l'intégralité des
 segments assembleur à tout moment de l'exécution or ce n'est pas
@@ -576,9 +592,12 @@ On a implémenté des fonctions permettant :
 
 C'est tout pour la gestion de la console utilisateur
 
+Cycle de traitement d'une instruction
+-------------------------------------
 
 Le traitement de l'instruction ce fait via les modules hex et calcul.
 
+### Module hex
 
 Nous avons déjà vu la partie parsage et vérification de la forme de
 l'instruction, nous allons voir ici la traduction en hexadécimal.
@@ -598,6 +617,7 @@ obtenir le code de l'instruction sur 32 bits.
 L'avantage est que nous n'avons ni à utiliser des tableaux ni à
 convertir du binaire en hexadécimal ou autre.
 
+### Module calcul
 
 Ce module permet d'exécuter une instruction à partir de son code
 hexadécimal.
@@ -631,10 +651,13 @@ séparer toutes les instructions en plusieurs groupes comme décrit dans
 l'annexe 1 puis nous en avons fait l'implémentation en C à l'aide d'une
 structure et d'un fichier de stockage pour remplir la structure.
 
+Tâches effectuées par Pierre Coimbra
+------------------------------------
 
 Voici un résumé de mes contributions dans les différents modules de
 notre code.
 
+### Module Hex
 
 Pour ce module, je me suis chargé de concevoir le parseur que nous avons
 détaillé plus haut. Il y a eu une première version très simple du
@@ -651,28 +674,33 @@ hexadécimal d'un segment assembleur. C'est la fonction principale du
 module hex (qui correspond à la v1). Cette fonction s'appuie sur le
 parseur et sur la structure principale de contrôle.
 
+### Module Console
 
 J'ai mis en place l'interface utilisateur qui se présente sous la forme
 d'une console et qui utilise les autres fonctions pour faire fonctionner
 notre simulateur. Une partie de l'affichage dépend sur la structure de
 stockage des segments implémenté par Thibaut.
 
+### Module mémoire
 
 Je me suis occupé de mettre en place le module mémoire. C'est-à-dire la
 map mémoire et l'implémentation qu'on en a fait sous forme de liste
 chaînée gardée triée par adresse. Nous allons utiliser ce module pour
 tous les accès en mémoire que ça soit en lecture ou en écriture.
 
+### Module tools
 
 Au niveau du module tools j'ai implémenté la fonction hexToDec qui nous
 est utile pour le support des valeurs hexadécimales dans les
 instructions.
 
+### Module calcul
 
 J'ai implémenté l'intégralité du module calcul qui permet d'exécuter un
 segment assembleur à partir de son code hexadécimal. Il supporte toutes
 les instructions présentes dans l'annexe 2.
 
+### Labels
 
 Pour finir je me suis occupé du support des labels et donc de la
 création du module table qui fournit une implémentation de la table des
@@ -681,6 +709,7 @@ remplir la table des symboles avant l'exécution des segments
 assembleurs. Ainsi que de la modification du module calcul, pour qu'il
 fonctionne avec des instructions de type J.
 
+### Conclusion personnelle
 
 Ce projet m'a beaucoup apporté au niveau programmation en C, j'avais
 déjà un niveau correct étant donné que je viens du premier cycle, mais
@@ -697,6 +726,8 @@ notre code à des situations non prévu (segfault ou buffer overflow suite
 outils comme Address Sanitizer et Valgrind pour vérifier l'absence de
 fuites mémoire ou de problème dans les malloc.
 
+Tâches effectuées par Thibaut Barnel
+------------------------------------
 
 Annexe 1
 ========
@@ -704,11 +735,13 @@ Annexe 1
 Les instructions sont séparées en 3 familles que nous avons recoupé en
 groupes et sous-groupes comme décrit ci-dessous.
 
+### Instruction de type R
 
 Les bits de 31 à 26 contiennent des 0.
 
 Différents cas en fonction du type de type R
 
+#### Ordre des bits 1
 
                     Ordre des bits 1 - Type R
 
@@ -723,6 +756,7 @@ Différents cas en fonction du type de type R
     |          |        |        |        |        |          |
     +----------+--------+--------+--------+--------+----------+
 
+##### Style de remplissage 1 : (0/rs/rt/rd/0/func)
 
 -   ADD : 100000 (25/21 20/16 15/11 10/6 5/0)
 
@@ -742,6 +776,7 @@ Différents cas en fonction du type de type R
 
 -   SLL : 000000 (25/21 20/16 15/11 10/6 5/0)
 
+#### Ordre des bits 2
 
                     Ordre des bits 2 - Type R
 
@@ -754,12 +789,14 @@ Différents cas en fonction du type de type R
     |          |     |        |        |        |         |          |
     +----------+-----+--------+--------+--------+---------+----------+
 
+##### Style de remplissage 1 : (0/0/R1/rt/rd/sa/func)
 
 -   ROTR : 000010 (25/22 21 20/16 15/11 10/6 5/0) \#\#\#\#\# Style de
     remplissage 2 : (0/0/R0/rt/rd/sa/func)
 
 -   SRL : 000010 (25/22 21 20/16 15/11 10/6 5/0)
 
+#### Ordre des bits 3
 
                Ordre des bits 3 - Type R
 
@@ -770,11 +807,13 @@ Différents cas en fonction du type de type R
     |          |        |        |       |          |
     +----------+--------+--------+-------+----------+
 
+##### Style de remplissage 1 : (0/rs/rt/0/func)
 
 -   MULT : 011000 (25/21 20/16 15/6 5/0)
 
 -   DIV : 011010 (25/21 20/16 15/6 5/0)
 
+#### Ordre des bits 4
 
                Ordre des bits 4 - Type R
 
@@ -785,9 +824,11 @@ Différents cas en fonction du type de type R
     |          |        |       |        |          |
     +----------+--------+-------+--------+----------+
 
+##### Style de remplissage 1 : (0/rs/0/hint/func)
 
 -   JR : 001000 (25/21 20/11 10/6 5/0)
 
+#### Ordre des bits 5
 
                Ordre des bits 5 - Type R
 
@@ -798,11 +839,13 @@ Différents cas en fonction du type de type R
     |          |       |        |       |          |
     +----------+-------+--------+-------+----------+
 
+##### Style de remplissage 1 : (0/0/rd/0/func)
 
 -   MFHI : 010000 (25/16 15/11 10/6 5/0)
 
 -   MFLO : 010010 (25/16 15/11 10/6 5/0)
 
+#### Ordre des bits 6
 
         Ordre des bits 6 - Type R
 
@@ -813,6 +856,7 @@ Différents cas en fonction du type de type R
     |          |          |          |
     +----------+----------+----------+
 
+##### Style de remplissage 1 : (0/code/func)
 
 -   SYSCALL : 001100 (25/6 5/0)
 
@@ -826,7 +870,9 @@ suivante en mémoire :
     |          |        |        |        |        |          |
     +----------+--------+--------+--------+--------+----------+
 
+### Instruction de type I
 
+#### Ordre des bits 1
 
               Ordre des bits 1 - Type I
 
@@ -843,6 +889,7 @@ suivante en mémoire :
     |          |        |        |               |
     +----------+--------+--------+---------------+
 
+##### Style de remplissage 1 : (opcode/rs/rt/immediate)
 
 -   ADDI : 001000 (25/21 20/16 15/0)
 
@@ -850,14 +897,17 @@ suivante en mémoire :
 
 -   BNE : 000101 (25/21 20/16 15/0)
 
+##### Style de remplissage 2 : (opcode/rs/0/immediate)
 
 -   BGTZ : 000111 (25/21 20/16 15/0)
 
 -   BLEZ : 000110 (25/21 20/16 15/0)
 
+##### Style de remplissage 3 : (opcode/0/rt/immediate)
 
 -   LUI : 001111 (25/21 20/16 15/0)
 
+##### Style de remplissage 4 : (opcode/base/rt/offset)
 
 -   LW : 100011 (25/21 20/16 15/0)
 
@@ -873,7 +923,9 @@ suivante en mémoire :
     |          |        |        |               |
     +----------+--------+--------+---------------+
 
+### Instruction de type J
 
+#### Ordre des bits 1
 
      Ordre des bits 1 - Type J
 
@@ -884,6 +936,7 @@ suivante en mémoire :
     |          |             |
     +----------+-------------+
 
+##### Style de remplissage 1 : (opcode/instr_index)
 
 -   J : 000010 (25/0)
 
