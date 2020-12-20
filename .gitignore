@@ -2,10 +2,10 @@
 !Makefile
 !*.*
 !*/
-resultat_tests/
+resultats_tests/
 Rendu_Latex/
 *.o
-hex.txt
+*.tgz
 *.tar.xz
 *.tar
 *.tmp

@@ -36,3 +36,6 @@ tools.o: module_tools/tools.c module_tools/tools.h
 
 clean:
 	rm -rf *.o
+
+rendu:
+	tar -zcf Rendu_Final_Barnel_Coimbra.tgz module_* src unit_tests tests_emul resultats_tests outputs emul-mips* Makefile
