@@ -2,6 +2,7 @@
 !Makefile
 !*.*
 !*/
+resultat_tests/
 Rendu_Latex/
 *.o
 hex.txt

@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 /* MEMOIRE REGISTRES */
 
@@ -38,13 +39,13 @@ int traduitRegistre(registre **registres, char* nom) {
   int state=1;
   registre *reg=NULL;
   int nonTrouvee=1,i=0;
-  /* Si on a une registre non traduit */
-  if (valeurDecimale(nom)==-1) {
-    if(nom[0]=='$') {nom++;};
+  /* On enlève tout ce qui n'est pas alphanumérique */
+  stripAlphanum(nom);
+  if (isalpha(nom[0])) {
     /* Allocation de la chaine pour la représentation de l'int */
     if((ret=(char *)calloc(TAILLE_MAX_INT,sizeof(char)))==NULL){exit(1);};
     /* Tant que l'on n'a pas trouvé et que l'on est pas à la fin du tableau */
-    while (nonTrouvee && i<NB_REGISTRE) {
+    while (nonTrouvee && i<NB_REGISTRE-3) {
       if (strcmp(registres[i]->nom,nom)==0) {
         reg=registres[i];
         nonTrouvee=0;

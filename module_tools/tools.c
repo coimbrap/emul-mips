@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 /* OUTILS GENERAUX */
 
@@ -22,6 +23,17 @@ int complementADeux(int value, int bits) {
   return value;
 }
 
+/* prend en entrée une chaine de caractère */
+/* strip tout les caractères non alphanumérique */
+void stripAlphanum(char *s) {
+    int i=0,j=0;
+    char c='0';
+    while ((c=s[i++])!='\0') {
+        if (isalnum(c)) {s[j++]=c;}
+    }
+    s[j]='\0';
+}
+
 /* Prend en entrée une chaine signé */
 /* Retourne un entier signé correspondant à l'entier stocké dans la chaine */
 int valeurDecimale(char* s) {
@@ -32,7 +44,7 @@ int valeurDecimale(char* s) {
     if (s[i]=='-') {sign=-1;};
     if ((strchr(s,'x'))!=NULL) { /* Si hexadécimal on convertit avec une autre fonction */
       /* Pour ne pas altérer la chaine de départ */
-      if((buff=malloc(sizeof(char)*strlen(s)+1))==NULL){exit(0);};
+      if((buff=malloc(strlen(s)+1))==NULL){exit(0);};
       strcpy(buff,s);
       tmp=buff;
       num=hexToDec(strtok_r(tmp,"(",&tampon)); /* En cas d'offset imm(reg) on prend tout avant la première parenthèse car lecture dans le sens inverse */

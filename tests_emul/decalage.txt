@@ -9,8 +9,6 @@ SLL $17,$17,16
 
 #On revient au nombre de départ dans $18 à partir de $16
 SRL $18,$16,16
-#On testera avec un sa négatif (ne fonctionne pas sur l'exemple)
-SLL $19,$17,-16
 
 # Test ROTR
 

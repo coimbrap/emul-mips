@@ -30,7 +30,7 @@ void execTypeR(int opcode, instruction *instr, int rsI, int rtI, int rdI, int sa
             break;
           case 0x20: /* ADD */
             if ((((int)(rs->valeur+rt->valeur))<=0xFFFFFFFF)) {rd->valeur=(rs->valeur+rt->valeur);}
-            else {printf("Erreur - ADD : Overflow\n");};
+            else {printf("Erreur - ADD : Overflow\n\n");};
             break;
         }
       }
@@ -74,7 +74,7 @@ void execTypeR(int opcode, instruction *instr, int rsI, int rtI, int rdI, int sa
       switch(opcode) {
         case 0x08: /* JR */
           if ((rs->valeur+DEBUT_PROG)>=DEBUT_PROG) {pc->valeur=(rs->valeur+DEBUT_PROG);}
-          else {printf("Erreur - JR : Valeur du PC trop faible\n");}
+          else {printf("Erreur - JR : Valeur du PC trop faible\n\n");}
           break;
       }
     }
@@ -110,8 +110,8 @@ void execTypeI(int opcode, instruction *instr, int rsI, int rtI, int imm, regist
         if (rs!=NULL && rt!=NULL) {
           switch(opcode) {
             case 0x8: /* ADDI */
-              if (rtI!=0 && (((int)(rs->valeur+rt->valeur))<=0xFFFFFFFF)) {rt->valeur=(rs->valeur+imm);}
-              else {printf("Erreur - ADDI : Overflow\n");};
+              if (rtI!=0 && (((int)(rs->valeur+imm)<=0xFFFFFFFF))) {rt->valeur=(rs->valeur+imm);}
+              else {printf("Erreur - ADDI : Overflow\n\n");};
               break;
             case 0x4: /* BEQ */
               if (rs->valeur==rt->valeur) {pc->valeur+=(imm<<2);}; break;
@@ -161,7 +161,6 @@ void execTypeI(int opcode, instruction *instr, int rsI, int rtI, int imm, regist
 /* exécute l'instruction, met à jour le registre ra et change le PC */
 void execTypeJ(int opcode, instruction *instr, int index, registre *pc, registre **registres) {
   registre *ra=NULL;
-  printf("Index : %d\n", index);
   if (instr->ordreBits==1) { /* JAL/J */
     if (instr->styleRemplissage==1) { /* JAL */
       ra=registres[31];

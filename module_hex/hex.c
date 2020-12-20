@@ -259,7 +259,7 @@ int calculChecksum(instruction **instr, char *parse, char *out, int **incremOpe,
     /* Calcul de notre checksum */
     if (p[0]=='$') {
       if(!traduitRegistre(registres,p)) {
-        printf("%s\n Erreur, %s n'est pas un registre valide\n",parseTmp,p);
+        printf("\n%s\n Erreur, %s n'est pas un registre valide\n",parseTmp,p);
         (*instr)=NULL;
       }
       (*incremOpe)[numOpe++]=valeurDecimale(p);
@@ -376,7 +376,7 @@ int hexLigne(char *ligne, int pc, char **ligneParse, unsigned long int *instruct
   int tailleTab=0;
   if (ligne!=NULL) {
     if((ligneOut=(char *)calloc(strlen(ligne),sizeof(char)))==NULL){exit(1);};
-    if (parsageInstruction(&instr,instructions,registres,symbols,ligne,ligneOut,&operandes,&tailleTab)) { /* Si on retourne 1 c'est un label */
+    if (parsageInstruction(&instr,instructions,registres,symbols,ligne,ligneOut,&operandes,&tailleTab)==1) { /* Si on retourne 1 c'est un label */
       insertionQueue(symbols,ligneOut,pc);
       ret=2;
     }
@@ -523,9 +523,6 @@ int hexLigne(char *ligne, int pc, char **ligneParse, unsigned long int *instruct
         hex|=(imm);
         hex&=0xffffffff; /* sécurité, normalement inutile */
       }
-    }
-    else {
-      free(ligneOut);
     }
   }
   /* On met la valeur hexadécimale dans l'argument passé par adresse */

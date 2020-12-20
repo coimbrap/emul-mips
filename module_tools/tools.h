@@ -12,6 +12,10 @@ void clean_stdin();
 /* Prend en entrée un entier et le nombre de bits */
 int complementADeux(int value, int bits);
 
+/* prend en entrée une chaine de caractère */
+/* strip tout les caractères non alphanumérique */
+void stripAlphanum(char *s);
+
 /* Prend en entrée une chaine signé */
 /* Retourne un entier signé correspondant à l'entier stocké dans la chaine */
 int valeurDecimale(char *s);
