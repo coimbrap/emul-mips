@@ -88,6 +88,85 @@ instruction* trouveOpcode(instruction** instructions, int opcode, char type) {
   return ret;
 }
 
+/* LABEL */
+
+/* prend en entrée le fichier du programme, la structure des instruction, des registres et la table des symboles */
+/* on écrit par adresse */
+/* remplis la table des symboles et doit pour cela vérifié si les instructions sont correcte (parse + checksum) pour que la valeur du PC soit correcte */
+void fillSymbols(char *input, instruction **instructions, registre** registres, symtable *symbols) {
+  int nbOpe=0,nbReg=0,nbImm=0,num=0,coeffOpe=0;
+  char *p=NULL,*parse=NULL,*tampon=NULL,*s=NULL; /* tampon va être la zone de travail de strtok pour pouvoir utiliser strtok dans deux fonctions */
+  int ret=1;
+	FILE *fin=NULL;
+	int pc=0xDDDC;
+	instruction *instr=NULL;
+	size_t len=0;
+	int tailleTab=0;
+	fin=fopen(input, "r");
+  if (fin==NULL) {
+    printf("Erreur lors de l'ouverture du fichier '%s'\n",input);
+    exit(-1);
+  }
+	/* on parcourt tout le fichier ligne par ligne */
+	while(getline(&s,&len,fin)!=-1) {
+		ret=1;
+		nbReg=nbImm=nbOpe=num=coeffOpe=0;
+		parse=malloc(strlen(s)*sizeof(char));
+	  int state=nettoyageInstruction(s,&parse,&tailleTab,&nbOpe);
+		/* même principe que pour le parseur */
+	  if (state==0) {
+	    free(parse);
+	    ret=0;
+	  }
+	  else if (state==1) {
+	    ret=1;
+			insertionQueue(symbols,parse,pc);
+			free(parse);
+	  }
+	  else {
+	    /* On sépare l'instruction avec l'espace comme séparateur */
+	    for (p=strtok_r(parse," ",&tampon);p!=NULL;p=strtok_r(NULL, " ",&tampon)) {
+	      /* Ecriture */
+	      if (num==0 && nbOpe>=0) {
+	        instr=trouveOperation(instructions,p);
+	        if(instr==NULL) {ret=0;}
+	      }
+	      /* Calcul de notre checksum */
+	      if (p[0]=='$') {
+	        if(!traduitRegistre(registres,p)) {ret=0;};
+	        nbReg+=2<<coeffOpe++; /* On ajoute la puissance de deux du numéro de l'opérande */
+	      }
+	      else if (isdigit(p[0]) || p[0]=='-') {
+	        nbImm+=2<<coeffOpe++;
+	      }
+	      else if (num>0 && isalpha(p[0])) {
+	        nbImm+=2<<coeffOpe++;
+	      }
+	      /* Si il y a une parenthèse ouvrante dans l'opérande */
+	      if((p=strchr(p,'('))!=NULL) {
+	        p++; /* On va au caractère d'après */
+	        if (p[0]=='$') {
+	          if(!traduitRegistre(registres,p)) {ret=0;};
+	          nbReg+=2<<coeffOpe++;
+	        }
+	        else if (isdigit(p[0]) || p[0]=='-') {
+	          nbImm+=2<<coeffOpe++;
+	        }
+	      }
+	      num++;
+	    }
+	    /* Comparaison du checksum avec le checksum théorique */
+	    if (ret!=0) {
+	      if((nbReg!=instr->checksumReg) ||( nbImm!=instr->checksumImm)){ret=0;};
+			}
+			if (ret==1) {pc+=4;}
+			free(parse);
+			free(p);
+	  }
+	}
+	free(s);
+}
+
 /* PARSAGE */
 
 /* prend en entrée le checksum calculé et le checksum théorique pour les registres et les immédiats */

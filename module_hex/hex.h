@@ -44,6 +44,13 @@ instruction* trouveOperation(instruction** instructions, char* nom);
 /* Retourne un pointeur vers la structure contenant toutes les informations d'une opération */
 instruction* trouveOpcode(instruction** instructions, int opcode, char type);
 
+/* LABEL */
+
+/* prend en entrée le fichier du programme, la structure des instruction, des registres et la table des symboles */
+/* on écrit par adresse */
+/* remplis la table des symboles et doit pour cela vérifié si les instructions sont correcte (parse + checksum) pour que la valeur du PC soit correcte */
+void fillSymbols(char *input, instruction **instructions, registre** registres, symtable *symbols);
+
 /* PARSAGE */
 
 /* prend en entrée le checksum calculé et le checksum théorique pour les registres et les immédiats */
@@ -77,4 +84,5 @@ int check(char *ligne, int num, int min, int max);
 /* Traduit une ligne passé en argument (*ligne) en un pointeur vers la valeur hexadécimale que l'on calculé (*instructionHex) */
 /* Retourne 0 si l'operation n'existe pas, est invalide ou que les valeurs sont out of range 1 si elle est valide 2 si c'est une label */
 int hexLigne(char *ligne, int pc, char **ligneParse, unsigned long int *instructionHex, symtable *symbols, instruction **instructions, registre **registres);
+
 #endif

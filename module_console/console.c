@@ -97,7 +97,7 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
   int lignes=1,pcMax=0,tmpMode=mode,retParse=0,saisie=1,inW=1;
   char c='0';
   unsigned long int instruction=0;
-  registre *pc=NULL,*sp=NULL;
+  registre *pc=NULL;
   pc=registres[32]; /* PC */
   pc->valeur=DEBUT_PROG; /* Initialisation du PC */
   /* Initialisation du fichier (suppression du contenu ou création) */
@@ -240,9 +240,6 @@ void parseFichier(char *input, char* output, int mode, instruction **instruction
     printf("\n---- Assembleur ----\n\n");
     afficherSegments(segments,-1);
     printf("\n----- Exécution du programme -----\n\n");
-    /* Init du registre SP */
-    sp=registres[29];
-    /* (sp->valeur)=DEBUT_PILE; */
     pcMax=pc->valeur; /* On mémorise le pcMAx */
     pc->valeur=DEBUT_PROG;
     /* Tant qu'on à pas atteint la dernière instruction */
