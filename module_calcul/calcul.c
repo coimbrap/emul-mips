@@ -25,7 +25,7 @@ void execTypeR(int opcode, instruction *instr, int rsI, int rtI, int rdI, int sa
           case 0x25: /* OR */
             rd->valeur=(rs->valeur|rt->valeur); break;
           case 0x2A: /* SLT */
-            if (rs->valeur<rt->valeur) {rd->valeur=1;}
+            if (((int)rs->valeur)<((int)rt->valeur)) {rd->valeur=1;}
             else {rd->valeur=0;};
             break;
           case 0x20: /* ADD */
@@ -125,9 +125,9 @@ void execTypeI(int opcode, instruction *instr, int rsI, int rtI, int imm, regist
         if (rs!=NULL) {
           switch(opcode) {
             case 0x7: /* BGTZ */
-              if (rs->valeur>0) {pc->valeur+=(imm<<2);}; break;
+              if (((int)rs->valeur)>0) {pc->valeur+=(imm<<2);}; break;
             case 0x6: /* BLEZ */
-              if (rs->valeur<=0) {pc->valeur+=(imm<<2);}; break;
+              if (((int)rs->valeur)<=0) {pc->valeur+=(imm<<2);}; break;
           }
         }
         pc->valeur+=4;
